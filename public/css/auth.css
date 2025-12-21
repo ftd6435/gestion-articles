@@ -1,0 +1,345 @@
+/* =========================
+   Variables
+========================= */
+:root {
+    --primary-color: #4e54c8;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --dark-color: #1f2937;
+    --text-muted: #6b7280;
+    --bg-light: #f9fafb;
+    --border-color: #e5e7eb;
+    --radius: 14px;
+}
+
+/* =========================
+   Global
+========================= */
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-light);
+    color: var(--dark-color);
+    min-height: 100vh;
+}
+
+.auth-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================
+   Left branding
+========================= */
+.auth-branding {
+    flex: 1;
+    background: var(--primary-gradient);
+    color: #fff;
+    padding: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.branding-content {
+    max-width: 420px;
+}
+
+.logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.logo-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.brand-name {
+    font-weight: 700;
+    margin: 0;
+}
+
+.brand-tagline {
+    opacity: 0.9;
+    margin-bottom: 2.5rem;
+}
+
+.features-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .95rem;
+}
+
+.feature-item i {
+    color: #d1fae5;
+}
+
+/* =========================
+   Right form
+========================= */
+.auth-form-container {
+    flex: 1;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.auth-form-wrapper {
+    max-width: 420px;
+    width: 100%;
+    margin: auto;
+    padding: 3rem 2rem;
+}
+
+/* Mobile logo */
+.mobile-logo {
+    display: none;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.logo-icon-mobile {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-gradient);
+    color: #fff;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: .5rem;
+}
+
+/* =========================
+   Form header
+========================= */
+.form-header {
+    margin-bottom: 2rem;
+}
+
+.form-title {
+    font-weight: 700;
+}
+
+.form-subtitle {
+    color: var(--text-muted);
+    font-size: .95rem;
+}
+
+/* =========================
+   Inputs
+========================= */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.input-icon-wrapper {
+    position: relative;
+    transition: transform .2s ease;
+}
+
+.input-icon-wrapper:focus-within {
+    transform: translateY(-1px);
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.form-control {
+    padding-left: 42px;
+    height: 48px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        transform .2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(78, 84, 200, .15);
+}
+
+.form-control:focus {
+    transform: scale(1.01);
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.invalid-feedback {
+    font-size: .8rem;
+    margin-top: .35rem;
+}
+
+.is-invalid {
+    border-color: #dc3545;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, .15);
+}
+
+/* =========================
+   Remember / forgot
+========================= */
+.forgot-link {
+    font-size: .85rem;
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   Button
+========================= */
+.btn-auth {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius);
+    background: var(--primary-gradient);
+    border: none;
+    font-weight: 500;
+    margin-top: 1rem;
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.btn-auth:hover {
+    opacity: .95;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(78, 84, 200, .35);
+}
+
+.btn-auth:active {
+    transform: translateY(0);
+}
+
+/* =========================
+   Card
+========================= */
+.auth-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 2.5rem;
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04);
+    animation: cardEnter .6s ease forwards;
+}
+
+/* =========================
+   Animations (Framer-like)
+========================= */
+@keyframes cardEnter {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.form-group {
+    animation: fadeUp .5s ease forwards;
+}
+
+.form-group:nth-child(1) { animation-delay: .1s; }
+.form-group:nth-child(2) { animation-delay: .2s; }
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   Register link
+========================= */
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: .9rem;
+}
+
+.register-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* =========================
+   Footer
+========================= */
+.auth-footer {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: .8rem;
+    color: var(--text-muted);
+}
+
+.footer-links a {
+    color: inherit;
+    text-decoration: none;
+    margin: 0 .25rem;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 992px) {
+    .auth-branding {
+        display: none;
+    }
+
+    .mobile-logo {
+        display: block;
+    }
+
+    .auth-form-wrapper {
+        padding: 2rem 1.5rem;
+    }
+}
