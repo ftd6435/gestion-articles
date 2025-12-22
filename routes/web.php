@@ -2,12 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Dashboard;
-use App\Livewire\Articles;
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Livewire\Articles\Articles;
 use App\Livewire\Articles\Category;
+use App\Livewire\Comptabilite\Devise;
+use App\Livewire\Warehouse\Magasin;
+use App\Livewire\Warehouse\Etagere;
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
@@ -41,6 +44,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/articles', Articles::class)->name('articles');
 
     Route::get('/configuration/categories', Category::class)->name('configuration.categories');
+    Route::get('/configuration/devises', Devise::class)->name('configuration.devises');
+
+    // WAREHOUSE ROUTES
+    Route::get('/warehouse/magasins', Magasin::class)->name('warehouse.magasins');
+    Route::get('/warehouse/etageres', Etagere::class)->name('warehouse.etageres');
 
     Route::get('/ventes/historique', function () {
         return view('livewire.ventes.historique');

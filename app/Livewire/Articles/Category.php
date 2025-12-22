@@ -4,6 +4,7 @@ namespace App\Livewire\Articles;
 
 use App\Models\Category as CategoryModel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Category extends Component
@@ -16,11 +17,25 @@ class Category extends Component
     public $status = true;
     public $showModal = false;
 
-    protected $rules = [
-        'name' => 'required|string|min:3',
-        'description' => 'nullable|string',
-        'status' => 'boolean',
-    ];
+    protected function rules()
+    {
+        return [
+            'name' => ['required', 'string', 'min:3', Rule::unique('categories', 'name')->ignore($this->categoryId)],
+            'description' => 'nullable|string',
+            'status' => 'boolean',
+        ];
+    }
+
+    protected function messages()
+    {
+        return [
+            'name.required' => 'Le nom est obligatoire',
+            'name.unique' => 'Cette catégorie existe déjà',
+            'name.string' => 'Le nom est une chaine de caractère',
+            'name.min' => 'Le nom doit contenir au moins 3 caractères',
+            'description.required' => 'La description est une chaine de caractère',
+        ];
+    }
 
     protected $listeners = ['confirmDelete'];
 

@@ -7,7 +7,7 @@
                     <div class="bg-white rounded p-2 me-2">
                         <i class="fas fa-bolt text-primary"></i>
                     </div>
-                    <h4 class="mb-0 fw-bold">AdminPro</h4>
+                    <h4 class="mb-0 fw-bold">GestionStock</h4>
                 </div>
                 <button class="btn btn-link text-white d-lg-none" onclick="toggleSidebar()">
                     <i class="fas fa-times"></i>
@@ -68,6 +68,35 @@
                         </div>
                     </li>
 
+                    <!-- Warehouse (Dropdown) -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('warehouse*') ? 'active' : '' }}"
+                           data-bs-toggle="collapse"
+                           href="#warehouse"
+                           role="button"
+                           aria-expanded="false">
+                            <i class="fa-solid fa-warehouse"></i>
+                            <span>Gestion Entrépôts</span>
+                            <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
+                        </a>
+                        <div class="collapse {{ request()->is('warehouse*') ? 'show' : '' }}" id="warehouse">
+                            <ul class="nav flex-column dropdown-menu-custom">
+                                <li class="nav-item mt-2">
+                                    <a href="{{ route('warehouse.magasins') }}" class="nav-link {{ request()->is('warehouse/magasins') ? 'active' : '' }}">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <span>Magasins</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('warehouse.etageres') }}" class="nav-link {{ request()->is('warehouse/etageres') ? 'active' : '' }}">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <span>Etagères</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
                     <!-- Configuration (Dropdown) -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('configuration*') ? 'active' : '' }}"
@@ -88,7 +117,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link {{ request()->is('configuration/devises') ? 'active' : '' }}">
+                                    <a href="{{ route('configuration.devises') }}" class="nav-link {{ request()->is('configuration/devises') ? 'active' : '' }}">
                                         <i class="fas fa-calendar-day"></i>
                                         <span>Devise</span>
                                     </a>

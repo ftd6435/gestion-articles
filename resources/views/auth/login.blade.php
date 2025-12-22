@@ -17,7 +17,7 @@
                     <div class="logo-icon">
                         <i class="fas fa-bolt"></i>
                     </div>
-                    <h1 class="brand-name">AdminPro</h1>
+                    <h1 class="brand-name">GestionStock</h1>
                 </div>
                 <p class="brand-tagline">Gérez votre entreprise avec efficacité</p>
 
@@ -46,7 +46,7 @@
                     <div class="logo-icon-mobile">
                         <i class="fas fa-bolt"></i>
                     </div>
-                    <h2>AdminPro</h2>
+                    <h2>GestionStock</h2>
                 </div>
 
                 <div class="auth-card">

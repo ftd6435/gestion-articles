@@ -293,6 +293,35 @@ document.addEventListener('DOMContentLoaded', function () {
     tooltipTriggerList.map(el => new bootstrap.Tooltip(el))
 })
 
+/**
+ * THOUSAND SEPARTOR
+ */
+function priceInput(livewire, field) {
+    return {
+        display: '',
+
+        format() {
+            // Remove everything except numbers and dot
+            let raw = this.display.replace(/[^\d.]/g, '');
+
+            // Prevent multiple dots
+            raw = raw.split('.').slice(0, 2).join('.');
+
+            // Update Livewire with clean value
+            livewire.set(field, raw);
+
+            // Format for display
+            if (raw !== '') {
+                const parts = raw.split('.');
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+                this.display = parts.join('.');
+            } else {
+                this.display = '';
+            }
+        }
+    }
+}
+
 // ============================================
 // EXPOSE FUNCTIONS GLOBALLY
 // ============================================

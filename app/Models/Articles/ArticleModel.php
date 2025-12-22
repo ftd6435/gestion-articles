@@ -1,16 +1,24 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Articles;
 
-use App\Models\Articles\ArticleModel;
+use App\Models\Category;
+use App\Models\DeviseModel;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class ArticleModel extends Model
 {
     protected $fillable = [
-        'name',
+        'reference',
+        'category_id',
+        'devise_id',
+        'designation',
         'description',
-        'status', // boolean
+        'prix_achat',
+        'prix_vente',
+        'unite',
+        'status',
         'created_by',
         'updated_by'
     ];
@@ -47,8 +55,13 @@ class Category extends Model
         return $query->where('status', false);
     }
 
-    public function articles()
+    public function category()
     {
-        return $this->hasMany(ArticleModel::class);
+        return $this->belongsTo(Category::class);
+    }
+
+    public function devise()
+    {
+        return $this->belongsTo(DeviseModel::class, 'devise_id');
     }
 }

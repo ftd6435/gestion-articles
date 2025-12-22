@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Warehouse;
 
-use App\Models\Articles\ArticleModel;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class EtagereModel extends Model
 {
     protected $fillable = [
-        'name',
-        'description',
-        'status', // boolean
+        'magasin_id',
+        'code_etagere',
+        'status',
         'created_by',
         'updated_by'
     ];
@@ -47,8 +47,8 @@ class Category extends Model
         return $query->where('status', false);
     }
 
-    public function articles()
+    public function magasin()
     {
-        return $this->hasMany(ArticleModel::class);
+        return $this->belongsTo(MagasinModel::class, 'magasin_id');
     }
 }

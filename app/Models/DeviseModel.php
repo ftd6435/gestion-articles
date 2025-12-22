@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Models\Articles\ArticleModel;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class DeviseModel extends Model
 {
     protected $fillable = [
-        'name',
-        'description',
-        'status', // boolean
+        'code',
+        'libelle',
+        'symbole',
+        'status',
         'created_by',
         'updated_by'
     ];
@@ -49,6 +50,6 @@ class Category extends Model
 
     public function articles()
     {
-        return $this->hasMany(ArticleModel::class);
+        return $this->hasMany(ArticleModel::class, 'devise_id');
     }
 }
