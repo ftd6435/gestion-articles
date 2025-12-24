@@ -25,14 +25,6 @@
                         </a>
                     </li>
 
-                    <!-- Articles -->
-                    <li class="nav-item">
-                        <a href="/articles" class="nav-link {{ request()->is('articles') ? 'active' : '' }}">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Articles</span>
-                        </a>
-                    </li>
-
                     <!-- Ventes (Dropdown) -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('ventes*') ? 'active' : '' }}"
@@ -66,6 +58,65 @@
                                 </li>
                             </ul>
                         </div>
+                    </li>
+
+                    <!-- Articles -->
+                    <li class="nav-item">
+                        <a href="/articles" class="nav-link {{ request()->is('articles') ? 'active' : '' }}">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Articles</span>
+                        </a>
+                    </li>
+
+                    <!-- Stock (Dropdown) -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('stock*') ? 'active' : '' }}"
+                           data-bs-toggle="collapse"
+                           href="#stockMenu"
+                           role="button"
+                           aria-expanded="false">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Stock</span>
+                            <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
+                        </a>
+                        <div class="collapse {{ request()->is('commandes*') ? 'show' : '' }}" id="stockMenu">
+                            <ul class="nav flex-column dropdown-menu-custom">
+                                <li class="nav-item mt-2">
+                                    <a href="/stock/commandes" class="nav-link {{ request()->is('stock/commandes') ? 'active' : '' }}">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                        <span>Commandes</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/stock/approvisions" class="nav-link {{ request()->is('stock/approvisions') ? 'active' : '' }}">
+                                        <i class="fa-solid fa-truck-arrow-right"></i>
+                                        <span>Approvisions</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/stock/approvisions/paiements" class="nav-link {{ request()->is('stock/approvisions/paiements') ? 'active' : '' }}">
+                                        <i class="fa-regular fa-money-bill-1"></i>
+                                        <span>Paiments</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <!-- Clients -->
+                    <li class="nav-item">
+                        <a href="/clients" class="nav-link {{ request()->is('clients') ? 'active' : '' }}">
+                            <i class="fa-solid fa-user-group"></i>
+                            <span>Clients</span>
+                        </a>
+                    </li>
+
+                    <!-- Fournisseurs -->
+                    <li class="nav-item">
+                        <a href="/fournisseurs" class="nav-link {{ request()->is('fournisseurs') ? 'active' : '' }}">
+                            <i class="fa-solid fa-truck-field"></i>
+                            <span>Fournisseurs</span>
+                        </a>
                     </li>
 
                     <!-- Warehouse (Dropdown) -->

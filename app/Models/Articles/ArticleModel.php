@@ -4,6 +4,8 @@ namespace App\Models\Articles;
 
 use App\Models\Category;
 use App\Models\DeviseModel;
+use App\Models\Stock\LigneCommandeFournisseur;
+use App\Models\Stock\LigneReceptionFournisseur;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -63,5 +65,15 @@ class ArticleModel extends Model
     public function devise()
     {
         return $this->belongsTo(DeviseModel::class, 'devise_id');
+    }
+
+    public function ligneCommandes()
+    {
+        return $this->hasMany(LigneCommandeFournisseur::class, 'article_id');
+    }
+
+    public function ligneReceptions()
+    {
+        return $this->hasMany(LigneReceptionFournisseur::class, 'article_id');
     }
 }

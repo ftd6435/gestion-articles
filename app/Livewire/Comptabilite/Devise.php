@@ -152,14 +152,42 @@ class Devise extends Component
 
     public function deleteConfirm($id)
     {
-        $this->dispatch('confirm-delete', id: $id);
+        try {
+            $devise = DeviseModel::find($id);
+
+            // Dispatch l'événement avec le nom de la devise
+            $this->dispatch(
+                'confirm-delete',
+                id: $id,
+                itemName: $devise ? $devise->libelle : 'cette devise'
+            );
+        } catch (\Exception $e) {
+            $this->dispatch('error', message: 'Erreur lors de la récupération de la devise');
+        }
     }
 
     public function confirmDelete($id)
     {
-        DeviseModel::findOrFail($id)->delete();
-        $this->loadDevises();
-        session()->flash('success', 'Devise supprimée avec succès');
+        try {
+            $devise = DeviseModel::findOrFail($id);
+            $libelle = $devise->libelle;
+
+            $devise->delete();
+
+            $this->loadDevises();
+
+            // Dispatch événement de succès
+            $this->dispatch(
+                'delete-success',
+                message: "La devise \"{$libelle}\" a été supprimée avec succès."
+            );
+        } catch (\Exception $e) {
+            // Dispatch événement d'erreur
+            $this->dispatch(
+                'delete-error',
+                message: 'Une erreur est survenue lors de la suppression: ' . $e->getMessage()
+            );
+        }
     }
 
     public function render()

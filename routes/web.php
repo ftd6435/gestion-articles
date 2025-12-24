@@ -8,7 +8,14 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Livewire\Articles\Articles;
 use App\Livewire\Articles\Category;
+use App\Livewire\Client;
 use App\Livewire\Comptabilite\Devise;
+use App\Livewire\Fournisseur;
+use App\Livewire\Stock\Commande;
+use App\Livewire\Stock\CreateCommande;
+use App\Livewire\Stock\CreateReception;
+use App\Livewire\Stock\Paiement;
+use App\Livewire\Stock\Reception;
 use App\Livewire\Warehouse\Magasin;
 use App\Livewire\Warehouse\Etagere;
 
@@ -42,6 +49,15 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
     Route::get('/articles', Articles::class)->name('articles');
+    Route::get('/clients', Client::class)->name('clients');
+    Route::get('/fournisseurs', Fournisseur::class)->name('fournisseurs');
+
+    Route::get('/stock/commandes', Commande::class)->name('stock.commandes');
+    Route::get('/stock/commandes/create', CreateCommande::class)->name('stock.commandes.create');
+
+    Route::get('/stock/approvisions', Reception::class)->name('stock.approvisions');
+    Route::get('/stock/approvisions/create', CreateReception::class)->name('stock.approvisions.create');
+    Route::get('/stock/approvisions/paiements', Paiement::class)->name('stock.approvisions.paiements');
 
     Route::get('/configuration/categories', Category::class)->name('configuration.categories');
     Route::get('/configuration/devises', Devise::class)->name('configuration.devises');

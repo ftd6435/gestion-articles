@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Models\Warehouse;
+namespace App\Models;
 
-use App\Models\Stock\LigneReceptionFournisseur;
-use App\Models\User;
+use App\Models\Stock\CommandeFournisseur;
 use Illuminate\Database\Eloquent\Model;
 
-class EtagereModel extends Model
+class FournisseurModel extends Model
 {
+    protected $table = "fournisseur_models";
+
     protected $fillable = [
-        'magasin_id',
-        'code_etagere',
+        'name',
+        'telephone',
+        'adresse',
         'status',
         'created_by',
         'updated_by'
@@ -48,13 +50,8 @@ class EtagereModel extends Model
         return $query->where('status', false);
     }
 
-    public function magasin()
+    public function commandes()
     {
-        return $this->belongsTo(MagasinModel::class, 'magasin_id');
-    }
-
-    public function ligneReceptions()
-    {
-        return $this->hasMany(LigneReceptionFournisseur::class, 'etagere_id');
+        return $this->hasMany(CommandeFournisseur::class, 'fournisseur_id');
     }
 }

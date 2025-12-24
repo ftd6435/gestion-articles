@@ -123,18 +123,3 @@
     @include('livewire.warehouse.magasin-modal')
 
 </div>
-
-@push('scripts')
-<script>
-    window.addEventListener('confirm-delete', (e) => {
-        confirmAction({
-            title: 'Supprimer le magasin ?',
-            text: 'Cette action est irréversible',
-            confirmText: 'Supprimer',
-            onConfirm: () => {
-                Livewire.dispatch('confirmDelete', { id: e.detail.id })
-            }
-        })
-    })
-</script>
-@endpush
