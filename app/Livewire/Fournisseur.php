@@ -10,6 +10,9 @@ use Livewire\Component;
 class Fournisseur extends Component
 {
     public $showModal = false;
+    public $showDetailsModal = false;
+    public $selectedFournisseur = null;
+
     public $fournisseurs = [];
 
     public $fournisseurId;
@@ -86,6 +89,24 @@ class Fournisseur extends Component
     {
         $this->resetForm();
         $this->showModal = true;
+    }
+
+    public function showDetails($id)
+    {
+        $this->selectedFournisseur = FournisseurModel::with(
+            'commandes.devise',
+            'commandes.ligneCommandes',
+            'commandes.receptions',
+            'commandes.paiements',
+        )->find($id);
+
+        $this->showDetailsModal = true;
+    }
+
+    public function closeDetails()
+    {
+        $this->showDetailsModal = false;
+        $this->selectedFournisseur = null;
     }
 
     public function closeModal()
@@ -199,11 +220,6 @@ class Fournisseur extends Component
                 message: 'Une erreur est survenue lors de la suppression: ' . $e->getMessage()
             );
         }
-    }
-
-    public function view($id)
-    {
-        // Single views
     }
 
     public function render()

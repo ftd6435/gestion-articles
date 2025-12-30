@@ -14,14 +14,34 @@ class Articles extends Component
 {
     use WithPagination;
 
+    // Filters
     public $search = '';
     public $filterCategory = '';
     public $filterDevise = '';
+    public $filterStatus = '';
 
-    public $articles;
+    public $filterStockLevel = '';
+    public $filterMargin = '';
+    public $filterLastUpdated = '';
+    public $showAdvancedFilters = false;
+    public $perPage = 15; // Items per page
+
+    // Data
     public $categories;
     public $devises;
 
+    // Statistics (calculated on all articles, not just paginated ones)
+    public $activeCount = 0;
+    public $inactiveCount = 0;
+    public $avgPurchasePrice = 0;
+    public $avgSalePrice = 0;
+    public $minPurchasePrice = 0;
+    public $maxPurchasePrice = 0;
+    public $avgMargin = 0;
+    public $recentSalesCount = 0;
+    public $topCategory = '';
+
+    // Form properties
     public $articleId;
     public $reference;
     public $category_id;
@@ -49,94 +69,144 @@ class Articles extends Component
         ];
     }
 
-    protected function messages()
-    {
-        return [
-            // Référence / Code magasin
-            'reference.required' => 'La référence de l’article est obligatoire.',
-            'reference.string'   => 'La référence de l’article doit être une chaîne de caractères.',
-            'reference.min'      => 'La référence de l’article doit contenir au moins :min caractères.',
-            'reference.unique'   => 'Cette référence est déjà utilisée par un autre article.',
-
-            // Catégorie
-            'category_id.required' => 'Veuillez sélectionner une catégorie.',
-            'category_id.exists'   => 'La catégorie sélectionnée est invalide.',
-
-            // Devise
-            'devise_id.required' => 'Veuillez sélectionner une devise.',
-            'devise_id.exists'   => 'La devise sélectionnée est invalide.',
-
-            // Désignation
-            'designation.required' => 'La désignation de l’article est obligatoire.',
-            'designation.string'   => 'La désignation doit être une chaîne de caractères.',
-            'designation.min'      => 'La désignation doit contenir au moins :min caractères.',
-
-            // Description
-            'description.string' => 'La description doit être une chaîne de caractères.',
-
-            // Prix d’achat
-            'prix_achat.numeric' => 'Le prix d’achat doit être un nombre.',
-            'prix_achat.min'     => 'Le prix d’achat ne peut pas être négatif.',
-
-            // Prix de vente
-            'prix_vente.numeric' => 'Le prix de vente doit être un nombre.',
-            'prix_vente.min'     => 'Le prix de vente ne peut pas être négatif.',
-
-            'prix_vente.gte' => 'Le prix de vente doit être supérieur ou égal au prix d’achat.',
-            'prix_vente.gt'  => 'Le prix de vente doit être strictement supérieur au prix d’achat.',
-
-            // Unité
-            'unite.string' => 'L’unité doit être une chaîne de caractères.',
-            'unite.min'    => 'L’unité doit contenir au moins :min caractères.',
-
-            // Status
-            'status.boolean' => 'Le statut de l’article est invalide.',
-        ];
-    }
-
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'filterCategory' => ['except' => ''],
+        'filterDevise' => ['except' => ''],
+        'filterStatus' => ['except' => ''],
+        'page' => ['except' => 1],
+    ];
 
     public function mount()
     {
-        $this->loadArticles();
         $this->loadCategories();
         $this->loadDevises();
+        $this->calculateStatistics();
     }
 
-    public function loadArticles()
+    // Build the query for pagination
+    protected function getQuery()
     {
-        $this->articles = ArticleModel::query()
-            ->with(['category', 'devise'])
+        $query = ArticleModel::query()
+            ->with([
+                'category',
+                'devise',
+                'ligneCommandes',
+                'ligneReceptions',
+                'ligneVentes'
+            ]);
 
-            // 🔍 Search (reference + designation)
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('reference', 'like', '%' . $this->search . '%')
-                        ->orWhere('designation', 'like', '%' . $this->search . '%');
-                });
-            })
+        // Search
+        $query->when($this->search, function ($query) {
+            $query->where(function ($q) {
+                $q->where('reference', 'like', '%' . $this->search . '%')
+                    ->orWhere('designation', 'like', '%' . $this->search . '%')
+                    ->orWhere('description', 'like', '%' . $this->search . '%');
+            });
+        });
 
-            // 📂 Category filter
-            ->when($this->filterCategory, function ($query) {
-                $query->where('category_id', $this->filterCategory);
-            })
+        // Category filter
+        $query->when($this->filterCategory, function ($query) {
+            $query->where('category_id', $this->filterCategory);
+        });
 
-            // 💱 Devise filter
-            ->when($this->filterDevise, function ($query) {
-                $query->where('devise_id', $this->filterDevise);
-            })
+        // Devise filter
+        $query->when($this->filterDevise, function ($query) {
+            $query->where('devise_id', $this->filterDevise);
+        });
 
-            ->latest()
-            ->get();
+        // Status filter
+        $query->when($this->filterStatus, function ($query) {
+            if ($this->filterStatus === 'active') {
+                $query->where('status', true);
+            } elseif ($this->filterStatus === 'inactive') {
+                $query->where('status', false);
+            }
+        });
+
+        // Last updated filter
+        $query->when($this->filterLastUpdated, function ($query) {
+            $now = now();
+            if ($this->filterLastUpdated === 'today') {
+                $query->whereDate('updated_at', $now->toDateString());
+            } elseif ($this->filterLastUpdated === 'week') {
+                $query->whereBetween('updated_at', [$now->startOfWeek(), $now->endOfWeek()]);
+            } elseif ($this->filterLastUpdated === 'month') {
+                $query->whereMonth('updated_at', $now->month)
+                    ->whereYear('updated_at', $now->year);
+            } elseif ($this->filterLastUpdated === 'year') {
+                $query->whereYear('updated_at', $now->year);
+            }
+        });
+
+        // Stock level filter (you'll need to implement this differently)
+        // This is complex as it requires calculating stock for each article
+        $query->when($this->filterStockLevel, function ($query) {
+            // This would need a subquery or separate calculation
+            // For now, we'll leave it as is
+        });
+
+        // Margin filter
+        $query->when($this->filterMargin, function ($query) {
+            // This requires calculating margin for each article
+            // Implementation depends on your database structure
+        });
+
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    public function calculateStatistics()
+    {
+        // For statistics, we need ALL articles, not just paginated ones
+        $allArticles = ArticleModel::with('ligneVentes')->get();
+
+        $this->activeCount = $allArticles->where('status', true)->count();
+        $this->inactiveCount = $allArticles->where('status', false)->count();
+
+        $prices = $allArticles->pluck('prix_achat')->filter();
+        $this->avgPurchasePrice = $prices->avg() ?? 0;
+        $this->minPurchasePrice = $prices->min() ?? 0;
+        $this->maxPurchasePrice = $prices->max() ?? 0;
+
+        $salePrices = $allArticles->pluck('prix_vente')->filter();
+        $this->avgSalePrice = $salePrices->avg() ?? 0;
+
+        // Calculate average margin
+        $margins = $allArticles->filter(function ($article) {
+            return $article->prix_achat > 0 && $article->prix_vente > 0;
+        })->map(function ($article) {
+            return (($article->prix_vente - $article->prix_achat) / $article->prix_achat) * 100;
+        });
+        $this->avgMargin = $margins->avg() ?? 0;
+
+        // Recent sales (last 30 days)
+        $thirtyDaysAgo = now()->subDays(30);
+        $this->recentSalesCount = $allArticles->sum(function ($article) use ($thirtyDaysAgo) {
+            return $article->ligneVentes->where('created_at', '>=', $thirtyDaysAgo)->sum('quantity');
+        });
+
+        // Top category
+        $categoryCounts = $allArticles->groupBy('category_id')->map->count();
+        if ($categoryCounts->isNotEmpty()) {
+            $topCategoryId = $categoryCounts->sortDesc()->keys()->first();
+            $topCategory = Category::find($topCategoryId);
+            $this->topCategory = $topCategory ? $topCategory->name : '—';
+        }
     }
 
     public function updated($property)
     {
+        // Reset page when filters change (except for pagination properties)
         if (in_array($property, [
             'search',
             'filterCategory',
-            'filterDevise'
+            'filterDevise',
+            'filterStatus',
+            'filterStockLevel',
+            'filterMargin',
+            'filterLastUpdated'
         ])) {
-            $this->loadArticles();
+            $this->resetPage();
         }
     }
 
@@ -145,10 +215,26 @@ class Articles extends Component
         $this->search = '';
         $this->filterCategory = '';
         $this->filterDevise = '';
+        $this->filterStatus = '';
+        $this->filterStockLevel = '';
+        $this->filterMargin = '';
+        $this->filterLastUpdated = '';
+        $this->showAdvancedFilters = false;
+        $this->resetPage();
 
-        $this->loadArticles();
+        $this->calculateStatistics();
     }
 
+    public function toggleAdvancedFilters()
+    {
+        $this->showAdvancedFilters = !$this->showAdvancedFilters;
+    }
+
+    public function showArticleDetails($id)
+    {
+        // Dispatch event to show article details modal
+        $this->dispatch('show-article-details', articleId: $id);
+    }
 
     public function loadCategories()
     {
@@ -162,7 +248,17 @@ class Articles extends Component
 
     public function resetForm()
     {
-        $this->reset(['articleId', 'reference', 'category_id', 'devise_id', 'designation', 'description', 'prix_achat', 'prix_vente', 'unite']);
+        $this->reset([
+            'articleId',
+            'reference',
+            'category_id',
+            'devise_id',
+            'designation',
+            'description',
+            'prix_achat',
+            'prix_vente',
+            'unite'
+        ]);
         $this->status = true;
         $this->resetValidation();
     }
@@ -197,7 +293,7 @@ class Articles extends Component
 
             $this->showModal = true;
         } catch (\Exception $e) {
-            session()->flash('error', 'Magasin introuvable');
+            session()->flash('error', 'Article introuvable');
         }
     }
 
@@ -223,8 +319,11 @@ class Articles extends Component
                 ]
             );
 
-            $this->loadArticles();
+            $this->dispatch('article-saved');
             $this->closeModal();
+
+            // Recalculate statistics
+            $this->calculateStatistics();
 
             session()->flash(
                 'success',
@@ -240,7 +339,6 @@ class Articles extends Component
         }
     }
 
-
     public function toggleStatus($id)
     {
         $article = ArticleModel::findOrFail($id);
@@ -249,7 +347,9 @@ class Articles extends Component
             'updated_by' => Auth::id(),
         ]);
 
-        $this->loadArticles();
+        // Recalculate statistics
+        $this->calculateStatistics();
+
         session()->flash('success', 'Statut modifié avec succès');
     }
 
@@ -260,8 +360,17 @@ class Articles extends Component
 
     public function confirmDelete($id)
     {
-        ArticleModel::findOrFail($id)->delete();
-        $this->loadArticles();
+        try {
+            $article = ArticleModel::findOrFail($id);
+            $article->delete();
+
+            // Recalculate statistics
+            $this->calculateStatistics();
+
+            session()->flash('success', 'Article supprimé avec succès');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+        }
     }
 
     public function updatedSearch()
@@ -269,9 +378,14 @@ class Articles extends Component
         $this->resetPage();
     }
 
+    // In your Articles component class
     public function render()
     {
+        // Get paginated articles
+        $articles = $this->getQuery()->paginate($this->perPage); // Changed variable name
+
         return view('livewire.articles.articles', [
+            'articles' => $articles, // Changed to 'articles' to match blade
             'title' => 'Gestion des Articles',
             'breadcrumb' => 'Articles'
         ]);

@@ -111,7 +111,7 @@
 
                                         <td class="text-end">
                                             <div class="btn-group btn-group-sm">
-                                                <button wire:click="view({{ $client->id }})"
+                                                <button wire:click="showDetails({{ $client->id }})"
                                                         class="btn btn-outline-info">
                                                     <i class="fa fa-eye"></i>
                                                 </button>
@@ -194,7 +194,7 @@
                                     </div>
 
                                     <div class="card-footer bg-white d-flex gap-2">
-                                        <button wire:click="view({{ $client->id }})"
+                                        <button wire:click="showDetails({{ $client->id }})"
                                                 class="btn btn-sm btn-outline-info flex-fill">
                                             <i class="fa fa-eye me-1"></i> Détails
                                         </button>
@@ -233,5 +233,9 @@
 
     @if ($showModal)
         @include('livewire.client-modal')
+    @endif
+
+    @if ($showDetailsModal && $selectedClient)
+        @include('livewire.client-details-modal')
     @endif
 </div>

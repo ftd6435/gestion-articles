@@ -7,6 +7,8 @@ use App\Models\DeviseModel;
 use App\Models\Stock\LigneCommandeFournisseur;
 use App\Models\Stock\LigneReceptionFournisseur;
 use App\Models\User;
+use App\Models\Ventes\LigneVenteClient;
+use App\Models\Warehouse\EtagereModel;
 use Illuminate\Database\Eloquent\Model;
 
 class ArticleModel extends Model
@@ -75,5 +77,22 @@ class ArticleModel extends Model
     public function ligneReceptions()
     {
         return $this->hasMany(LigneReceptionFournisseur::class, 'article_id');
+    }
+
+    public function ligneVentes()
+    {
+        return $this->hasMany(LigneVenteClient::class, 'article_id');
+    }
+
+    public function etageres()
+    {
+        return $this->hasManyThrough(
+            EtagereModel::class,
+            LigneVenteClient::class,
+            'article_id',     // Foreign key on ligne_ventes
+            'id',             // Foreign key on etageres
+            'id',             // Local key on articles
+            'etagere_id'      // Local key on ligne_ventes
+        )->distinct();
     }
 }

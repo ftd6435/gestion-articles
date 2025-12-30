@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReceptionFournisseur extends Model
 {
     protected $fillable = [
+        'reference',
         'commande_id',
         'date_reception',
         'created_by',
@@ -46,7 +47,7 @@ class ReceptionFournisseur extends Model
     /**
      * Calculate total amount for this reception based on received quantities
      */
-    public function getTotalAmount()
+    public function getTotalAmountNoDiscount()
     {
         $total = 0;
 
@@ -62,6 +63,36 @@ class ReceptionFournisseur extends Model
         }
 
         return $total;
+    }
+
+    /**
+     * Calculate total amount for this reception based on received quantities
+     */
+    public function getTotalAmount()
+    {
+        $total = $this->getTotalAmountNoDiscount();
+
+        // Apply the same discount percentage as the original commande
+        if ($this->commande && $this->commande->remise > 0) {
+            $discountAmount = $total * ($this->commande->remise / 100);
+            $total = $total - $discountAmount;
+        }
+
+        return $total;
+    }
+
+    /**
+     * Calculate the discount amount applied to this reception
+     */
+    public function getDiscountAmount()
+    {
+        $totalNoDiscount = $this->getTotalAmountNoDiscount();
+
+        if ($this->commande && $this->commande->remise > 0) {
+            return $totalNoDiscount * ($this->commande->remise / 100);
+        }
+
+        return 0;
     }
 
     /**

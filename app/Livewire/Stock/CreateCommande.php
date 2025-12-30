@@ -33,6 +33,7 @@ class CreateCommande extends Component
     public $fournisseurs = [];
     public $devises = [];
     public $articles = [];
+    public $availableArticles = []; // Articles non ajoutés
 
     // UI State
     public $showCommandeForm = true;
@@ -64,6 +65,7 @@ class CreateCommande extends Component
         $this->loadData();
         $this->date_commande = now()->format('Y-m-d');
         $this->reference = $this->generateReference();
+        $this->updateAvailableArticles();
     }
 
     public function loadData()
@@ -71,6 +73,29 @@ class CreateCommande extends Component
         $this->fournisseurs = FournisseurModel::active()->get();
         $this->devises = DeviseModel::active()->get();
         $this->articles = ArticleModel::active()->get();
+    }
+
+    // New method to update available articles (those not already in lines)
+    public function updateAvailableArticles()
+    {
+        $addedArticleIds = collect($this->lignes)->pluck('article_id')->toArray();
+
+        $this->availableArticles = ArticleModel::active()
+            ->whereNotIn('id', $addedArticleIds)
+            ->get();
+    }
+
+    // When article is selected, auto-fill unit price
+    public function updatedArticleId($value)
+    {
+        if ($value) {
+            $article = ArticleModel::find($value);
+            if ($article) {
+                $this->unit_price = $article->prix_achat;
+            }
+        } else {
+            $this->unit_price = '';
+        }
     }
 
     public function generateReference()
@@ -117,6 +142,9 @@ class CreateCommande extends Component
             ];
 
             $this->dispatch('success', message: 'Ligne ajoutée avec succès');
+
+            // Update available articles after adding
+            $this->updateAvailableArticles();
         }
 
         // Reset ligne form
@@ -128,6 +156,9 @@ class CreateCommande extends Component
         if (isset($this->lignes[$index])) {
             unset($this->lignes[$index]);
             $this->lignes = array_values($this->lignes);
+
+            // Update available articles after removal
+            $this->updateAvailableArticles();
 
             $this->dispatch('success', message: 'Ligne supprimée');
         }
@@ -233,6 +264,7 @@ class CreateCommande extends Component
         $this->taux_change = 1;
         $this->remise = 0;
         $this->status = 'EN_COURS';
+        $this->updateAvailableArticles();
     }
 
     public function render()

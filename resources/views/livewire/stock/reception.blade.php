@@ -103,7 +103,7 @@
                     </div>
 
                     {{-- Commande --}}
-                    <div class="mb-3">
+                    {{-- <div class="mb-3">
                         <label class="form-label">Commande</label>
                         <select wire:model.live="filterCommande" class="form-select">
                             <option value="">Toutes</option>
@@ -113,7 +113,7 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
                     {{-- Date range --}}
                     <div class="row g-2 mb-3">
@@ -162,6 +162,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
+                                <th>Ref</th>
                                 <th>Commande</th>
                                 <th>Fournisseur</th>
                                 <th>Qté</th>
@@ -175,8 +176,10 @@
                             @forelse($receptions as $reception)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-
                                     <td class="fw-semibold">
+                                        {{ $reception->reference }}
+                                    </td>
+                                    <td class="text-muted">
                                         {{ $reception->commande->reference }}
                                     </td>
 

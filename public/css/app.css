@@ -827,3 +827,11 @@ body.modal-open {
     overflow-y: auto;
 }
 
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}

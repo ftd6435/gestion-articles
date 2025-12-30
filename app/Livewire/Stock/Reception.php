@@ -55,15 +55,23 @@ class Reception extends Component
         $query = ReceptionFournisseur::query()
             ->with(['commande.fournisseur', 'ligneReceptions', 'createdBy']);
 
-        // Search by commande reference
+        // Search by multiple criteria
         if ($this->search) {
-            $query->whereHas('commande', function ($q) {
-                $q->where('reference', 'like', '%' . $this->search . '%')
-                    ->orWhereHas(
-                        'fournisseur',
-                        fn($fq) =>
-                        $fq->where('name', 'like', '%' . $this->search . '%')
-                    );
+            $searchTerm = '%' . $this->search . '%';
+
+            $query->where(function ($q) use ($searchTerm) {
+                // Search by reception reference
+                $q->where('reference', 'like', $searchTerm);
+
+                // Search by commande reference
+                $q->orWhereHas('commande', function ($q) use ($searchTerm) {
+                    $q->where('reference', 'like', $searchTerm);
+                });
+
+                // Search by supplier name
+                $q->orWhereHas('commande.fournisseur', function ($q) use ($searchTerm) {
+                    $q->where('name', 'like', $searchTerm);
+                });
             });
         }
 
@@ -127,31 +135,31 @@ class Reception extends Component
         ], [
             'commande_id.required' => 'La commande est obligatoire.',
             'commande_id.exists'   => 'La commande selectionner est invalide.',
-
             'date_reception.date' => 'Selectionner une date valide',
         ]);
 
         try {
             if ($this->receptionId) {
-                // UPDATE existing command
+                // UPDATE existing reception
                 $reception = ReceptionFournisseur::findOrFail($this->receptionId);
 
                 $reception->update([
-                    'command_id' => $this->command_id,
+                    'commande_id' => $this->commande_id,
                     'date_reception' => $this->date_reception,
                     'updated_by' => Auth::id(),
                 ]);
 
-                $message = 'Reception commande modifiée avec succès.';
+                $message = 'Réception modifiée avec succès.';
             } else {
-                // CREATE new command
+                // CREATE new reception
                 ReceptionFournisseur::create([
-                    'command_id' => $this->command_id,
+                    'reference' => 'REC-' . rand(1000, 9999),
+                    'commande_id' => $this->commande_id,
                     'date_reception' => $this->date_reception,
                     'created_by' => Auth::id(),
                 ]);
 
-                $message = 'Reception commande créée avec succès.';
+                $message = 'Réception créée avec succès.';
             }
 
             // Reset modal

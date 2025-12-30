@@ -2,126 +2,100 @@
 
 namespace App\Livewire\Ventes;
 
+use App\Models\Ventes\VenteModel;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class VentesJour extends Component
 {
-    public $ventes = [];
-    public $statistiques = [];
+    public $ventes;
+    public $totalVentes = 0;
+    public $totalPaid = 0;
+    public $totalDue = 0;
+    public $totalNet = 0;
+    public $totalRemise = 0;
     public $selectedPeriode = 'aujourdhui';
+    public $dateFrom;
+    public $dateTo;
 
     public function mount()
     {
-        $this->loadStatistiques();
+        $this->setDateRange();
         $this->loadVentes();
     }
 
-    public function loadStatistiques()
+    public function changePeriode($periode)
     {
-        $this->statistiques = [
-            'total' => '12,450 €',
-            'nombre_ventes' => 47,
-            'panier_moyen' => '264.89 €',
-            'evolution' => '+15.3%'
-        ];
+        $this->selectedPeriode = $periode;
+        $this->setDateRange();
+        $this->loadVentes();
+    }
+
+    protected function setDateRange()
+    {
+        $today = Carbon::today();
+
+        switch ($this->selectedPeriode) {
+            case 'hier':
+                $yesterday = $today->copy()->subDay();
+                $this->dateFrom = $yesterday->format('Y-m-d');
+                $this->dateTo = $yesterday->format('Y-m-d');
+                break;
+            case 'semaine':
+                $this->dateFrom = $today->copy()->startOfWeek()->format('Y-m-d');
+                $this->dateTo = $today->copy()->endOfWeek()->format('Y-m-d');
+                break;
+            case 'mois':
+                $this->dateFrom = $today->copy()->startOfMonth()->format('Y-m-d');
+                $this->dateTo = $today->copy()->endOfMonth()->format('Y-m-d');
+                break;
+            case 'aujourdhui':
+            default:
+                $this->dateFrom = $today->format('Y-m-d');
+                $this->dateTo = $this->dateFrom;
+                break;
+        }
     }
 
     public function loadVentes()
     {
-        $this->ventes = [
-            [
-                'id' => 'V-2024-001',
-                'heure' => '14:35',
-                'client' => 'Jean Dupont',
-                'produits' => 'Ordinateur Pro, Souris',
-                'quantite' => 2,
-                'montant' => 1299.99,
-                'paiement' => 'Carte bancaire',
-                'statut' => 'Validé'
-            ],
-            [
-                'id' => 'V-2024-002',
-                'heure' => '14:28',
-                'client' => 'Marie Martin',
-                'produits' => 'Smartphone X',
-                'quantite' => 1,
-                'montant' => 899.00,
-                'paiement' => 'PayPal',
-                'statut' => 'Validé'
-            ],
-            [
-                'id' => 'V-2024-003',
-                'heure' => '14:15',
-                'client' => 'Pierre Bernard',
-                'produits' => 'Casque Audio, Câble USB',
-                'quantite' => 2,
-                'montant' => 219.98,
-                'paiement' => 'Carte bancaire',
-                'statut' => 'En cours'
-            ],
-            [
-                'id' => 'V-2024-004',
-                'heure' => '13:52',
-                'client' => 'Sophie Dubois',
-                'produits' => 'Tablette Pro, Stylet',
-                'quantite' => 2,
-                'montant' => 749.99,
-                'paiement' => 'Virement',
-                'statut' => 'Validé'
-            ],
-            [
-                'id' => 'V-2024-005',
-                'heure' => '13:40',
-                'client' => 'Luc Thomas',
-                'produits' => 'Clavier mécanique',
-                'quantite' => 1,
-                'montant' => 159.99,
-                'paiement' => 'Carte bancaire',
-                'statut' => 'Validé'
-            ],
-            [
-                'id' => 'V-2024-006',
-                'heure' => '13:25',
-                'client' => 'Claire Petit',
-                'produits' => 'Webcam HD, Microphone',
-                'quantite' => 2,
-                'montant' => 189.98,
-                'paiement' => 'PayPal',
-                'statut' => 'Annulé'
-            ],
-            [
-                'id' => 'V-2024-007',
-                'heure' => '12:58',
-                'client' => 'Marc Robert',
-                'produits' => 'Écran 27", Support',
-                'quantite' => 2,
-                'montant' => 459.99,
-                'paiement' => 'Carte bancaire',
-                'statut' => 'Validé'
-            ],
-            [
-                'id' => 'V-2024-008',
-                'heure' => '12:30',
-                'client' => 'Emma Laurent',
-                'produits' => 'SSD 1TB',
-                'quantite' => 1,
-                'montant' => 129.99,
-                'paiement' => 'Carte bancaire',
-                'statut' => 'Validé'
-            ]
-        ];
+        $this->setDateRange();
+
+        $query = VenteModel::query()
+            ->whereBetween('date_facture', [$this->dateFrom, $this->dateTo])
+            ->whereIn('status', ['PAYEE', 'PARTIELLE', 'IMPAYEE'])
+            ->with(['client', 'paiements', 'devise', 'ligneVentes']);
+
+        $this->ventes = $query
+            ->orderBy('date_facture', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Calculate statistics from loaded ventes using model methods
+        $this->calculateStatistics();
     }
 
-    public function updatedSelectedPeriode()
+    protected function calculateStatistics()
     {
-        $this->loadStatistiques();
-        $this->loadVentes();
+        $this->totalVentes = $this->ventes->count();
+
+        $this->totalNet = 0;
+        $this->totalRemise = 0;
+        $this->totalPaid = 0;
+        $this->totalDue = 0;
+
+        foreach ($this->ventes as $vente) {
+            // Use model methods
+            $this->totalNet += $vente->subTotal();
+            $this->totalRemise += $vente->discountAmount();
+            $this->totalPaid += $vente->totalPaid();
+            $this->totalDue += $vente->remainingAmount();
+        }
     }
 
-    public function exportExcel()
+    public function printReport()
     {
-        // Logique d'export
-        $this->dispatch('notify', message: 'Export en cours...');
+        $this->dispatch('print-ventes-jour');
     }
 
     public function render()
@@ -130,6 +104,5 @@ class VentesJour extends Component
             'title' => 'Ventes du jour',
             'breadcrumb' => 'Ventes du jour'
         ]);
-        // ->layout('components.layouts.app',);
     }
 }

@@ -1,11 +1,11 @@
 <div class="modal fade {{ $showModal ? 'show' : '' }}" id="deviseModal" tabindex="-1" style="display: {{ $showModal ? 'block' : 'none' }}; z-index: 1055;" aria-labelledby="deviseModalLabel"aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     {{ $articleId ? 'Modifier un article' : 'Ajouter un article' }}
                 </h5>
-                <button wire:click="closeModal" class="btn-close" data-bs-dismiss="modal"></button>
+                <button wire:click="closeModal" class="btn-close text-white" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">

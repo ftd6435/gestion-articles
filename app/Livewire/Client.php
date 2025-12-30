@@ -10,6 +10,10 @@ use Livewire\Component;
 class Client extends Component
 {
     public $showModal = false;
+
+    public $showDetailsModal = false;
+    public $selectedClient = null;
+
     public $clients = [];
 
     public $clientId;
@@ -102,6 +106,24 @@ class Client extends Component
     {
         $this->resetForm();
         $this->showModal = true;
+    }
+
+    public function showDetails($id)
+    {
+        $this->selectedClient = ClientModel::with(
+            'ventes.devise',
+            'ventes.ligneVentes',
+            'ventes.paiements',
+        )->find($id);
+
+        $this->showDetailsModal = true;
+    }
+
+    public function closeDetails()
+    {
+        $this->showDetailsModal = false;
+
+        $this->selectedClient = null;
     }
 
     public function closeModal()

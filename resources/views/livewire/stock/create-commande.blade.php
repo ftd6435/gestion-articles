@@ -167,17 +167,29 @@
                             </label>
                             <select
                                 wire:model="article_id"
+                                wire:change="$refresh"
                                 class="form-select @error('article_id') is-invalid @enderror">
                                 <option value="">-- Sélectionner --</option>
-                                @foreach($articles as $article)
+                                @foreach($availableArticles as $article)
                                     <option value="{{ $article->id }}">
                                         {{ $article->reference }} - {{ $article->designation }}
+                                        @if($article->prix_achat)
+                                            ({{ number_format($article->prix_achat, 2) }})
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>
                             @error('article_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+
+                            <!-- Show info message when no articles available -->
+                            @if($availableArticles->isEmpty() && !empty($lignes))
+                                <div class="alert alert-info mt-2 small">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Tous les articles disponibles ont été ajoutés. Vous pouvez modifier les quantités et prix dans le tableau ci-dessous.
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Quantity -->
@@ -208,11 +220,18 @@
                                 @input="format"
                                 inputmode="decimal"
                                 class="form-control @error('unit_price') is-invalid @enderror"
-                                placeholder="0.00">
+                                placeholder="0.00"
+                                wire:model="unit_price">  <!-- Add wire:model -->
 
                             @error('unit_price')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+
+                            <!-- Small note about auto-fill -->
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Auto-rempli avec le prix d'achat de l'article sélectionné
+                            </small>
                         </div>
 
                         <!-- Add Button -->

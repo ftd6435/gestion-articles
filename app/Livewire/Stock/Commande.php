@@ -28,6 +28,9 @@ class Commande extends Component
     public $devises = [];
 
     public $showModal = false;
+    public $showModalDetails = false;
+    public $selectedCommande = null;
+
     public $commandeId;
     public $reference;
     public $fournisseur_id;
@@ -147,6 +150,31 @@ class Commande extends Component
     {
         $this->showModal = false;
         $this->resetForm();
+    }
+
+    public function showDetails($id)
+    {
+        try {
+            $this->selectedCommande = CommandeFournisseur::with([
+                'fournisseur',
+                'devise',
+                'paiements',
+                'ligneCommandes.article',
+                'receptions.ligneReceptions',
+                'createdBy',
+                'updatedBy'
+            ])->findOrFail($id);
+
+            $this->showModalDetails = true;
+        } catch (\Exception $e) {
+            session()->flash('error', 'Commande introuvable.');
+        }
+    }
+
+    public function closeDetails()
+    {
+        $this->showModalDetails = false;
+        $this->selectedCommande = null;
     }
 
     public function edit($id)

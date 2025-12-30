@@ -347,17 +347,28 @@ class Paiement extends Component
 
         // Apply search filter
         if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('reference', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('commande', function ($cq) {
-                        $cq->where('reference', 'like', '%' . $this->search . '%')
-                            ->orWhereHas('fournisseur', function ($fq) {
-                                $fq->where('name', 'like', '%' . $this->search . '%');
+            $searchTerm = '%' . $this->search . '%';
+
+            $query->where(function ($q) use ($searchTerm) {
+                // Search by payment reference
+                $q->where('reference', 'like', $searchTerm)
+
+                    // Search by commande reference
+                    ->orWhereHas('commande', function ($cq) use ($searchTerm) {
+                        $cq->where('reference', 'like', $searchTerm)
+
+                            // Search by supplier name
+                            ->orWhereHas('fournisseur', function ($fq) use ($searchTerm) {
+                                $fq->where('name', 'like', $searchTerm);
                             });
+                    })
+
+                    // Search by reception reference
+                    ->orWhereHas('reception', function ($rq) use ($searchTerm) {
+                        $rq->where('reference', 'like', $searchTerm);
                     });
             });
         }
-
         // Apply period filter
         if ($this->period === 'today') {
             $query->whereDate('date_paiement', now()->toDateString());

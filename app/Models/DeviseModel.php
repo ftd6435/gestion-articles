@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Articles\ArticleModel;
+use App\Models\Ventes\VenteModel;
 use Illuminate\Database\Eloquent\Model;
 
 class DeviseModel extends Model
@@ -51,5 +52,10 @@ class DeviseModel extends Model
     public function articles()
     {
         return $this->hasMany(ArticleModel::class, 'devise_id');
+    }
+
+    public function ventes()
+    {
+        return $this->hasMany(VenteModel::class, 'devise_id');
     }
 }

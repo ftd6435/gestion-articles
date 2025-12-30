@@ -33,27 +33,27 @@
                            role="button"
                            aria-expanded="false">
                             <i class="fas fa-shopping-cart"></i>
-                            <span>Ventes</span>
+                            <span>Gestion Ventes</span>
                             <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
                         </a>
                         <div class="collapse {{ request()->is('ventes*') ? 'show' : '' }}" id="ventesMenu">
                             <ul class="nav flex-column dropdown-menu-custom">
+                                <li class="nav-item mt-2">
+                                    <a href="/ventes/ventes" class="nav-link {{ request()->is('ventes/ventes') ? 'active' : '' }}">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <span>Ventes</span>
+                                    </a>
+                                </li>
                                 <li class="nav-item">
                                     <a href="/ventes/jour" class="nav-link {{ request()->is('ventes/jour') ? 'active' : '' }}">
-                                        <i class="fas fa-calendar-day"></i>
-                                        <span>Ventes du jour</span>
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Rapports</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="/ventes/historique" class="nav-link {{ request()->is('ventes/historique') ? 'active' : '' }}">
                                         <i class="fas fa-history"></i>
-                                        <span>Historique des ventes</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="/ventes/rapports" class="nav-link {{ request()->is('ventes/rapports') ? 'active' : '' }}">
-                                        <i class="fas fa-chart-line"></i>
-                                        <span>Rapports</span>
+                                        <span>Historique</span>
                                     </a>
                                 </li>
                             </ul>

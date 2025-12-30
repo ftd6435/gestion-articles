@@ -170,6 +170,7 @@ class CreateReception extends Component
         }
 
         $reception = ReceptionFournisseur::create([
+            'reference' => 'REC-' . rand(1000, 9999),
             'commande_id' => $this->commande_id,
             'date_reception' => $this->date_reception,
             'created_by' => Auth::id(),

@@ -4,6 +4,7 @@ namespace App\Models\Warehouse;
 
 use App\Models\Stock\LigneReceptionFournisseur;
 use App\Models\User;
+use App\Models\Ventes\LigneVenteClient;
 use Illuminate\Database\Eloquent\Model;
 
 class EtagereModel extends Model
@@ -56,5 +57,10 @@ class EtagereModel extends Model
     public function ligneReceptions()
     {
         return $this->hasMany(LigneReceptionFournisseur::class, 'etagere_id');
+    }
+
+    public function ligneVentes()
+    {
+        return $this->hasMany(LigneVenteClient::class, 'etagere_id');
     }
 }

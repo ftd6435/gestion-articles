@@ -211,13 +211,15 @@
 
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
-                                            <button
-                                                data-bs-toggle="tooltip"
-                                                title="Annuler commande"
-                                                wire:click="cancelCommande({{ $commande->id }})"
-                                                    class="btn btn-outline-danger">
-                                                <i class="fa fa-close"></i>
-                                            </button>
+                                            @if (! $commande->receptions()->exists())
+                                                <button
+                                                    data-bs-toggle="tooltip"
+                                                    title="Annuler commande"
+                                                    wire:click="cancelCommande({{ $commande->id }})"
+                                                        class="btn btn-outline-danger">
+                                                    <i class="fa fa-close"></i>
+                                                </button>
+                                            @endif
 
                                             <button
                                                 data-bs-toggle="tooltip"
@@ -230,18 +232,20 @@
                                             <button
                                                 data-bs-toggle="tooltip"
                                                 title="Voir facture"
-                                                wire:click="edit({{ $commande->id }})"
+                                                wire:click="showDetails({{ $commande->id }})"
                                                     class="btn btn-outline-primary">
                                                 <i class="fa fa-eye"></i>
                                             </button>
 
-                                            <button
-                                                data-bs-toggle="tooltip"
-                                                title="Supprimer"
-                                                wire:click="deleteConfirm({{ $commande->id }})"
-                                                    class="btn btn-outline-danger">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
+                                            @if (! $commande->receptions()->exists())
+                                                <button
+                                                    data-bs-toggle="tooltip"
+                                                    title="Supprimer"
+                                                    wire:click="deleteConfirm({{ $commande->id }})"
+                                                        class="btn btn-outline-danger">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -266,5 +270,9 @@
 
     @if($showModal)
         @include('livewire.stock.commande-modal')
+    @endif
+
+    @if($showModalDetails)
+        @include('livewire.stock.commande-details')
     @endif
 </div>

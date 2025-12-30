@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Ventes\VenteModel;
 use Illuminate\Database\Eloquent\Model;
 
 class ClientModel extends Model
@@ -48,5 +49,10 @@ class ClientModel extends Model
     public function scopeInactive($query)
     {
         return $query->where('status', false);
+    }
+
+    public function ventes()
+    {
+        return $this->hasMany(VenteModel::class, 'client_id');
     }
 }

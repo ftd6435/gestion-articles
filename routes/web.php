@@ -16,6 +16,10 @@ use App\Livewire\Stock\CreateCommande;
 use App\Livewire\Stock\CreateReception;
 use App\Livewire\Stock\Paiement;
 use App\Livewire\Stock\Reception;
+use App\Livewire\Ventes\CreateVente;
+use App\Livewire\Ventes\Historique;
+use App\Livewire\Ventes\Vente;
+use App\Livewire\Ventes\VentesJour;
 use App\Livewire\Warehouse\Magasin;
 use App\Livewire\Warehouse\Etagere;
 
@@ -48,6 +52,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+
     Route::get('/articles', Articles::class)->name('articles');
     Route::get('/clients', Client::class)->name('clients');
     Route::get('/fournisseurs', Fournisseur::class)->name('fournisseurs');
@@ -66,10 +71,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/warehouse/magasins', Magasin::class)->name('warehouse.magasins');
     Route::get('/warehouse/etageres', Etagere::class)->name('warehouse.etageres');
 
-    Route::get('/ventes/historique', function () {
-        return view('livewire.ventes.historique');
-    })->name('ventes.historique');
-    Route::get('/ventes/rapports', function () {
-        return view('livewire.ventes.rapports');
-    })->name('ventes.rapports');
+    // ROUTE DE LA GESTION DES VENTES
+    Route::get('/ventes/ventes', Vente::class)->name('ventes.ventes');
+    Route::get('/ventes/create', CreateVente::class)->name('ventes.create');
+    Route::get('/ventes/jour', VentesJour::class)->name('ventes.jour');
+    Route::get('/ventes/historique', Historique::class)->name('ventes.historique');
 });
