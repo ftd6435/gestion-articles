@@ -9,9 +9,16 @@ class AppLoader {
         this.timeoutId = null;
         this.progressInterval = null;
 
-        // Check if loader exists
+        // Debug logging
+        console.log('AppLoader initialized. Elements:', {
+            loader: !!this.loader,
+            loaderText: !!this.loaderText,
+            progressBar: !!this.progressBar
+        });
+
+        // If no loader element, exit silently
         if (!this.loader) {
-            console.error('AppLoader: app-loader element not found');
+            console.log('No app-loader found, skipping loader initialization');
             return;
         }
 
@@ -19,22 +26,29 @@ class AppLoader {
     }
 
     init() {
+        // Show loader immediately
+        this.loader.classList.remove('loader-hidden');
+
         // Set initial progress
         this.updateProgress(10);
         this.updateText('Chargement des ressources...');
 
         // Handle page load
         if (document.readyState === 'complete') {
-            // Page already loaded, trigger immediately
+            // Page already loaded
             setTimeout(() => this.handleLoadComplete(), 100);
         } else {
             window.addEventListener('load', () => this.handleLoadComplete(), { once: true });
         }
 
-        // Handle Livewire navigation
-        this.setupLivewireEvents();
-        // Simulate progress for better UX
+        // Setup Livewire events if Livewire is detected
+        if (typeof Livewire !== 'undefined') {
+            this.setupLivewireEvents();
+        }
+
+        // Simulate progress
         this.simulateProgress();
+
         // Check for slow connection
         this.checkSlowConnection();
     }
@@ -70,7 +84,6 @@ class AppLoader {
         const elapsed = Date.now() - this.startTime;
         const remainingTime = Math.max(0, this.minLoadTime - elapsed);
 
-        // Ensure minimum load time for smooth UX
         setTimeout(() => {
             this.completeLoading();
         }, remainingTime);
@@ -87,64 +100,64 @@ class AppLoader {
         this.updateProgress(100);
         this.updateText('Prêt !');
 
-        // Hide loader only (no content to show)
+        // Hide loader
         setTimeout(() => {
-            if (this.loader) {
-                this.loader.classList.add('loader-hidden');
-            }
-            // Dispatch custom event
+            this.hideLoader();
             document.dispatchEvent(new CustomEvent('app-loaded'));
         }, 300);
     }
 
     setupLivewireEvents() {
-        // Show loader before Livewire navigation
+        console.log('Setting up Livewire events');
+
+        // Use debouncing to prevent multiple rapid calls
+        let showLoaderTimeout;
+        let hideLoaderTimeout;
+
+        const debouncedShow = (text) => {
+            clearTimeout(showLoaderTimeout);
+            showLoaderTimeout = setTimeout(() => this.showLoader(text), 50);
+        };
+
+        const debouncedHide = () => {
+            clearTimeout(hideLoaderTimeout);
+            hideLoaderTimeout = setTimeout(() => this.hideLoader(), 50);
+        };
+
         document.addEventListener('livewire:navigate', () => {
-            this.showLoader('Navigation en cours...');
+            debouncedShow('Navigation en cours...');
         });
 
-        // Hide loader after Livewire navigation
         document.addEventListener('livewire:navigated', () => {
-            setTimeout(() => this.hideLoader(), 300);
+            setTimeout(() => debouncedHide(), 300);
         });
 
-        // Show loader on Livewire requests
         document.addEventListener('livewire:request-start', () => {
-            this.showLoader('Traitement en cours...');
+            debouncedShow('Traitement en cours...');
         });
 
-        // Hide loader after Livewire requests
         document.addEventListener('livewire:request-finished', () => {
-            setTimeout(() => this.hideLoader(), 200);
+            setTimeout(() => debouncedHide(), 200);
         });
 
-        // Handle Livewire errors
         document.addEventListener('livewire:load-error', () => {
-            this.showLoader('Erreur de chargement, nouvelle tentative...');
+            debouncedShow('Erreur de chargement, nouvelle tentative...');
         });
     }
 
     showLoader(text = 'Chargement...') {
-        // Check if loader exists
-        if (!this.loader) {
-            console.warn('AppLoader: Cannot show loader - element not found');
-            return;
-        }
+        if (!this.loader) return;
 
-        try {
-            this.loader.classList.remove('loader-hidden');
-            this.updateText(text);
-            this.updateProgress(30);
+        this.loader.classList.remove('loader-hidden');
+        this.updateText(text);
+        this.updateProgress(30);
 
-            // Restart progress simulation
-            if (this.progressInterval) {
-                clearInterval(this.progressInterval);
-                this.progressInterval = null;
-            }
-            this.simulateProgress();
-        } catch (error) {
-            console.error('AppLoader: Error in showLoader', error);
+        // Restart progress simulation
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
         }
+        this.simulateProgress();
     }
 
     hideLoader() {
@@ -159,11 +172,7 @@ class AppLoader {
 
         setTimeout(() => {
             if (this.loader) {
-                try {
-                    this.loader.classList.add('loader-hidden');
-                } catch (error) {
-                    console.error('AppLoader: Error in hideLoader', error);
-                }
+                this.loader.classList.add('loader-hidden');
             }
         }, 300);
     }
@@ -172,16 +181,11 @@ class AppLoader {
         // Clear existing timeout
         if (this.timeoutId) {
             clearTimeout(this.timeoutId);
-            this.timeoutId = null;
         }
 
         this.timeoutId = setTimeout(() => {
             if (this.loaderText) {
-                try {
-                    this.loaderText.classList.add('loader-slow');
-                } catch (error) {
-                    console.warn('AppLoader: Could not add loader-slow class', error);
-                }
+                this.loaderText.classList.add('loader-slow');
             }
             this.updateText('Connexion lente, veuillez patienter...');
         }, this.slowThreshold);
@@ -191,58 +195,35 @@ class AppLoader {
         // Clear intervals
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
-            this.progressInterval = null;
         }
 
         // Clear timeouts
         if (this.timeoutId) {
             clearTimeout(this.timeoutId);
-            this.timeoutId = null;
         }
     }
 }
 
-// Initialize loader safely
-function initializeLoader() {
-    // Wait a bit to ensure DOM is ready
-    setTimeout(() => {
-        try {
-            window.appLoader = new AppLoader();
-            console.log('AppLoader initialized');
-        } catch (error) {
-            console.error('Failed to initialize AppLoader:', error);
-            // Fallback: hide loader if it exists
-            const loader = document.getElementById('app-loader');
-            if (loader) {
-                loader.style.display = 'none';
-                loader.classList.add('loader-hidden');
-            }
-        }
-    }, 100);
-}
+// Simple initialization
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded - Initializing AppLoader');
+    window.appLoader = new AppLoader();
+});
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeLoader);
-} else {
-    // DOM already loaded
-    initializeLoader();
-}
-
-// Fallback: make sure loader is hidden after 5 seconds max
+// Fallback to ensure loader is hidden if something goes wrong
 window.addEventListener('load', () => {
     setTimeout(() => {
         const loader = document.getElementById('app-loader');
-        if (loader) {
-            loader.style.display = 'none';
+        if (loader && !loader.classList.contains('loader-hidden')) {
+            console.log('Fallback: Hiding loader after timeout');
             loader.classList.add('loader-hidden');
         }
-    }, 5000);
+    }, 5000); // 5 second timeout
 });
 
-// Cleanup on page unload
+// Cleanup
 window.addEventListener('beforeunload', () => {
-    if (window.appLoader) {
+    if (window.appLoader && window.appLoader.cleanup) {
         window.appLoader.cleanup();
     }
 });
