@@ -275,54 +275,6 @@
         </div>
 
         <!-- Main Chart Area -->
-        {{-- <div class="col-xl-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title mb-4">
-                        <i class="fas fa-chart-line me-2"></i>
-                        @if($chartType === 'monthly')
-                            Évolution des ventes mensuelles
-                        @elseif($chartType === 'daily')
-                            Évolution des ventes quotidiennes
-                        @else
-                            Répartition des ventes par statut
-                        @endif
-                    </h5>
-
-                    <div style="height: 300px;">
-                        <!-- Canvas with x-data to store chart instance -->
-                        <canvas
-                            id="chartCanvas"
-                            x-data="{ chart: null }"
-                            x-init="
-                                // Initialize chart when component loads
-                                setTimeout(() => {
-                                    if (window.updateChart && typeof window.updateChart === 'function') {
-                                        window.updateChart();
-                                    }
-                                }, 300);
-                            "
-                            @chart-updated.window="
-                                console.log('Chart updated event received');
-                                // Destroy old chart
-                                if (chart) {
-                                    chart.destroy();
-                                    chart = null;
-                                }
-                                // Create new chart after a delay
-                                setTimeout(() => {
-                                    if (window.updateChart && typeof window.updateChart === 'function') {
-                                        window.updateChart();
-                                    }
-                                }, 100);
-                            "
-                        ></canvas>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-
-        <!-- Main Chart Area -->
         <div class="col-xl-8">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -620,11 +572,11 @@
     window.chartData = @js($chartData);
     window.chartType = @js($chartType);
 
-    console.log('Initial chart data:', {
-        type: window.chartType,
-        dataLength: window.chartData?.length || 0,
-        data: window.chartData
-    });
+    // console.log('Initial chart data:', {
+    //     type: window.chartType,
+    //     dataLength: window.chartData?.length || 0,
+    //     data: window.chartData
+    // });
 
     // Simple debounce function
     let chartUpdateTimeout = null;
@@ -634,7 +586,7 @@
         }
         chartUpdateTimeout = setTimeout(() => {
             if (window.updateChart) {
-                console.log('Debounced chart update triggered');
+                // console.log('Debounced chart update triggered');
                 window.updateChart();
             }
         }, 300);
@@ -642,7 +594,7 @@
 
     // Listen for Livewire events - handle array structure
     $wire.on('chart-updated', (eventData) => {
-        console.log('Livewire event received:', eventData);
+        // console.log('Livewire event received:', eventData);
 
         // Handle the event data structure
         // The data might be in an array or direct object
@@ -661,10 +613,10 @@
             return;
         }
 
-        console.log('Extracted chart data:', {
-            type: chartType,
-            dataLength: chartData?.length || 0
-        });
+        // console.log('Extracted chart data:', {
+        //     type: chartType,
+        //     dataLength: chartData?.length || 0
+        // });
 
         // Update window data
         window.chartData = chartData;

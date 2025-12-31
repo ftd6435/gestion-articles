@@ -7,25 +7,25 @@
     function updateChart() {
         // Prevent multiple simultaneous updates
         if (isUpdating) {
-            console.log('Chart update already in progress');
+            // console.log('Chart update already in progress');
             return;
         }
 
         isUpdating = true;
 
         try {
-            console.log('=== Starting chart update ===');
+            // console.log('=== Starting chart update ===');
 
             // Get current data from window
             const chartData = window.chartData;
             const chartType = window.chartType;
 
-            console.log('Current window data:', {
-                chartType: chartType,
-                chartData: chartData,
-                isArray: Array.isArray(chartData),
-                length: chartData?.length || 0
-            });
+            // console.log('Current window data:', {
+            //     chartType: chartType,
+            //     chartData: chartData,
+            //     isArray: Array.isArray(chartData),
+            //     length: chartData?.length || 0
+            // });
 
             // Validate data
             if (!chartData || !Array.isArray(chartData)) {
@@ -71,12 +71,12 @@
             showMessage('Erreur lors de la création du graphique');
         } finally {
             isUpdating = false;
-            console.log('=== Chart update complete ===');
+            // console.log('=== Chart update complete ===');
         }
     }
 
     function createSalesChart(canvas, chartData, chartType) {
-        console.log('Creating sales chart with', chartData.length, 'items');
+        // console.log('Creating sales chart with', chartData.length, 'items');
 
         // Validate data structure
         if (!chartData.every(item => item && typeof item === 'object')) {
@@ -90,7 +90,7 @@
         const paid = chartData.map(item => parseFloat(item.paid) || 0);
         const due = chartData.map(item => parseFloat(item.due) || 0);
 
-        console.log('Sales chart data:', { labels, totals, paid, due });
+        // console.log('Sales chart data:', { labels, totals, paid, due });
 
         // Check if we have any non-zero data
         const hasData = totals.some(v => v > 0) || paid.some(v => v > 0) || due.some(v => v > 0);
@@ -164,11 +164,11 @@
             }
         });
 
-        console.log('Sales chart created successfully');
+        // console.log('Sales chart created successfully');
     }
 
     function createStatusChart(canvas, chartData) {
-        console.log('Creating status chart with', chartData.length, 'items');
+        // console.log('Creating status chart with', chartData.length, 'items');
 
         // Validate data structure
         if (!chartData.every(item => item && typeof item === 'object')) {
@@ -183,7 +183,7 @@
             return total > 0;
         });
 
-        console.log('Filtered status data:', filteredData);
+        // console.log('Filtered status data:', filteredData);
 
         if (filteredData.length === 0) {
             showMessage('Aucune donnée de statut avec montant > 0');
@@ -230,7 +230,7 @@
             }
         });
 
-        console.log('Status chart created successfully');
+        // console.log('Status chart created successfully');
     }
 
     function showMessage(message) {
@@ -284,7 +284,7 @@
 
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Chart system initialized');
+        // console.log('Chart system initialized');
 
         // Initial chart creation
         setTimeout(() => {

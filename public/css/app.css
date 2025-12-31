@@ -880,7 +880,6 @@ body.modal-open {
 }
 
 /* =================== LOAD SPINNER CSS STYLE ================== */
-/* Global Loader */
 #app-loader {
     position: fixed;
     top: 0;
@@ -958,6 +957,12 @@ body.modal-open {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+}
+
+#app-loader.loader-hidden {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
 }
 
 /* Pulse animation for initial load */
