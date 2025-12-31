@@ -355,21 +355,34 @@ class Articles extends Component
 
     public function deleteConfirm($id)
     {
-        $this->dispatch('confirm-delete', id: $id);
+        $article = ArticleModel::find($id);
+
+        $this->dispatch(
+            'confirm-delete',
+            id: $id,
+            itemName: $article ? $article->reference . ' ' . $article->designation : 'cet article'
+        );
     }
 
     public function confirmDelete($id)
     {
         try {
             $article = ArticleModel::findOrFail($id);
+            $name = $article->reference . ' ' . $article->designation;
             $article->delete();
 
             // Recalculate statistics
             $this->calculateStatistics();
 
-            session()->flash('success', 'Article supprimé avec succès');
+            $this->dispatch(
+                'delete-success',
+                message: "L'article \"{$name}\" a été supprimé avec succès."
+            );
         } catch (\Exception $e) {
-            session()->flash('error', 'Erreur lors de la suppression: ' . $e->getMessage());
+            $this->dispatch(
+                'delete-error',
+                message: 'Erreur lors de la suppression : ' . $e->getMessage()
+            );
         }
     }
 
@@ -384,10 +397,11 @@ class Articles extends Component
         // Get paginated articles
         $articles = $this->getQuery()->paginate($this->perPage); // Changed variable name
 
+        view()->share('title', "Gestion des Articles");
+        view()->share('breadcrumb', "Articles");
+
         return view('livewire.articles.articles', [
-            'articles' => $articles, // Changed to 'articles' to match blade
-            'title' => 'Gestion des Articles',
-            'breadcrumb' => 'Articles'
+            'articles' => $articles,
         ]);
     }
 }

@@ -1,7 +1,7 @@
 <div class="modal fade {{ $showModal ? 'show' : '' }}" id="deviseModal" tabindex="-1" style="display: {{ $showModal ? 'block' : 'none' }}; z-index: 1055;" aria-labelledby="deviseModalLabel"aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     {{ $deviseId ? 'Modifier la devise' : 'Nouvelle devise' }}
                 </h5>
@@ -10,23 +10,23 @@
 
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Code <span class="text-info">*</span></label>
+                    <label class="form-label">Code Devise <span class="text-danger">*</span></label>
                     <input type="text" wire:model.defer="code"
-                           class="form-control @error('code') is-invalid @enderror">
+                           class="form-control @error('code') is-invalid @enderror" placeholder="Ex: GNF">
                     @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Nom <span class="text-info">*</span></label>
+                    <label class="form-label">Nom Devise <span class="text-danger">*</span></label>
                     <input type="text" wire:model.defer="libelle"
-                           class="form-control @error('libelle') is-invalid @enderror">
+                           class="form-control @error('libelle') is-invalid @enderror" placeholder="Ex: Franc Guinéen">
                     @error('libelle') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Symbole</label>
                     <input type="text" wire:model.defer="symbole"
-                           class="form-control @error('symbole') is-invalid @enderror">
+                           class="form-control @error('symbole') is-invalid @enderror" placeholder="Ex: FG">
                     @error('symbole') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 

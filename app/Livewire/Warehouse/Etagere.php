@@ -4,6 +4,7 @@ namespace App\Livewire\Warehouse;
 
 use App\Models\Warehouse\EtagereModel;
 use App\Models\Warehouse\MagasinModel;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -144,20 +145,42 @@ class Etagere extends Component
 
     public function deleteConfirm($id)
     {
-        $this->dispatch('confirm-delete', id: $id);
+        $etagere = EtagereModel::find($id);
+
+        $this->dispatch(
+            'confirm-delete',
+            id: $id,
+            itemName: $etagere ? $etagere->code_etagere : 'cette étagère'
+        );
     }
 
     public function confirmDelete($id)
     {
-        EtagereModel::findOrFail($id)->delete();
-        $this->loadEtageres();
+        try {
+            $etagere = EtagereModel::findOrFail($id);
+            $code = $etagere->code_etagere;
+
+            $etagere->delete();
+
+            $this->loadEtageres();
+
+            $this->dispatch(
+                'delete-success',
+                message: "L'étagère \"{$code}\" a été supprimée avec succès."
+            );
+        } catch (Exception $e) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Erreur lors de la suppression : ' . $e->getMessage()
+            );
+        }
     }
 
     public function render()
     {
-        return view('livewire.warehouse.etagere', [
-            'title' => 'Liste des Etagères',
-            'breadcrumb' => 'Etagères'
-        ]);
+        view()->share('title', "Gestion des Etagères");
+        view()->share('breadcrumb', "Etagères");
+
+        return view('livewire.warehouse.etagere');
     }
 }

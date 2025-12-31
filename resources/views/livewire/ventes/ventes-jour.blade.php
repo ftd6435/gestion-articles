@@ -191,9 +191,9 @@
                         <th class="bg-primary text-white">Référence</th>
                         <th class="bg-primary text-white">Client</th>
                         <th class="bg-primary text-white">Date</th>
-                        <th class="text-end bg-primary text-white">Montant Net</th>
+                        <th class="text-end bg-primary text-white">Net</th>
                         <th class="text-end bg-primary text-white">Remise</th>
-                        <th class="text-end bg-primary text-white">Montant Final</th>
+                        <th class="text-end bg-primary text-white">Final</th>
                         <th class="text-end bg-primary text-white">Payé</th>
                         <th class="text-end bg-primary text-white">Reste</th>
                         <th class="bg-primary text-white">Statut</th>

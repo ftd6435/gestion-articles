@@ -3,6 +3,7 @@
 namespace App\Livewire\Articles;
 
 use App\Models\Category as CategoryModel;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -10,6 +11,8 @@ use Livewire\Component;
 class Category extends Component
 {
     public $categories;
+    public $breadcrumb;
+    public $title;
 
     public $categoryId;
     public $name;
@@ -41,6 +44,8 @@ class Category extends Component
 
     public function mount()
     {
+        $this->breadcrumb = "Catégories";
+        $this->title = "Catégories Des Articles";
         $this->loadCategories();
     }
 
@@ -135,21 +140,42 @@ class Category extends Component
 
     public function deleteConfirm($id)
     {
-        $this->dispatch('confirm-delete', id: $id);
+        $category = CategoryModel::find($id);
+
+        $this->dispatch(
+            'confirm-delete',
+            id: $id,
+            itemName: $category ? $category->name : 'cette catégorie'
+        );
     }
 
     public function confirmDelete($id)
     {
-        CategoryModel::findOrFail($id)->delete();
-        $this->loadCategories();
-        session()->flash('success', 'Catégorie supprimée avec succès');
+        try {
+            $category = CategoryModel::findOrFail($id);
+            $name = $category->name;
+
+            $category->delete();
+
+            $this->loadCategories();
+
+            $this->dispatch(
+                'delete-success',
+                message: "La catégorie \"{$name}\" a été supprimée avec succès."
+            );
+        } catch (Exception $e) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Erreur lors de la suppression : ' . $e->getMessage()
+            );
+        }
     }
 
     public function render()
     {
-        return view('livewire.articles.category', [
-            'title' => 'Catégories Des Articles',
-            'breadcrumb' => 'Catégories'
-        ]);
+        view()->share('title', $this->title);
+        view()->share('breadcrumb', $this->breadcrumb);
+
+        return view('livewire.articles.category');
     }
 }

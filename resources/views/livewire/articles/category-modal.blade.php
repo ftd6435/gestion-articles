@@ -1,7 +1,7 @@
 <div class="modal fade {{ $showModal ? 'show' : '' }}" id="categoryModal" tabindex="-1" style="display: {{ $showModal ? 'block' : 'none' }}; z-index: 1055;" aria-labelledby="categoryModalLabel"aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     {{ $categoryId ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
                 </h5>
@@ -10,15 +10,15 @@
 
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Nom</label>
+                    <label class="form-label">Nom <span class="text-danger">*</span></label>
                     <input type="text" wire:model.defer="name"
-                           class="form-control @error('name') is-invalid @enderror">
+                           class="form-control @error('name') is-invalid @enderror" placeholder="Nom catégorie">
                     @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea wire:model.defer="description" class="form-control"></textarea>
+                    <textarea wire:model.defer="description" class="form-control" placeholder="Description de la catégorie d'article..."></textarea>
                 </div>
 
                 <div class="form-check form-switch">

@@ -209,6 +209,9 @@ class CreateReception extends Component
 
     public function render()
     {
+        view()->share('title', "Gestion des réception des commandes");
+        view()->share('breadcrumb', "Réception Commande");
+
         return view('livewire.stock.create-reception');
     }
 }

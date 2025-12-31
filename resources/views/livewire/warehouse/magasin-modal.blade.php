@@ -1,7 +1,7 @@
 <div class="modal fade {{ $showModal ? 'show' : '' }}" id="magasinModal" tabindex="-1" style="display: {{ $showModal ? 'block' : 'none' }}; z-index: 1055;" aria-labelledby="deviseModalLabel"aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     {{ $magasinId ? 'Modifier le magasin' : 'Nouveau magasin' }}
                 </h5>
@@ -10,22 +10,22 @@
 
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Code</label>
+                    <label class="form-label">Code Magasin <span class="text-danger">*</span></label>
                     <input type="text" wire:model.defer="code_magasin"
-                           class="form-control @error('code_magasin') is-invalid @enderror">
+                           class="form-control @error('code_magasin') is-invalid @enderror" placeholder="Ex: MA0001">
                     @error('code_magasin') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Nom</label>
+                    <label class="form-label">Nom Magasin <span class="text-danger">*</span></label>
                     <input type="text" wire:model.defer="nom"
-                           class="form-control @error('nom') is-invalid @enderror">
+                           class="form-control @error('nom') is-invalid @enderror" placeholder="Nom du magasin">
                     @error('nom') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Localisation</label>
-                    <input type="text" wire:model.defer="localisation" class="form-control">
+                    <input type="text" wire:model.defer="localisation" class="form-control" placeholder="Ex: Cosa">
                 </div>
 
                 <div class="form-check form-switch">

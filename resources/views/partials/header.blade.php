@@ -11,7 +11,7 @@
                 <!-- Breadcrumb -->
                 <nav aria-label="breadcrumb" class="d-none d-md-block">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="/dashboard">Tableau de bord</a></li>
                         @if(isset($breadcrumb))
                             <li class="breadcrumb-item active" aria-current="page">{{ $breadcrumb }}</li>
                         @endif

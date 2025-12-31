@@ -345,10 +345,11 @@ class Commande extends Component
 
     public function render()
     {
+        view()->share('title', "Gestion des Commandes");
+        view()->share('breadcrumb', "Commandes");
+
         return view('livewire.stock.commande', [
             'commandes' => $this->loadCommandes(),
-            'title' => "Gestion des Commandes",
-            'breadcrumb' => "Commandes"
         ]);
     }
 }

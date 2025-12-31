@@ -21,7 +21,7 @@
                     <li class="nav-item">
                         <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
                             <i class="fas fa-th-large"></i>
-                            <span>Dashboard</span>
+                            <span>Tableau de bord</span>
                         </a>
                     </li>
 
@@ -45,7 +45,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="/ventes/jour" class="nav-link {{ request()->is('ventes/jour') ? 'active' : '' }}">
+                                    <a href="/ventes/rapports" class="nav-link {{ request()->is('ventes/rapports') ? 'active' : '' }}">
                                         <i class="fas fa-chart-line"></i>
                                         <span>Rapports</span>
                                     </a>

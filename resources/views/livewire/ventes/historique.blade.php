@@ -484,11 +484,11 @@
                                     <small class="text-muted">{{ $vente->client->telephone }}</small>
                                 @endif
                             </td>
-                            <td>{{ \Carbon\Carbon::parse($vente->date_facture)->format('d/m/Y') }}</td>
-                            <td class="text-end">
+                            <td class="small">{{ \Carbon\Carbon::parse($vente->date_facture)->format('d/m/Y') }}</td>
+                            <td class="text-end small">
                                 {{ number_format($netAmount, 0, ',', ' ') }} {{ $currency }}
                             </td>
-                            <td class="text-end">
+                            <td class="text-end small">
                                 @if($vente->remise > 0)
                                     <span class="text-warning">
                                         {{ number_format($discountAmount, 0, ',', ' ') }} {{ $currency }}
@@ -498,13 +498,13 @@
                                     <span class="text-muted">0 {{ $currency }}</span>
                                 @endif
                             </td>
-                            <td class="text-end fw-bold">
+                            <td class="text-end fw-semibold small">
                                 {{ number_format($finalAmount, 0, ',', ' ') }} {{ $currency }}
                             </td>
-                            <td class="text-end text-success">
+                            <td class="text-end text-success small">
                                 {{ number_format($paid, 0, ',', ' ') }} {{ $currency }}
                             </td>
-                            <td class="text-end fw-bold {{ $remaining > 0 ? 'text-danger' : 'text-success' }}">
+                            <td class="text-end fw-semibold small {{ $remaining > 0 ? 'text-danger' : 'text-success' }}">
                                 {{ number_format($remaining, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td>
@@ -574,21 +574,21 @@
                         @php
                             $totalFinal = $totalNet - $totalRemise;
                         @endphp
-                        <tr class="table-active fw-bold">
-                            <td colspan="4" class="text-end">TOTAUX:</td>
-                            <td class="text-end">
+                        <tr class="table-active">
+                            <td colspan="4" class="text-end fw-bold">TOTAUX:</td>
+                            <td class="text-end fw-bold small">
                                 {{ number_format($totalNet, 0, ',', ' ') }} FG
                             </td>
-                            <td class="text-end text-warning">
+                            <td class="text-end text-warning fw-bold small">
                                 {{ number_format($totalRemise, 0, ',', ' ') }} FG
                             </td>
-                            <td class="text-end fw-bold">
+                            <td class="text-end fw-bold small">
                                 {{ number_format($totalFinal, 0, ',', ' ') }} FG
                             </td>
-                            <td class="text-end text-success">
+                            <td class="text-end text-success fw-bold small">
                                 {{ number_format($totalPaid, 0, ',', ' ') }} FG
                             </td>
-                            <td class="text-end text-danger">
+                            <td class="text-end text-danger fw-bold small">
                                 {{ number_format($totalDue, 0, ',', ' ') }} FG
                             </td>
                             <td></td>

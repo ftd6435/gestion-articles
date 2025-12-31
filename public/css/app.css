@@ -835,3 +835,142 @@ body.modal-open {
 .progress-bar {
     border-radius: 10px;
 }
+
+/* ================ DASHBOARD CSS STYLE ==================== */
+.hover-lift {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.hover-bg-light:hover {
+    background-color: #f8f9fa !important;
+}
+
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6c757d;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary);
+    background-color: rgba(78, 84, 200, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background-color: rgba(78, 84, 200, 0.05);
+}
+
+/* =================== LOAD SPINNER CSS STYLE ================== */
+/* Global Loader */
+#app-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.65);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(5px);
+}
+
+.app-loader-content {
+    text-align: center;
+    transform: translateY(-50px);
+}
+
+.app-loader-logo {
+    margin-bottom: 20px;
+    color: var(--primary, #4e54c8);
+    font-size: 2rem;
+}
+
+.app-loader-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(78, 84, 200, 0.1);
+    border-top-color: var(--primary, #4e54c8);
+    border-radius: 50%;
+    animation: app-spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.app-loader-text {
+    color: var(--primary, #4e54c8);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+}
+
+.app-loader-progress {
+    width: 200px;
+    height: 4px;
+    background: rgba(78, 84, 200, 0.1);
+    border-radius: 2px;
+    margin: 20px auto 0;
+    overflow: hidden;
+}
+
+.app-loader-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-light, #8f94fb), var(--primary, #4e54c8));
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+@keyframes app-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* States */
+.loader-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loader-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Pulse animation for initial load */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* For slow connections warning */
+.loader-slow {
+    color: #f59e0b;
+}

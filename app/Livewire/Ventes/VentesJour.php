@@ -100,9 +100,9 @@ class VentesJour extends Component
 
     public function render()
     {
-        return view('livewire.ventes.ventes-jour', [
-            'title' => 'Ventes du jour',
-            'breadcrumb' => 'Ventes du jour'
-        ]);
+        view()->share('title', "Rapports des ventes");
+        view()->share('breadcrumb', "Rapports");
+
+        return view('livewire.ventes.ventes-jour');
     }
 }

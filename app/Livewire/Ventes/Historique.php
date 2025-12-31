@@ -383,11 +383,12 @@ class Historique extends Component
         // Get clients for filter dropdown
         $clients = ClientModel::orderBy('name')->get();
 
+        view()->share('title', "Historique des Ventes");
+        view()->share('breadcrumb', "Historique Ventes");
+
         return view('livewire.ventes.historique', [
             'ventes' => $ventes,
-            'clients' => $clients,
-            'title' => 'Historique des Ventes',
-            'breadcrumb' => 'Historique Ventes'
+            'clients' => $clients
         ]);
     }
 }

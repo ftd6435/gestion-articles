@@ -11,13 +11,13 @@
             <div class="modal-body">
 
                 <!-- Référence -->
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="form-label">
-                        Référence <span class="text-info">*</span>
+                        Référence <span class="text-danger">*</span>
                     </label>
                     <input type="text"
                         wire:model.defer="reference"
-                        class="form-control @error('reference') is-invalid @enderror">
+                        class="form-control @error('reference') is-invalid @enderror" placeholder="Ex: AR0001">
 
                     @error('reference')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -25,9 +25,9 @@
                 </div>
 
                 <!-- Catégorie -->
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="form-label">
-                        Catégorie <span class="text-info">*</span>
+                        Catégorie d'article <span class="text-danger">*</span>
                     </label>
 
                     <select wire:model.defer="category_id"
@@ -47,13 +47,13 @@
                 </div>
 
                 <!-- Désignation -->
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="form-label">
-                        Désignation <span class="text-info">*</span>
+                        Désignation <span class="text-danger">*</span>
                     </label>
                     <input type="text"
                         wire:model.defer="designation"
-                        class="form-control @error('designation') is-invalid @enderror">
+                        class="form-control @error('designation') is-invalid @enderror" placeholder="Designation de l'article">
 
                     @error('designation')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -61,11 +61,11 @@
                 </div>
 
                 <!-- Description -->
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="form-label">Description</label>
                     <textarea wire:model.defer="description"
                             rows="3"
-                            class="form-control @error('description') is-invalid @enderror"></textarea>
+                            class="form-control @error('description') is-invalid @enderror" placeholder="Descripion de l'article..."></textarea>
 
                     @error('description')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -98,10 +98,10 @@
                 <div class="row">
 
                     <!-- Prix d'achat -->
-                    <div class="col-md-6 mb-3"
+                    <div class="col-md-6 mb-2"
                         x-data="priceInput(@this, 'prix_achat')">
 
-                        <label class="form-label">Prix d’achat</label>
+                        <label class="form-label">Prix d’achat <span class="text-danger">*</span></label>
 
                         <input
                             type="text"
@@ -117,10 +117,10 @@
                     </div>
 
                     <!-- Prix de vente -->
-                    <div class="col-md-6 mb-3"
+                    <div class="col-md-6 mb-2"
                         x-data="priceInput(@this, 'prix_vente')">
 
-                        <label class="form-label">Prix de vente</label>
+                        <label class="form-label">Prix de vente <span class="text-danger">*</span></label>
 
                         <input
                             type="text"
@@ -138,7 +138,7 @@
                 </div>
 
                 <!-- Unité -->
-                <div class="mb-3">
+                <div class="mb-2">
                     <label class="form-label">Unité</label>
 
                     <select

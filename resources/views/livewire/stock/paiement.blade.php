@@ -234,7 +234,7 @@
                                     <label class="form-label fw-semibold">Commande *</label>
                                     <select class="form-select @error('commande_id') is-invalid @enderror"
                                             wire:model.live="commande_id">
-                                        <option value="">Sélectionner</option>
+                                        <option value="">Sélectionner Commande</option>
                                         @foreach($commandes as $commande)
                                             <option value="{{ $commande['id'] }}">
                                                 {{ $commande['reference'] }} -
@@ -251,7 +251,7 @@
                                     <select class="form-select @error('reception_id') is-invalid @enderror"
                                             wire:model="reception_id"
                                             {{ !$commande_id ? 'disabled' : '' }}>
-                                        <option value="">Sélectionner</option>
+                                        <option value="">Sélectionner Réception</option>
                                         @foreach($receptions as $reception)
                                             <option value="{{ $reception->id }}">
                                                 {{ $reception?->reference }} -
@@ -336,7 +336,7 @@
                                     <label class="form-label fw-semibold">Notes</label>
                                     <textarea class="form-control"
                                               rows="2"
-                                              wire:model.defer="notes"></textarea>
+                                              wire:model.defer="notes" placeholder="Commentaire du paiement..."></textarea>
                                 </div>
                             </div>
                         </div>

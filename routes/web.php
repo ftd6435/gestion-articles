@@ -74,6 +74,6 @@ Route::middleware('auth')->group(function () {
     // ROUTE DE LA GESTION DES VENTES
     Route::get('/ventes/ventes', Vente::class)->name('ventes.ventes');
     Route::get('/ventes/create', CreateVente::class)->name('ventes.create');
-    Route::get('/ventes/jour', VentesJour::class)->name('ventes.jour');
+    Route::get('/ventes/rapports', VentesJour::class)->name('ventes.rapports');
     Route::get('/ventes/historique', Historique::class)->name('ventes.historique');
 });

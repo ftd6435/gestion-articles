@@ -1,7 +1,7 @@
 <div class="modal fade {{ $showModal ? 'show' : '' }}" id="magasinModal" tabindex="-1" style="display: {{ $showModal ? 'block' : 'none' }}; z-index: 1055;" aria-labelledby="deviseModalLabel"aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     {{ $magasin_id ? 'Modifier l\'étagère' : 'Nouveau une étagère' }}
                 </h5>
@@ -10,9 +10,9 @@
 
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Code étagère</label>
+                    <label class="form-label">Code étagère <span class="text-danger">*</span></label>
                     <input type="text" wire:model.defer="code_etagere"
-                           class="form-control @error('code_magasin') is-invalid @enderror">
+                           class="form-control @error('code_magasin') is-invalid @enderror" placeholder="Ex: ET0001">
                     @error('code_etagere') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 

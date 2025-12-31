@@ -224,9 +224,9 @@ class Fournisseur extends Component
 
     public function render()
     {
-        return view('livewire.fournisseur', [
-            'title' => 'Liste des fournisseurs',
-            'breadcrumb' => "Fournisseurs"
-        ]);
+        view()->share('title', "Gestion des Fournisseurs");
+        view()->share('breadcrumb', "Fournisseurs");
+
+        return view('livewire.fournisseur');
     }
 }

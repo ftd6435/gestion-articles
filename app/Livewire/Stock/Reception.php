@@ -284,10 +284,11 @@ class Reception extends Component
 
     public function render()
     {
+        view()->share('title', "Gestion des Approvisionnements");
+        view()->share('breadcrumb', "Approvisionnements");
+
         return view('livewire.stock.reception', [
-            'receptions' => $this->loadReceptions(),
-            'title' => 'Gestion des Approvisionnements',
-            'breadcrumb' => 'Approvisionnements'
+            'receptions' => $this->loadReceptions()
         ]);
     }
 }

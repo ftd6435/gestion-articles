@@ -78,11 +78,11 @@ class CreateVente extends Component
 
     private function generateReference()
     {
-        $year = now()->year;
+        $year = now()->format('y');
         $count = VenteModel::whereYear('created_at', $year)->count() + 1;
-        $rand = rand(100, 999);
+        $rand = rand(10, 99);
 
-        return 'V' . $rand . '-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        return 'V' . '-' . $rand . '' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
     /* ===================== LINES ===================== */
@@ -403,6 +403,9 @@ class CreateVente extends Component
 
     public function render()
     {
+        view()->share('title', "Gestion des ventes");
+        view()->share('breadcrumb', "Ajouter vente");
+
         return view('livewire.ventes.create-vente');
     }
 }

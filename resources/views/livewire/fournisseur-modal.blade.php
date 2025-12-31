@@ -32,7 +32,7 @@
                     <label class="form-label">Nom <span class="text-danger">*</span></label>
                     <input type="text"
                            wire:model.defer="name"
-                           class="form-control @error('name') is-invalid @enderror">
+                           class="form-control @error('name') is-invalid @enderror" placeholder="Ex: Ibrahim Diallo">
 
                     @error('name')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -44,7 +44,7 @@
                     <label class="form-label">Téléphone <span class="text-danger">*</span></label>
                     <input type="text"
                            wire:model.defer="telephone"
-                           class="form-control @error('telephone') is-invalid @enderror">
+                           class="form-control @error('telephone') is-invalid @enderror" placeholder="Ex: 620000000">
 
                     @error('telephone')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -56,7 +56,7 @@
                     <label class="form-label">Adresse</label>
                     <input type="text"
                            wire:model.defer="adresse"
-                           class="form-control @error('adresse') is-invalid @enderror">
+                           class="form-control @error('adresse') is-invalid @enderror" placeholder="Ex: Labé">
 
                     @error('adresse')
                         <div class="invalid-feedback">{{ $message }}</div>

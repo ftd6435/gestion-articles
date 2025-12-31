@@ -401,6 +401,9 @@ class Paiement extends Component
 
         $paiements = $query->latest('date_paiement')->paginate(10);
 
+        view()->share('title', "Gestion des paiements fournisseurs");
+        view()->share('breadcrumb', "Paiements fournisseurs");
+
         return view('livewire.stock.paiement', [
             'paiements' => $paiements,
             'modesPaiement' => $this->modesPaiement,

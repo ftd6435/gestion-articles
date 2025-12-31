@@ -430,9 +430,9 @@ class Dashboard extends Component
 
     public function render()
     {
-        return view('livewire.dashboard', [
-            'title' => 'Tableau de Bord',
-            'breadcrumb' => 'Accueil'
-        ]);
+        view()->share('title', "Tableau de Bord");
+        view()->share('breadcrumb', "Accueil");
+
+        return view('livewire.dashboard');
     }
 }

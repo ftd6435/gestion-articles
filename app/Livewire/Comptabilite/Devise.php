@@ -192,9 +192,9 @@ class Devise extends Component
 
     public function render()
     {
-        return view('livewire.comptabilite.devise', [
-            'title' => 'Liste des Devises',
-            'breadcrumb' => 'Devise'
-        ]);
+        view()->share('title', "Liste des Devises");
+        view()->share('breadcrumb', "Devises");
+
+        return view('livewire.comptabilite.devise');
     }
 }

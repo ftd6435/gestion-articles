@@ -3,6 +3,7 @@
 namespace App\Livewire\Warehouse;
 
 use App\Models\Warehouse\MagasinModel;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -140,20 +141,43 @@ class Magasin extends Component
 
     public function deleteConfirm($id)
     {
-        $this->dispatch('confirm-delete', id: $id);
+        $magasin = MagasinModel::find($id);
+
+        $this->dispatch(
+            'confirm-delete',
+            id: $id,
+            itemName: $magasin ? $magasin->nom . ' (' . $magasin->code_magasin . ')' : 'ce magasin'
+        );
     }
 
     public function confirmDelete($id)
     {
-        MagasinModel::findOrFail($id)->delete();
-        $this->loadMagasins();
+        try {
+            $magasin = MagasinModel::findOrFail($id);
+            $nom = $magasin->nom;
+            $code = $magasin->code_magasin;
+
+            $magasin->delete();
+
+            $this->loadMagasins();
+
+            $this->dispatch(
+                'delete-success',
+                message: "Le magasin \"{$nom}\" ({$code}) a été supprimé avec succès."
+            );
+        } catch (Exception $e) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Erreur lors de la suppression : ' . $e->getMessage()
+            );
+        }
     }
 
     public function render()
     {
-        return view('livewire.warehouse.magasin', [
-            'title' => "Gestion des Magasins",
-            'breadcrumb' => "Magasin"
-        ]);
+        view()->share('title', "Gestion des Magasins");
+        view()->share('breadcrumb', "Magasin");
+
+        return view('livewire.warehouse.magasin');
     }
 }

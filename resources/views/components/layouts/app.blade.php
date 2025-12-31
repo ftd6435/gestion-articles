@@ -13,6 +13,21 @@
     @livewireStyles
 </head>
 <body>
+
+    <!-- App Loader -->
+    <div id="app-loader" class="loader-visible">
+        <div class="app-loader-content">
+            <div class="app-loader-logo">
+                <i class="fas fa-cube pulse"></i>
+            </div>
+            <div class="app-loader-spinner"></div>
+            <div class="app-loader-text" id="loader-text">Initialisation...</div>
+            <div class="app-loader-progress">
+                <div class="app-loader-progress-bar" id="loader-progress"></div>
+            </div>
+        </div>
+    </div>
+
     @include('partials.sidebar')
     @include('partials.sidebar-overlay')
 
@@ -32,13 +47,16 @@
     <script src="{{ asset('js/print.js') }}"></script>
     <script src="{{ asset('js/chart.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/loader.js') }}"></script>
 
     <script>
         setTimeout(function() {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+                // Create a new Alert instance
+                const alertInstance = new bootstrap.Alert(alert);
+                // Trigger the close method
+                alertInstance.close();
             });
         }, 5000);
     </script>

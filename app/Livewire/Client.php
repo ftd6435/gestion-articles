@@ -240,18 +240,11 @@ class Client extends Component
         }
     }
 
-    /* ===================== VIEW ===================== */
-
-    public function view($id)
-    {
-        // future: modal or page details
-    }
-
     public function render()
     {
-        return view('livewire.client', [
-            'title' => 'Liste des clients',
-            'breadcrumb' => 'Clients',
-        ]);
+        view()->share('title', "Gestion des clients");
+        view()->share('breadcrumb', "Clients");
+
+        return view('livewire.client');
     }
 }

@@ -351,6 +351,9 @@ class Vente extends Component
 
     public function render()
     {
+        view()->share('title', "Gestion des ventes");
+        view()->share('breadcrumb', "Ventes");
+
         return view('livewire.ventes.vente');
     }
 }

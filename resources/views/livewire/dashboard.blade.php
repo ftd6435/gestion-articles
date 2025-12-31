@@ -728,7 +728,7 @@
                     <div class="row g-2">
                         <div class="col-6">
                             <a href="{{ route('clients') }}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-user-plus me-2"></i>Clientq
+                                <i class="fas fa-user-plus me-2"></i>Client
                             </a>
                         </div>
                         <div class="col-6">
@@ -738,12 +738,12 @@
                         </div>
                         <div class="col-6">
                             <a href="{{ route('ventes.create') }}" class="btn btn-outline-danger w-100">
-                                <i class="fas fa-cash-register me-2"></i>Nouvelle Vente
+                                <i class="fas fa-cash-register me-2"></i>Vente
                             </a>
                         </div>
                         <div class="col-6">
                             <a href="{{ route('stock.commandes.create') }}" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-shopping-cart me-2"></i>Nouvelle Commande
+                                <i class="fas fa-shopping-cart me-2"></i>Commande
                             </a>
                         </div>
                     </div>
@@ -752,133 +752,4 @@
         </div>
     </div>
 
-    <!-- Loading Indicator -->
-    {{-- <div wire:loading class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-         style="background: rgba(255,255,255,0.8); z-index: 1050;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Chargement...</span>
-        </div>
-    </div> --}}
 </div>
-
-{{-- @push('styles')
-<style>
-    .hover-lift {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .hover-lift:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
-    }
-
-    .hover-bg-light:hover {
-        background-color: #f8f9fa !important;
-    }
-
-    .avatar-sm {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 0.875rem;
-    }
-
-    .nav-tabs .nav-link {
-        border: none;
-        border-bottom: 3px solid transparent;
-        color: #6c757d;
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
-    }
-
-    .nav-tabs .nav-link:hover {
-        color: var(--primary);
-        background-color: rgba(78, 84, 200, 0.05);
-    }
-
-    .nav-tabs .nav-link.active {
-        color: var(--primary);
-        border-bottom-color: var(--primary);
-        background-color: rgba(78, 84, 200, 0.05);
-    }
-
-    .card-header {
-        padding: 1rem 1.25rem;
-    }
-
-    .card-body {
-        padding: 1.25rem;
-    }
-
-    .list-group-item {
-        border: none;
-        border-bottom: 1px solid rgba(0,0,0,.125);
-    }
-
-    .list-group-item:last-child {
-        border-bottom: none;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        h3 {
-            font-size: 1.5rem;
-        }
-
-        .card-body {
-            padding: 1rem;
-        }
-
-        .list-group-item {
-            padding: 0.75rem;
-        }
-
-        .nav-tabs .nav-link {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.8rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        h3 {
-            font-size: 1.25rem;
-        }
-
-        h6 {
-            font-size: 0.9rem;
-        }
-
-        .card {
-            margin-bottom: 0.75rem;
-        }
-
-        .col-6 {
-            padding: 0.25rem;
-        }
-
-        .btn {
-            padding: 0.375rem 0.5rem;
-            font-size: 0.8rem;
-        }
-
-        .badge {
-            font-size: 0.7rem;
-        }
-    }
-
-    /* Print styles */
-    @media print {
-        .btn, .nav-tabs, .list-group-item:hover {
-            display: none !important;
-        }
-
-        .card {
-            box-shadow: none !important;
-            border: 1px solid #dee2e6 !important;
-        }
-    }
-</style>
-@endpush --}}

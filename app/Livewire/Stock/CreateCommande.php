@@ -269,10 +269,11 @@ class CreateCommande extends Component
 
     public function render()
     {
+        view()->share('title', "Nouvelle Commande Fournisseur");
+        view()->share('breadcrumb', "Créer Commande");
+
         return view('livewire.stock.create-commande', [
             'totalAmount' => $this->getTotalAmount(),
-            'title' => 'Nouvelle Commande Fournisseur',
-            'breadcrumb' => 'Créer Commande'
         ]);
     }
 }
