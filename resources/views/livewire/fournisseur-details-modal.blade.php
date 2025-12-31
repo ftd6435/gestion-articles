@@ -485,9 +485,6 @@
                     <i class="fas fa-times me-2"></i>Fermer
                 </button>
                 @if($selectedFournisseur)
-                <a href="{{ route('stock.commandes') }}" class="btn btn-primary me-2">
-                    <i class="fas fa-shopping-cart me-2"></i>Voir commandes
-                </a>
                 <button class="btn btn-outline-primary" onclick="printFournisseurDetails()">
                     <i class="fas fa-print me-2"></i>Imprimer
                 </button>

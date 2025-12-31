@@ -176,6 +176,29 @@
                             </ul>
                         </div>
                     </li>
+
+                    <!-- Configuration (Dropdown) -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('settings*') ? 'active' : '' }}"
+                           data-bs-toggle="collapse"
+                           href="#settings"
+                           role="button"
+                           aria-expanded="false">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>Paramètre</span>
+                            <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
+                        </a>
+                        <div class="collapse {{ request()->is('settings*') ? 'show' : '' }}" id="settings">
+                            <ul class="nav flex-column dropdown-menu-custom">
+                                <li class="nav-item mt-2">
+                                    <a href="{{ route('settings.register') }}" class="nav-link {{ request()->is('settings/register') ? 'active' : '' }}">
+                                        <i class="fas fa-user-plus"></i>
+                                        <span>Ajouter utilisateur</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
                 </ul>
             </nav>
 

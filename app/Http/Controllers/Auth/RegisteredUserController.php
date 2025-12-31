@@ -29,6 +29,6 @@ class RegisteredUserController extends Controller
 
         $user = User::create($fields);
 
-        return view('auth.login')->with('message', "Compte créé avec succès.");
+        return view('livewire.dashboard')->with('message', "Compte créé avec succès.");
     }
 }

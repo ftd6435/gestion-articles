@@ -114,8 +114,7 @@
                         </button>
 
                         <div class="register-link">
-                            Pas encore de compte ?
-                            <a href="{{ route('register') }}">Créer un compte</a>
+                            Pas encore de compte ? Appelez votre administrateur
                         </div>
                     </form>
 

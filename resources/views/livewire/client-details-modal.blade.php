@@ -500,9 +500,6 @@
                     <i class="fas fa-times me-2"></i>Fermer
                 </button>
                 @if($selectedClient)
-                <a href="{{ route('ventes.ventes') }}" class="btn btn-primary me-2">
-                    <i class="fas fa-shopping-cart me-2"></i>Voir les ventes
-                </a>
                 <button class="btn btn-outline-primary" onclick="printClientDetails()">
                     <i class="fas fa-print me-2"></i>Imprimer
                 </button>

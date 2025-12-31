@@ -143,8 +143,8 @@
                         </button>
 
                         <div class="register-link">
-                            Déjà un compte ?
-                            <a href="{{ route('login') }}">Connexion</a>
+                            Allez au dashboard ?
+                            <a href="{{ route('dashboard') }}">Cliquez ici</a>
                         </div>
                     </form>
 
