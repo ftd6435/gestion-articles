@@ -15,7 +15,7 @@
 <body>
 
     <!-- App Loader -->
-    <div id="app-loader" class="loader-visible">
+    {{-- <div id="app-loader" class="loader-visible">
         <div class="app-loader-content">
             <div class="app-loader-logo">
                 <i class="fas fa-cube pulse"></i>
@@ -26,7 +26,7 @@
                 <div class="app-loader-progress-bar" id="loader-progress"></div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     @include('partials.sidebar')
     @include('partials.sidebar-overlay')
@@ -47,7 +47,7 @@
     <script src="{{ asset('js/print.js') }}"></script>
     <script src="{{ asset('js/chart.js') }}"></script>
     <script src="{{ asset('js/app.js') }}"></script>
-    <script src="{{ asset('js/loader.js') }}"></script>
+    {{-- <script src="{{ asset('js/loader.js') }}"></script> --}}
 
     <script>
         setTimeout(function() {

@@ -146,22 +146,29 @@ class AppLoader {
     }
 
     showLoader(text = 'Chargement...') {
-        if (!this.loader) return;
+        const loader = this.getLoader();
+        if (!loader) return;
 
-        this.loader.classList.remove('loader-hidden');
+        this.loader = loader;
+
+        loader.classList.remove('loader-hidden');
         this.updateText(text);
         this.updateProgress(30);
 
-        // Restart progress simulation
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
         }
+
         this.simulateProgress();
     }
 
     hideLoader() {
-        // Clear progress simulation
+        const loader = this.getLoader();
+        if (!loader) return;
+
+        this.loader = loader;
+
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
@@ -171,8 +178,9 @@ class AppLoader {
         this.updateText('Terminé !');
 
         setTimeout(() => {
-            if (this.loader) {
-                this.loader.classList.add('loader-hidden');
+            const freshLoader = this.getLoader();
+            if (freshLoader) {
+                freshLoader.classList.add('loader-hidden');
             }
         }, 300);
     }
