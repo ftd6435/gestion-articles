@@ -214,10 +214,9 @@ class Vente extends Component
                 'numeric',
                 'min:0',
                 function ($attribute, $value, $fail) {
-                    $vente = VenteModel::with('paiements')->find($this->venteId);
+                    $vente = VenteModel::find($this->venteId);
                     if ($vente) {
-                        $totalPaid = $vente->paiements()->sum('montant');
-                        $maxAmount = $vente->totalAfterRemise() - $totalPaid;
+                        $maxAmount = $vente->remainingAmount();
                         if ($value > $maxAmount) {
                             $fail("Le montant payé ne peut pas dépasser " . number_format($maxAmount, 2) . " " . ($vente->devise->symbole ?? ''));
                         }
@@ -230,7 +229,7 @@ class Vente extends Component
         DB::beginTransaction();
 
         try {
-            $vente = VenteModel::with('paiements')->findOrFail($this->venteId);
+            $vente = VenteModel::findOrFail($this->venteId);
 
             VentePaiementClient::create([
                 'vente_id' => $vente->id,
@@ -242,11 +241,15 @@ class Vente extends Component
                 'created_by' => Auth::id(),
             ]);
 
-            // Update vente status
-            $totalPaid = $vente->paiements()->sum('montant') + $this->paiement_montant;
-            $totalDue = $vente->totalAfterRemise();
+            // REFRESH the model to get fresh data including the new payment
+            $vente->refresh();
 
-            if ($totalPaid >= $totalDue) {
+            $totalPaid = (float) $vente->paiements()->sum('montant');
+            $totalDue = (float) $vente->totalAfterRemise();
+
+            $tolerance = 0.01;
+
+            if (abs($totalDue - $totalPaid) <= $tolerance) {
                 $vente->status = 'PAYEE';
             } elseif ($totalPaid > 0) {
                 $vente->status = 'PARTIELLE';
