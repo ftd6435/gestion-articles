@@ -1,14 +1,51 @@
 <div class="container-fluid py-4">
 
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold">
-            <i class="fas fa-cart-plus me-2"></i>Nouvelle Vente
-        </h4>
+    {{-- Stacked Responsive Design --}}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3 p-md-4">
+            {{-- Mobile top bar --}}
+            <div class="d-flex justify-content-between align-items-center d-md-none mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                        <i class="fas fa-shopping-cart text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">Nouvelle Vente</h5>
+                </div>
+                <span class="badge bg-primary fs-6">#{{ $reference }}</span>
+            </div>
 
-        <span class="badge bg-primary fs-6">
-            {{ $reference }}
-        </span>
+            {{-- Desktop layout --}}
+            <div class="d-none d-md-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                        <i class="fas fa-shopping-cart fa-lg text-primary"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">Nouvelle Vente</h4>
+                        <div class="mt-1">
+                            <span class="badge bg-primary fs-6">#{{ $reference }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-success px-4 py-3 d-flex align-items-center fw-medium shadow"
+                        wire:click="openClientModal">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Ajouter un Client
+                </button>
+            </div>
+
+            {{-- Mobile action area --}}
+            <div class="d-md-none">
+                <div class="border-top pt-3 mt-2">
+                    <button class="btn btn-success w-100 d-flex align-items-center justify-content-center py-3 fw-medium"
+                            wire:click="openClientModal">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Ajouter un Client
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     @include('components.shared.alerts')
@@ -22,10 +59,14 @@
                     <div class="col-md-4">
                         <label class="form-label">Client *</label>
                         <select class="form-select @error('client_id') is-invalid @enderror" wire:model="client_id">
-                            <option value="">Sélectionner</option>
-                            @foreach($clients as $client)
-                                <option value="{{ $client->id }}">{{ $client->name }} - {{ $client->telephone }}</option>
-                            @endforeach
+                            @if ($selectedClient)
+                                <option value="{{ $selectedClient->id }}">{{ $selectedClient->name }} - {{ $selectedClient->telephone }}</option>
+                            @else
+                                <option value="">Sélectionner</option>
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}">{{ $client->name }} - {{ $client->telephone }}</option>
+                                @endforeach
+                            @endif
                         </select>
                         @error('client_id')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -381,6 +422,10 @@
 
             </div>
         </div>
+    @endif
+
+    @if ($showModal)
+        @include('livewire.client-modal')
     @endif
 
 </div>

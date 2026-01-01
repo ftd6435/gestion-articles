@@ -17,14 +17,14 @@
                     <div class="logo-icon">
                         <i class="fas fa-bolt"></i>
                     </div>
-                    <h1 class="brand-name">AdminPro</h1>
+                    <h1 class="brand-name">GestionStock</h1>
                 </div>
                 <p class="brand-tagline">Gérez votre entreprise avec efficacité</p>
 
                 <div class="features-list">
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>Dashboard intuitif</span>
+                        <span>Tableau de bord intuitif</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-check-circle"></i>
@@ -71,7 +71,7 @@
                             <a href="{{ route('login') }}">Retour à la connexion</a>
                         </div>
                     </form>
-                    
+
                 </div>
 
             </div>

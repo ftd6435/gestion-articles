@@ -25,6 +25,10 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        logActivity('user login', [
+            'telephone'   => $request->telephone,
+        ]);
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -33,6 +37,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
+        logActivity('user logout', [
+            'telephone'   => Auth::user()->telephone,
+        ]);
+
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

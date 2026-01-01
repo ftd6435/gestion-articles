@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Traits\ImageUpload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class RegisteredUserController extends Controller
@@ -28,6 +29,17 @@ class RegisteredUserController extends Controller
         // }
 
         $user = User::create($fields);
+
+        logActivity('created a user', [
+            'added'   => [
+                'name' => $user->name,
+                'telephone' => $user->telephone
+            ],
+            'author' => [
+                'name' => Auth::user()->name,
+                'telephone' => Auth::user()->telephone,
+            ]
+        ], $user);
 
         return view('livewire.dashboard')->with('message', "Compte créé avec succès.");
     }

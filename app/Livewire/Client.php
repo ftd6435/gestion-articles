@@ -153,7 +153,7 @@ class Client extends Component
 
     /* ===================== STORE ===================== */
 
-    public function store()
+    public function storeClient()
     {
         $this->validate();
 

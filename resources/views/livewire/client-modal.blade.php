@@ -76,7 +76,7 @@
             <!-- Footer -->
             <div class="modal-footer p-4">
                 <button class="btn btn-light me-2" wire:click="closeModal">Annuler</button>
-                <button class="btn btn-primary" wire:click="store">Enregistrer</button>
+                <button class="btn btn-primary" wire:click="storeClient">Enregistrer</button>
             </div>
 
         </div>

@@ -13,6 +13,7 @@ use App\Models\Ventes\VentePaiementClient;
 use App\Models\Warehouse\EtagereModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class CreateVente extends Component
 {
@@ -25,6 +26,18 @@ class CreateVente extends Component
 
     public $venteId;
     public $showPaiementForm = false;
+
+    // Creating a new client
+    public $showModal = false;
+    public $selectedClient = null;
+
+    public $clientId;
+    public $name;
+    public $type = 'DETAILLANT';
+    public $telephone;
+    public $email;
+    public $adresse;
+    public $status = true;
 
     // paiement fields
     public $paiement_date;
@@ -83,6 +96,74 @@ class CreateVente extends Component
         $rand = rand(10, 99);
 
         return 'V' . '-' . $rand . '' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+    }
+
+    /* ================ ADD A NEW CLIENT ====================*/
+
+    public function openClientModal()
+    {
+        $this->selectedClient = null;
+        $this->showModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+    }
+
+    public function storeClient()
+    {
+        $this->validate([
+            'name' => 'required|string|min:3|max:100',
+
+            'telephone' => [
+                'required',
+                'string',
+                'min:6',
+                'max:30',
+                'regex:/^[0-9]+$/',
+                Rule::unique('client_models', 'telephone')->ignore($this->clientId),
+            ],
+
+            'type' => ['required', Rule::in(['GROSSISTE', 'DETAILLANT', 'MIXTE'])],
+
+            'email' => 'nullable|email|max:100',
+
+            'adresse' => 'nullable|string|max:100',
+
+            'status' => 'boolean',
+        ]);
+
+        try {
+            $this->selectedClient = ClientModel::create(
+                [
+                    'name'       => $this->name,
+                    'telephone'  => $this->telephone,
+                    'type'       => $this->type,
+                    'email'      => $this->email,
+                    'adresse'    => $this->adresse,
+                    'status'     => $this->status,
+                    'created_by' => Auth::id(),
+                ]
+            );
+
+            logActivity('created client', [
+                'name'       => $this->name,
+                'telephone'  => $this->telephone,
+            ], $this->selectedClient);
+
+            $this->showModal = false;
+
+            $this->dispatch(
+                'success',
+                message: "Le client \"{$this->name}\" a été ajouté avec succès."
+            );
+        } catch (\Exception $e) {
+            $this->dispatch(
+                'error',
+                message: 'Erreur lors de l\'ajout du client : ' . $e->getMessage()
+            );
+        }
     }
 
     /* ===================== LINES ===================== */
@@ -329,12 +410,17 @@ class CreateVente extends Component
                 'created_by'  => Auth::id(),
             ]);
 
+            logActivity('created vente', [
+                'reference'   => $this->reference,
+            ], $vente);
+
             // Create sale lines
             $this->createSaleLines($vente->id);
 
             DB::commit();
 
             $this->venteId = $vente->id;
+            $this->selectedClient = null;
             $this->showPaiementForm = true;
 
             // Reset payment amount when showing payment form
@@ -367,7 +453,7 @@ class CreateVente extends Component
         DB::beginTransaction();
 
         try {
-            VentePaiementClient::create([
+            $paiement = VentePaiementClient::create([
                 'vente_id' => $vente->id,
                 'date_paiement' => $this->paiement_date,
                 'montant' => $this->paiement_montant,
@@ -379,6 +465,11 @@ class CreateVente extends Component
 
             // Calculate total paid including this payment
             $totalPaid = $vente->paiements()->sum('montant') + $this->paiement_montant;
+
+            logActivity('created paiement client', [
+                'reference'   => $paiement->reference,
+                'vente_ref' => $vente->reference
+            ], $paiement);
 
             // Update vente status
             if (abs($totalPaid - $vente->total) < 0.01) { // Using float comparison with tolerance

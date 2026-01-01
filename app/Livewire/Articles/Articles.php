@@ -302,9 +302,44 @@ class Articles extends Component
         $this->validate();
 
         try {
-            ArticleModel::updateOrCreate(
-                ['id' => $this->articleId],
-                [
+            if ($this->articleId) {
+                $article = ArticleModel::findOrFail($this->articleId);
+
+                $article->update([
+                    'reference'    => $this->reference,
+                    'category_id'  => $this->category_id,
+                    'devise_id'    => $this->devise_id,
+                    'designation'  => $this->designation,
+                    'description'  => $this->description,
+                    'prix_achat'   => $this->prix_achat,
+                    'prix_vente'   => $this->prix_vente,
+                    'unite'        => $this->unite,
+                    'status'       => $this->status,
+                    'updated_by'   => Auth::id(),
+                ]);
+
+                logActivity('updated an article', [
+                    'old' => [
+                        'reference'    => $article->reference,
+                        'category_id'  => $article->category_id,
+                        'devise_id'    => $article->devise_id,
+                        'designation'  => $article->designation,
+                        'description'  => $article->description,
+                        'prix_achat'   => $article->prix_achat,
+                        'prix_vente'   => $article->prix_vente,
+                    ],
+                    'new' => [
+                        'reference'    => $this->reference,
+                        'category_id'  => $this->category_id,
+                        'devise_id'    => $this->devise_id,
+                        'designation'  => $this->designation,
+                        'description'  => $this->description,
+                        'prix_achat'   => $this->prix_achat,
+                        'prix_vente'   => $this->prix_vente,
+                    ]
+                ], $article);
+            } else {
+                $article = ArticleModel::create([
                     'reference'    => $this->reference,
                     'category_id'  => $this->category_id,
                     'devise_id'  => $this->devise_id,
@@ -314,10 +349,19 @@ class Articles extends Component
                     'prix_vente'   => $this->prix_vente,
                     'unite'        => $this->unite,
                     'status'       => $this->status,
-                    'updated_by'   => Auth::id(),
-                    'created_by'   => $this->articleId ? null : Auth::id(),
-                ]
-            );
+                    'created_by'   => Auth::id(),
+                ]);
+
+                logActivity('created an article', [
+                    'reference'    => $this->reference,
+                    'category_id'  => $this->category_id,
+                    'devise_id'    => $this->devise_id,
+                    'designation'  => $this->designation,
+                    'description'  => $this->description,
+                    'prix_achat'   => $this->prix_achat,
+                    'prix_vente'   => $this->prix_vente,
+                ], $article);
+            }
 
             $this->dispatch('article-saved');
             $this->closeModal();
