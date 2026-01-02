@@ -322,6 +322,25 @@ function priceInput(livewire, field) {
     }
 }
 
+/**
+ *
+ * Toggle password of auth user's profile
+ */
+function toggleProfilePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+
+    if (!input) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
 // ============================================
 // EXPOSE FUNCTIONS GLOBALLY
 // ============================================

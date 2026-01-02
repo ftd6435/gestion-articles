@@ -318,7 +318,7 @@ class Articles extends Component
                     'updated_by'   => Auth::id(),
                 ]);
 
-                logActivity('updated an article', [
+                logActivity('Modification d\'un article', [
                     'old' => [
                         'reference'    => $article->reference,
                         'category_id'  => $article->category_id,
@@ -352,7 +352,7 @@ class Articles extends Component
                     'created_by'   => Auth::id(),
                 ]);
 
-                logActivity('created an article', [
+                logActivity('Création d\'un article', [
                     'reference'    => $this->reference,
                     'category_id'  => $this->category_id,
                     'devise_id'    => $this->devise_id,
@@ -401,6 +401,16 @@ class Articles extends Component
     {
         $article = ArticleModel::find($id);
 
+        logActivity('Demande de suppression d\'un article', [
+            'reference'    => $article->reference,
+            'category_id'  => $article->category_id,
+            'devise_id'    => $article->devise_id,
+            'designation'  => $article->designation,
+            'description'  => $article->description,
+            'prix_achat'   => $article->prix_achat,
+            'prix_vente'   => $article->prix_vente,
+        ], $article);
+
         $this->dispatch(
             'confirm-delete',
             id: $id,
@@ -413,6 +423,17 @@ class Articles extends Component
         try {
             $article = ArticleModel::findOrFail($id);
             $name = $article->reference . ' ' . $article->designation;
+
+            logActivity('Suppression confirmée d\'un article', [
+                'reference'    => $article->reference,
+                'category_id'  => $article->category_id,
+                'devise_id'    => $article->devise_id,
+                'designation'  => $article->designation,
+                'description'  => $article->description,
+                'prix_achat'   => $article->prix_achat,
+                'prix_vente'   => $article->prix_vente,
+            ], $article);
+
             $article->delete();
 
             // Recalculate statistics
@@ -443,6 +464,8 @@ class Articles extends Component
 
         view()->share('title', "Gestion des Articles");
         view()->share('breadcrumb', "Articles");
+
+        logActivity('Affichage des articles', null, $articles);
 
         return view('livewire.articles.articles', [
             'articles' => $articles,

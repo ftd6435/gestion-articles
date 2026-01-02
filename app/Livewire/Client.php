@@ -158,9 +158,11 @@ class Client extends Component
         $this->validate();
 
         try {
-            ClientModel::updateOrCreate(
-                ['id' => $this->clientId],
-                [
+
+            if ($this->clientId) {
+                $client = ClientModel::findOrFail($this->clientId);
+
+                $client->update([
                     'name'       => $this->name,
                     'telephone'  => $this->telephone,
                     'type'       => $this->type,
@@ -168,9 +170,48 @@ class Client extends Component
                     'adresse'    => $this->adresse,
                     'status'     => $this->status,
                     'updated_by' => Auth::id(),
-                    'created_by' => Auth::id(),
-                ]
-            );
+                ]);
+
+                logActivity('Modification d\'un client', [
+                    'old' => [
+                        'name'    => $client->name,
+                        'telephone'    => $client->telephone,
+                        'type'    => $client->type,
+                        'email'    => $client->email,
+                        'adresse'    => $client->adresse,
+                        'status'    => $client->status,
+                    ],
+                    'new' => [
+                        'name'    => $this->name,
+                        'telephone'    => $this->telephone,
+                        'type'    => $this->type,
+                        'email'    => $this->email,
+                        'adresse'    => $this->adresse,
+                        'status'    => $this->status,
+                    ]
+                ], $client);
+            } else {
+                $client = ClientModel::create(
+                    [
+                        'name'       => $this->name,
+                        'telephone'  => $this->telephone,
+                        'type'       => $this->type,
+                        'email'      => $this->email,
+                        'adresse'    => $this->adresse,
+                        'status'     => $this->status,
+                        'created_by' => Auth::id(),
+                    ]
+                );
+
+                logActivity('Création d\'un client', [
+                    'name'    => $client->name,
+                    'telephone'    => $client->telephone,
+                    'type'    => $client->type,
+                    'email'    => $client->email,
+                    'adresse'    => $client->adresse,
+                    'status'    => $client->status,
+                ], $client);
+            }
 
             $this->loadClients();
             $this->showModal = false;
@@ -195,6 +236,13 @@ class Client extends Component
     {
         $client = ClientModel::findOrFail($id);
 
+        logActivity('Modification du status du client', [
+            'name' => $client->name,
+            'telephone' => $client->telephone,
+            'old_status' => $client->status,
+            'new_status' => ! $client->status
+        ]);
+
         $client->update([
             'status'     => ! $client->status,
             'updated_by' => Auth::id(),
@@ -212,6 +260,15 @@ class Client extends Component
     {
         $client = ClientModel::find($id);
 
+        logActivity('Demande de suppression d\'un client', [
+            'name'    => $client->name,
+            'telephone'    => $client->telephone,
+            'type'    => $client->type,
+            'email'    => $client->email,
+            'adresse'    => $client->adresse,
+            'status'    => $client->status,
+        ], $client);
+
         $this->dispatch(
             'confirm-delete',
             id: $id,
@@ -224,6 +281,15 @@ class Client extends Component
         try {
             $client = ClientModel::findOrFail($id);
             $name = $client->name;
+
+            logActivity('Suppression confirmée d\'un client', [
+                'name'    => $client->name,
+                'telephone'    => $client->telephone,
+                'type'    => $client->type,
+                'email'    => $client->email,
+                'adresse'    => $client->adresse,
+                'status'    => $client->status,
+            ], $client);
 
             $client->delete();
             $this->loadClients();
@@ -244,6 +310,8 @@ class Client extends Component
     {
         view()->share('title', "Gestion des clients");
         view()->share('breadcrumb', "Clients");
+
+        logActivity('Affichage des clients');
 
         return view('livewire.client');
     }

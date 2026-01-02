@@ -221,6 +221,17 @@ class CreateCommande extends Component
                 'updated_by' => Auth::id(),
             ]);
 
+            logActivity("Création d'une commande avec succès", [
+                'reference' => $this->reference,
+                'fournisseur_id' => $this->fournisseur_id,
+                'devise_id' => $this->devise_id,
+                'taux_change' => $this->taux_change,
+                'remise' => $this->remise,
+                'date_commande' => $this->date_commande,
+                'status' => $this->status,
+                'lignes' => $this->lignes
+            ], $commande);
+
             // Créer les lignes
             foreach ($this->lignes as $ligne) {
                 LigneCommandeFournisseur::create([
@@ -271,6 +282,8 @@ class CreateCommande extends Component
     {
         view()->share('title', "Nouvelle Commande Fournisseur");
         view()->share('breadcrumb', "Créer Commande");
+
+        logActivity('Ouverture du panier de commande');
 
         return view('livewire.stock.create-commande', [
             'totalAmount' => $this->getTotalAmount(),

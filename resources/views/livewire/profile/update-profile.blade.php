@@ -218,10 +218,8 @@
                                                wire:model="current_password"
                                                placeholder="Saisissez votre mot de passe actuel"
                                                {{ $remainingUpdates <= 0 ? 'disabled' : '' }}>
-                                        <!-- CORRECTION : Modifier la structure pour togglePassword -->
-                                        <button class="btn btn-outline-secondary toggle-password"
-                                                type="button"
-                                                data-target="current_password">
+                                        <button class="btn btn-outline-secondary"
+                                                type="button" onclick="toggleProfilePassword('current_password', this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -242,9 +240,8 @@
                                                wire:model="new_password"
                                                placeholder="Saisissez votre nouveau mot de passe"
                                                {{ $remainingUpdates <= 0 ? 'disabled' : '' }}>
-                                        <button class="btn btn-outline-secondary toggle-password"
-                                                type="button"
-                                                data-target="new_password">
+                                        <button class="btn btn-outline-secondary"
+                                                type="button" onclick="toggleProfilePassword('new_password', this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -265,9 +262,8 @@
                                                wire:model="new_password_confirmation"
                                                placeholder="Confirmez votre nouveau mot de passe"
                                                {{ $remainingUpdates <= 0 ? 'disabled' : '' }}>
-                                        <button class="btn btn-outline-secondary toggle-password"
-                                                type="button"
-                                                data-target="new_password_confirmation">
+                                        <button class="btn btn-outline-secondary"
+                                                type="button" onclick="toggleProfilePassword('new_password_confirmation', this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -371,28 +367,6 @@
 <script>
     // CORRECTION : Fonction togglePassword corrigée
     document.addEventListener('DOMContentLoaded', function() {
-        // Utiliser la délégation d'événements pour gérer les boutons
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.toggle-password')) {
-                const button = e.target.closest('.toggle-password');
-                const targetId = button.getAttribute('data-target');
-                const input = document.getElementById(targetId);
-                const icon = button.querySelector('i');
-
-                if (input && icon) {
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                    } else {
-                        input.type = 'password';
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
-                    }
-                }
-            }
-        });
-
         // Gestion du fichier image
         const fileInput = document.getElementById('fileInput');
         if (fileInput) {
@@ -481,18 +455,6 @@
     .selected-file-info {
         animation: fadeIn 0.5s ease;
         border-left: 4px solid #4e54c8;
-    }
-
-    /* Style pour les boutons toggle password */
-    .toggle-password {
-        border-left: none;
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-
-    .toggle-password:hover {
-        background-color: #e9ecef;
-        border-color: #ced4da;
     }
 
     @keyframes fadeIn {

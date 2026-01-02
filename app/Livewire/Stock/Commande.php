@@ -268,6 +268,25 @@ class Commande extends Component
                     'updated_by' => Auth::id(),
                 ]);
 
+                logActivity('Demande de suppression d\'une commande', [
+                    'old' => [
+                        'reference'    => $commande->reference,
+                        'fournisseur_id'    => $commande->fournisseur_id,
+                        'devise_id' => $commande->devise_id,
+                        'remise' => $commande->remise,
+                        'date_commande' => $commande->date_commande,
+                        'status' => $commande->status,
+                    ],
+                    'new' => [
+                        'fournisseur_id' => $this->fournisseur_id,
+                        'devise_id' => $this->devise_id,
+                        'reference' => $this->reference,
+                        'remise' => $this->remise ?? 0,
+                        'date_commande' => $this->date_commande,
+                        'status' => $this->status,
+                    ]
+                ], $commande);
+
                 $message = 'Commande modifiée avec succès.';
             } else {
                 // CREATE new command
@@ -308,6 +327,15 @@ class Commande extends Component
         try {
             $commande = CommandeFournisseur::find($id);
 
+            logActivity('Demande de suppression d\'une commande', [
+                'reference'    => $commande->reference,
+                'fournisseur'    => $commande->fournisseur->name,
+                'devise' => $commande->devise->code,
+                'remise' => $commande->remise,
+                'date_commande' => $commande->date_commande,
+                'status' => $commande->status,
+            ], $commande);
+
             // Dispatch l'événement avec le nom du commande
             $this->dispatch(
                 'confirm-delete',
@@ -324,6 +352,15 @@ class Commande extends Component
         try {
             $commande = CommandeFournisseur::findOrFail($id);
             $reference = $commande->reference;
+
+            logActivity('Suppression confirmée d\'une commande', [
+                'reference'    => $commande->reference,
+                'fournisseur'    => $commande->fournisseur->name,
+                'devise' => $commande->devise->code,
+                'remise' => $commande->remise,
+                'date_commande' => $commande->date_commande,
+                'status' => $commande->status,
+            ], $commande);
 
             $commande->delete();
 
@@ -347,6 +384,8 @@ class Commande extends Component
     {
         view()->share('title', "Gestion des Commandes");
         view()->share('breadcrumb', "Commandes");
+
+        logActivity('Affichage des commandes');
 
         return view('livewire.stock.commande', [
             'commandes' => $this->loadCommandes(),

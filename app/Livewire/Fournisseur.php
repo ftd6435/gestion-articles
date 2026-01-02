@@ -138,17 +138,50 @@ class Fournisseur extends Component
         $this->validate();
 
         try {
-            FournisseurModel::updateOrCreate(
-                ['id' => $this->fournisseurId],
-                [
+
+            if ($this->fournisseurId) {
+                $fournisseur = FournisseurModel::findOrFail($this->fournisseurId);
+
+                $fournisseur->update([
                     'name'       => $this->name,
                     'telephone'  => $this->telephone,
                     'adresse'    => $this->adresse,
                     'status'     => $this->status,
                     'updated_by' => Auth::id(),
-                    'created_by' => Auth::id(),
-                ]
-            );
+                ]);
+
+                logActivity('Modification d\'un fournisseur', [
+                    'old' => [
+                        'name'    => $fournisseur->name,
+                        'telephone'    => $fournisseur->telephone,
+                        'adresse'    => $fournisseur->adresse,
+                        'status'    => $fournisseur->status,
+                    ],
+                    'new' => [
+                        'name'    => $this->name,
+                        'telephone'    => $this->telephone,
+                        'adresse'    => $this->adresse,
+                        'status'    => $this->status,
+                    ]
+                ], $fournisseur);
+            } else {
+                $fournisseur = FournisseurModel::create(
+                    [
+                        'name'       => $this->name,
+                        'telephone'  => $this->telephone,
+                        'adresse'    => $this->adresse,
+                        'status'     => $this->status,
+                        'created_by' => Auth::id(),
+                    ]
+                );
+
+                logActivity('Création d\'un fournisseur', [
+                    'name'    => $fournisseur->name,
+                    'telephone'    => $fournisseur->telephone,
+                    'adresse'    => $fournisseur->adresse,
+                    'status'    => $fournisseur->status,
+                ], $fournisseur);
+            }
 
             $this->loadFournisseurs();
             $this->showModal = false;
@@ -171,6 +204,13 @@ class Fournisseur extends Component
     {
         $fournisseur = FournisseurModel::findOrFail($id);
 
+        logActivity('Modification du status du fournisseur', [
+            'name' => $fournisseur->name,
+            'telephone' => $fournisseur->telephone,
+            'old_status' => $fournisseur->status,
+            'new_status' => ! $fournisseur->status
+        ]);
+
         $fournisseur->update([
             'status'     => ! $fournisseur->status,
             'updated_by' => Auth::id(),
@@ -186,6 +226,13 @@ class Fournisseur extends Component
     {
         try {
             $fournisseur = FournisseurModel::find($id);
+
+            logActivity('Demande de suppression d\'un fournisseur', [
+                'name'    => $fournisseur->name,
+                'telephone'    => $fournisseur->telephone,
+                'adresse'    => $fournisseur->adresse,
+                'status'    => $fournisseur->status,
+            ], $fournisseur);
 
             // Dispatch l'événement avec le nom du fournisseur
             $this->dispatch(
@@ -203,6 +250,13 @@ class Fournisseur extends Component
         try {
             $fournisseur = FournisseurModel::findOrFail($id);
             $name = $fournisseur->name;
+
+            logActivity('Suppression confirmée d\'un fournisseur', [
+                'name'    => $fournisseur->name,
+                'telephone'    => $fournisseur->telephone,
+                'adresse'    => $fournisseur->adresse,
+                'status'    => $fournisseur->status,
+            ], $fournisseur);
 
             $fournisseur->delete();
 
@@ -226,6 +280,8 @@ class Fournisseur extends Component
     {
         view()->share('title', "Gestion des Fournisseurs");
         view()->share('breadcrumb', "Fournisseurs");
+
+        logActivity('Affichage des fournisseurs');
 
         return view('livewire.fournisseur');
     }
