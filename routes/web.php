@@ -11,6 +11,7 @@ use App\Livewire\Articles\Category;
 use App\Livewire\Client;
 use App\Livewire\Comptabilite\Devise;
 use App\Livewire\Fournisseur;
+use App\Livewire\Profile\UpdateProfile;
 use App\Livewire\Stock\Commande;
 use App\Livewire\Stock\CreateCommande;
 use App\Livewire\Stock\CreateReception;
@@ -73,6 +74,9 @@ Route::middleware('auth')->group(function () {
     // WAREHOUSE ROUTES
     Route::get('/warehouse/magasins', Magasin::class)->name('warehouse.magasins');
     Route::get('/warehouse/etageres', Etagere::class)->name('warehouse.etageres');
+
+    // AUTH USER PROFILE
+    Route::get('/settings/profile', UpdateProfile::class)->name('settings.profile');
 
     // ROUTE DE LA GESTION DES VENTES
     Route::get('/ventes/ventes', Vente::class)->name('ventes.ventes');

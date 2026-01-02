@@ -185,7 +185,7 @@
                            role="button"
                            aria-expanded="false">
                             <i class="fa-solid fa-gear"></i>
-                            <span>Paramètre</span>
+                            <span>Paramètres</span>
                             <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
                         </a>
                         <div class="collapse {{ request()->is('settings*') ? 'show' : '' }}" id="settings">
@@ -194,6 +194,12 @@
                                     <a href="{{ route('settings.register') }}" class="nav-link {{ request()->is('settings/register') ? 'active' : '' }}">
                                         <i class="fas fa-user-plus"></i>
                                         <span>Ajouter utilisateur</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item mt-2">
+                                    <a href="{{ route('settings.profile') }}" class="nav-link {{ request()->is('settings/profile') ? 'active' : '' }}">
+                                        <i class="fas fa-user"></i>
+                                        <span>Profil</span>
                                     </a>
                                 </li>
                             </ul>
@@ -205,7 +211,7 @@
             <!-- User Info -->
             <div class="p-3 border-top border-white border-opacity-10">
                 <div class="d-flex align-items-center">
-                    <img src="{{ asset('images/avatar.png') }}"
+                    <img src="{{ Auth::user()->image ? asset(Auth::user()->image) : asset('images/avatar.png') }}"
                          class="rounded-circle me-2"
                          width="40"
                          height="40"
