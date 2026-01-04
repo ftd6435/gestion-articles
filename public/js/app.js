@@ -323,6 +323,21 @@ function priceInput(livewire, field) {
 }
 
 /**
+ * UPDATE PROFILE SCRIPT
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du fichier image
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                console.log('Fichier sélectionné :', this.files[0].name);
+            }
+        });
+    }
+});
+
+/**
  *
  * Toggle password of auth user's profile
  */

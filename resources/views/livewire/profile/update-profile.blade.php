@@ -363,23 +363,6 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-    // CORRECTION : Fonction togglePassword corrigée
-    document.addEventListener('DOMContentLoaded', function() {
-        // Gestion du fichier image
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput) {
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    console.log('Fichier sélectionné :', this.files[0].name);
-                }
-            });
-        }
-    });
-</script>
-@endpush
-
 @push('styles')
 <style>
     .profile-image-container {
