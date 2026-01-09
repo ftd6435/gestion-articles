@@ -17,6 +17,7 @@ use App\Livewire\Stock\CreateCommande;
 use App\Livewire\Stock\CreateReception;
 use App\Livewire\Stock\Paiement;
 use App\Livewire\Stock\Reception;
+use App\Livewire\UserManagement;
 use App\Livewire\Ventes\CreateVente;
 use App\Livewire\Ventes\Historique;
 use App\Livewire\Ventes\Vente;
@@ -30,24 +31,24 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
-        ->name('password.request');
+    // Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+    //     ->name('password.request');
 
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->name('password.email');
+    // Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+    //     ->name('password.email');
 });
 
 Route::get('logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-Route::get('settings/register', [RegisteredUserController::class, 'create'])
-    ->middleware('auth')
-    ->name('settings.register');
+// Route::get('settings/register', [RegisteredUserController::class, 'create'])
+//     ->middleware('auth')
+//     ->name('settings.register');
 
-Route::post('register', [RegisteredUserController::class, 'store'])
-    ->middleware('auth')
-    ->name('register.store');
+// Route::post('register', [RegisteredUserController::class, 'store'])
+//     ->middleware('auth')
+//     ->name('register.store');
 
 
 Route::middleware('auth')->group(function () {
@@ -77,6 +78,7 @@ Route::middleware('auth')->group(function () {
 
     // AUTH USER PROFILE
     Route::get('/settings/profile', UpdateProfile::class)->name('settings.profile');
+    Route::get('/settings/users', UserManagement::class)->name('settings.users');
 
     // ROUTE DE LA GESTION DES VENTES
     Route::get('/ventes/ventes', Vente::class)->name('ventes.ventes');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -28,11 +29,31 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Check if user exists and is active BEFORE attempting authentication
+        $user = User::where('telephone', $this->input('telephone'))->first();
+
+        if ($user && !$user->status) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'telephone' => __('Votre compte est désactivé. Veuillez contacter l\'administrateur.'),
+            ]);
+        }
+
         if (! Auth::attempt($this->only('telephone', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'telephone' => __('Ces identifiants ne correspondent pas à nos enregistrements.'),
+            ]);
+        }
+
+        // Additional check after authentication (optional but recommended)
+        if (!Auth::user()->status) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'telephone' => __('Votre compte est désactivé. Veuillez contacter l\'administrateur.'),
             ]);
         }
 
@@ -50,7 +71,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'telephone' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),

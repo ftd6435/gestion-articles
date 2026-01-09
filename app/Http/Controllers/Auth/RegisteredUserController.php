@@ -41,6 +41,6 @@ class RegisteredUserController extends Controller
             ]
         ], $user);
 
-        return view('livewire.dashboard')->with('message', "Compte créé avec succès.");
+        return redirect()->route('user.management')->with('success', 'Utilisateur créé avec succès.');
     }
 }

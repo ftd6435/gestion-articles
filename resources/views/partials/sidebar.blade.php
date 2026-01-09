@@ -190,16 +190,24 @@
                         </a>
                         <div class="collapse {{ request()->is('settings*') ? 'show' : '' }}" id="settings">
                             <ul class="nav flex-column dropdown-menu-custom">
-                                <li class="nav-item mt-2">
+                                {{-- <li class="nav-item mt-2">
                                     <a href="{{ route('settings.register') }}" class="nav-link {{ request()->is('settings/register') ? 'active' : '' }}">
                                         <i class="fas fa-user-plus"></i>
                                         <span>Ajouter utilisateur</span>
                                     </a>
-                                </li>
-                                <li class="nav-item mt-2">
+                                </li> --}}
+                                @if(auth()->user()->isSuperAdmin() || auth()->user()->isAdmin())
+                                    <li class="nav-item mt-2">
+                                        <a href="{{ route('settings.users') }}" class="nav-link {{ request()->is('settings/users') ? 'active' : '' }}">
+                                            <i class="fas fa-user-plus"></i>
+                                            <span>Les Utilisateurs</span>
+                                        </a>
+                                    </li>
+                                @endif
+                                <li class="nav-item">
                                     <a href="{{ route('settings.profile') }}" class="nav-link {{ request()->is('settings/profile') ? 'active' : '' }}">
                                         <i class="fas fa-user"></i>
-                                        <span>Profil</span>
+                                        <span>Mon Profil</span>
                                     </a>
                                 </li>
                             </ul>

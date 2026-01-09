@@ -1,165 +1,134 @@
 class AppLoader {
     constructor() {
-        this.loader = document.getElementById('app-loader');
-        this.loaderText = document.getElementById('loader-text');
-        this.progressBar = document.getElementById('loader-progress');
         this.startTime = Date.now();
         this.minLoadTime = 800;
         this.slowThreshold = 3000;
-        this.timeoutId = null;
+
         this.progressInterval = null;
+        this.timeoutId = null;
 
-        // Debug logging
-        console.log('AppLoader initialized. Elements:', {
-            loader: !!this.loader,
-            loaderText: !!this.loaderText,
-            progressBar: !!this.progressBar
-        });
+        console.log('AppLoader initialized');
 
-        // If no loader element, exit silently
-        if (!this.loader) {
-            console.log('No app-loader found, skipping loader initialization');
+        if (!this.getLoader()) {
+            console.warn('AppLoader: #app-loader not found, aborting.');
             return;
         }
 
         this.init();
     }
 
+    /* ----------------------------------------
+     * Core helpers
+     * ------------------------------------- */
+
+    getLoader() {
+        return document.getElementById('app-loader');
+    }
+
+    getLoaderText() {
+        return document.getElementById('loader-text');
+    }
+
+    getProgressBar() {
+        return document.getElementById('loader-progress');
+    }
+
+    /* ----------------------------------------
+     * Init
+     * ------------------------------------- */
+
     init() {
-        // Show loader immediately
-        this.loader.classList.remove('loader-hidden');
-
-        // Set initial progress
+        this.showLoader('Chargement des ressources...');
         this.updateProgress(10);
-        this.updateText('Chargement des ressources...');
 
-        // Handle page load
         if (document.readyState === 'complete') {
-            // Page already loaded
             setTimeout(() => this.handleLoadComplete(), 100);
         } else {
             window.addEventListener('load', () => this.handleLoadComplete(), { once: true });
         }
 
-        // Setup Livewire events if Livewire is detected
         if (typeof Livewire !== 'undefined') {
             this.setupLivewireEvents();
         }
 
-        // Simulate progress
         this.simulateProgress();
-
-        // Check for slow connection
         this.checkSlowConnection();
     }
 
-    updateProgress(percentage) {
-        if (this.progressBar) {
-            this.progressBar.style.width = `${percentage}%`;
+    /* ----------------------------------------
+     * UI updates
+     * ------------------------------------- */
+
+    updateProgress(percent) {
+        const bar = this.getProgressBar();
+        if (bar) {
+            bar.style.width = `${percent}%`;
         }
     }
 
     updateText(text) {
-        if (this.loaderText) {
-            this.loaderText.textContent = text;
+        const el = this.getLoaderText();
+        if (el) {
+            el.textContent = text;
         }
     }
 
+    /* ----------------------------------------
+     * Progress simulation
+     * ------------------------------------- */
+
     simulateProgress() {
-        // Clear any existing interval
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-        }
+        this.clearProgress();
 
         let progress = 10;
         this.progressInterval = setInterval(() => {
             if (progress < 90) {
-                progress += Math.random() * 10;
+                progress += Math.random() * 8;
                 this.updateProgress(Math.min(progress, 90));
             }
         }, 200);
     }
 
-    handleLoadComplete() {
-        const elapsed = Date.now() - this.startTime;
-        const remainingTime = Math.max(0, this.minLoadTime - elapsed);
-
-        setTimeout(() => {
-            this.completeLoading();
-        }, remainingTime);
-    }
-
-    completeLoading() {
-        // Clear progress simulation
+    clearProgress() {
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
         }
+    }
 
-        // Complete progress bar
+    /* ----------------------------------------
+     * Load completion
+     * ------------------------------------- */
+
+    handleLoadComplete() {
+        const elapsed = Date.now() - this.startTime;
+        const delay = Math.max(0, this.minLoadTime - elapsed);
+
+        setTimeout(() => this.completeLoading(), delay);
+    }
+
+    completeLoading() {
+        this.clearProgress();
         this.updateProgress(100);
         this.updateText('Prêt !');
 
-        // Hide loader
         setTimeout(() => {
             this.hideLoader();
             document.dispatchEvent(new CustomEvent('app-loaded'));
         }, 300);
     }
 
-    setupLivewireEvents() {
-        console.log('Setting up Livewire events');
-
-        // Use debouncing to prevent multiple rapid calls
-        let showLoaderTimeout;
-        let hideLoaderTimeout;
-
-        const debouncedShow = (text) => {
-            clearTimeout(showLoaderTimeout);
-            showLoaderTimeout = setTimeout(() => this.showLoader(text), 50);
-        };
-
-        const debouncedHide = () => {
-            clearTimeout(hideLoaderTimeout);
-            hideLoaderTimeout = setTimeout(() => this.hideLoader(), 50);
-        };
-
-        document.addEventListener('livewire:navigate', () => {
-            debouncedShow('Navigation en cours...');
-        });
-
-        document.addEventListener('livewire:navigated', () => {
-            setTimeout(() => debouncedHide(), 300);
-        });
-
-        document.addEventListener('livewire:request-start', () => {
-            debouncedShow('Traitement en cours...');
-        });
-
-        document.addEventListener('livewire:request-finished', () => {
-            setTimeout(() => debouncedHide(), 200);
-        });
-
-        document.addEventListener('livewire:load-error', () => {
-            debouncedShow('Erreur de chargement, nouvelle tentative...');
-        });
-    }
+    /* ----------------------------------------
+     * Show / Hide
+     * ------------------------------------- */
 
     showLoader(text = 'Chargement...') {
         const loader = this.getLoader();
         if (!loader) return;
 
-        this.loader = loader;
-
         loader.classList.remove('loader-hidden');
         this.updateText(text);
         this.updateProgress(30);
-
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
-        }
-
         this.simulateProgress();
     }
 
@@ -167,15 +136,8 @@ class AppLoader {
         const loader = this.getLoader();
         if (!loader) return;
 
-        this.loader = loader;
-
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
-        }
-
+        this.clearProgress();
         this.updateProgress(100);
-        this.updateText('Terminé !');
 
         setTimeout(() => {
             const freshLoader = this.getLoader();
@@ -185,53 +147,98 @@ class AppLoader {
         }, 300);
     }
 
+    /* ----------------------------------------
+     * Livewire integration
+     * ------------------------------------- */
+
+    setupLivewireEvents() {
+        console.log('AppLoader: Livewire events attached');
+
+        let showTimeout;
+        let hideTimeout;
+
+        const debounceShow = (text) => {
+            clearTimeout(showTimeout);
+            showTimeout = setTimeout(() => this.showLoader(text), 50);
+        };
+
+        const debounceHide = () => {
+            clearTimeout(hideTimeout);
+            hideTimeout = setTimeout(() => this.hideLoader(), 150);
+        };
+
+        document.addEventListener('livewire:navigate', () => {
+            debounceShow('Navigation en cours...');
+        });
+
+        document.addEventListener('livewire:navigated', () => {
+            debounceHide();
+        });
+
+        document.addEventListener('livewire:request-start', () => {
+            debounceShow('Traitement en cours...');
+        });
+
+        document.addEventListener('livewire:request-finished', () => {
+            debounceHide();
+        });
+
+        document.addEventListener('livewire:load-error', () => {
+            debounceShow('Erreur de chargement...');
+        });
+    }
+
+    /* ----------------------------------------
+     * Slow connection detection
+     * ------------------------------------- */
+
     checkSlowConnection() {
-        // Clear existing timeout
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-        }
+        clearTimeout(this.timeoutId);
 
         this.timeoutId = setTimeout(() => {
-            if (this.loaderText) {
-                this.loaderText.classList.add('loader-slow');
+            const text = this.getLoaderText();
+            if (text) {
+                text.classList.add('loader-slow');
+                text.textContent = 'Connexion lente, veuillez patienter...';
             }
-            this.updateText('Connexion lente, veuillez patienter...');
         }, this.slowThreshold);
     }
 
-    cleanup() {
-        // Clear intervals
-        if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-        }
+    /* ----------------------------------------
+     * Cleanup
+     * ------------------------------------- */
 
-        // Clear timeouts
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-        }
+    cleanup() {
+        this.clearProgress();
+        clearTimeout(this.timeoutId);
     }
 }
 
-// Simple initialization
+/* ----------------------------------------
+ * Boot
+ * ------------------------------------- */
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded - Initializing AppLoader');
+    console.log('DOMContentLoaded → AppLoader boot');
     window.appLoader = new AppLoader();
 });
 
-// Fallback to ensure loader is hidden if something goes wrong
+/* ----------------------------------------
+ * Failsafe
+ * ------------------------------------- */
+
 window.addEventListener('load', () => {
     setTimeout(() => {
         const loader = document.getElementById('app-loader');
         if (loader && !loader.classList.contains('loader-hidden')) {
-            console.log('Fallback: Hiding loader after timeout');
+            console.warn('AppLoader fallback hide');
             loader.classList.add('loader-hidden');
         }
-    }, 5000); // 5 second timeout
+    }, 5000);
 });
 
-// Cleanup
 window.addEventListener('beforeunload', () => {
-    if (window.appLoader && window.appLoader.cleanup) {
+    if (window.appLoader) {
         window.appLoader.cleanup();
     }
 });
