@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - AdminPro</title>
+    <link rel="icon" href="/images/pk-app.jpg" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
@@ -103,11 +104,11 @@
                             @enderror
                         </div>
 
-                        <div class="text-end mb-3">
+                        {{-- <div class="text-end mb-3">
                             <a href="{{ route('password.request') }}" class="forgot-link">
                                 Mot de passe oublié ?
                             </a>
-                        </div>
+                        </div> --}}
 
                         <button type="submit" class="btn btn-primary btn-auth">
                             Se connecter

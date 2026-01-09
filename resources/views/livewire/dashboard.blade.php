@@ -550,7 +550,7 @@
                         <div class="card-body p-0">
                             <div class="list-group list-group-flush">
                                 @forelse($lowStockAlerts as $alert)
-                                    <a href="{{ route('articles.show', $alert['id']) }}"
+                                    <a href="{{ route('articles') }}"
                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
