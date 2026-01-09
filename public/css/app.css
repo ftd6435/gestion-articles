@@ -16,11 +16,6 @@ body {
     background-color: #f8f9fa;
 }
 
-.bg-purple {
-    background-color: #6f42c1 !important;
-    color: white !important;
-}
-
 /* Sidebar Styles */
 .sidebar {
     position: fixed;

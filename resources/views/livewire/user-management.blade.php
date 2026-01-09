@@ -113,8 +113,8 @@
                                 <td>{{ $user->telephone ?? 'N/A' }}</td>
                                 <td>
                                     <span class="badge
-                                        {{ $user->role === 'super_admin' ? 'bg-purple' :
-                                           ($user->role === 'admin' ? 'bg-danger' : 'bg-primary') }}">
+                                        {{ $user->role === 'super_admin' ? 'bg-primary' :
+                                           ($user->role === 'admin' ? 'bg-secondary' : 'bg-danger') }}">
                                         {{ $user->role === 'super_admin' ? 'Super Admin' :
                                            ($user->role === 'admin' ? 'Administrateur' : 'Utilisateur') }}
                                     </span>
