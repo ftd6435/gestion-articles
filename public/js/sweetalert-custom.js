@@ -99,6 +99,117 @@ document.addEventListener('livewire:initialized', () => {
         });
     });
 
+    // ============================================
+    // ÉVÉNEMENTS POUR TOGGLE DEFAULT (DEVISE PAR DÉFAUT)
+    // ============================================
+    Livewire.on('confirm-toggle-default', (event) => {
+        const id = event.id;
+        const itemName = event.itemName || 'cet élément';
+        const action = event.action || 'définir comme devise par défaut';
+        const isCurrentDefault = event.isCurrentDefault || false;
+
+        let htmlContent = `<div class="text-start">
+            <p>Voulez-vous vraiment <strong>${action}</strong> la devise <strong>"${itemName}"</strong> ?</p>`;
+
+        if (isCurrentDefault) {
+            htmlContent += `<div class="alert alert-info small mt-2 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                Une autre devise active sera automatiquement définie comme défaut si disponible.
+            </div>`;
+        } else if (action.includes('définir')) {
+            htmlContent += `<div class="alert alert-info small mt-2 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                Cette devise deviendra la devise par défaut du système.
+            </div>`;
+        }
+
+        htmlContent += '</div>';
+
+        Swal.fire({
+            title: action.includes('définir') ? 'Définir comme devise par défaut ?' : 'Retirer devise par défaut ?',
+            html: htmlContent,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: action.includes('définir') ? '#28a745' : '#6c757d',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: action.includes('définir') ? 'Oui, définir' : 'Oui, retirer',
+            cancelButtonText: 'Annuler',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: `btn ${action.includes('définir') ? 'btn-success' : 'btn-secondary'} me-2`,
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Confirmer le changement de devise par défaut
+                Livewire.dispatch('confirmToggleDefault', { id: id });
+
+                // Afficher loading
+                Swal.fire({
+                    title: 'Traitement en cours...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+        });
+    });
+
+    // ============================================
+    // ÉVÉNEMENTS POUR TOGGLE STATUS (ACTIVE/INACTIVE)
+    // ============================================
+    Livewire.on('confirm-toggle-status', (event) => {
+        const id = event.id;
+        const itemName = event.itemName || 'cet élément';
+        const action = event.action || 'modifier';
+        const warning = event.warning || '';
+
+        let htmlContent = `<div class="text-start">
+            <p>Voulez-vous vraiment <strong>${action}</strong> la devise <strong>"${itemName}"</strong> ?</p>`;
+
+        if (warning) {
+            htmlContent += `<div class="alert alert-warning small mt-2 mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${warning}
+            </div>`;
+        }
+
+        htmlContent += '</div>';
+
+        Swal.fire({
+            title: action === 'désactiver' ? 'Désactiver la devise ?' : 'Activer la devise ?',
+            html: htmlContent,
+            icon: action === 'désactiver' ? 'warning' : 'question',
+            showCancelButton: true,
+            confirmButtonColor: action === 'désactiver' ? '#f39c12' : '#3085d6',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: action === 'désactiver' ? 'Oui, désactiver' : 'Oui, activer',
+            cancelButtonText: 'Annuler',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: `btn ${action === 'désactiver' ? 'btn-warning' : 'btn-primary'} me-2`,
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Confirmer le changement de statut
+                Livewire.dispatch('confirmToggleStatus', { id: id });
+
+                // Afficher loading
+                Swal.fire({
+                    title: action === 'désactiver' ? 'Désactivation en cours...' : 'Activation en cours...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+        });
+    });
+
     // Événement de succès général
     Livewire.on('success', (event) => {
         Swal.fire({
@@ -123,3 +234,4 @@ document.addEventListener('livewire:initialized', () => {
         });
     });
 });
+

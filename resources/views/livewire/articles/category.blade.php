@@ -128,7 +128,9 @@
     </div>
 
     <!-- Modal -->
-    @include('livewire.articles.category-modal')
+    @if ($showCategoryModal)
+        @include('livewire.articles.category-modal')
+    @endif
 </div>
 
 @push('scripts')

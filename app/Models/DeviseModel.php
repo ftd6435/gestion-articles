@@ -13,6 +13,7 @@ class DeviseModel extends Model
         'libelle',
         'symbole',
         'status',
+        'is_default', // boolean : default (false)
         'created_by',
         'updated_by'
     ];
@@ -47,6 +48,23 @@ class DeviseModel extends Model
     public function scopeInactive($query)
     {
         return $query->where('status', false);
+    }
+
+    /**
+     * Get the default active devise
+     */
+    public static function getDefaultDevise()
+    {
+        return self::active()->where('is_default', true)->first();
+    }
+
+    /**
+     * Get the default devise code (for display purposes)
+     */
+    public static function getDefaultDeviseCode()
+    {
+        $default = self::getDefaultDevise();
+        return $default ? $default->code : null;
     }
 
     public function articles()

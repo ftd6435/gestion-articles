@@ -1,14 +1,18 @@
-<div class="modal fade {{ $showModal ? 'show' : '' }}" id="deviseModal" tabindex="-1" style="display: {{ $showModal ? 'block' : 'none' }}; z-index: 1055;" aria-labelledby="deviseModalLabel"aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-dialog-centered">
+<div wire:show="showModal"
+            x-transition.opacity.duration.200ms
+            x-transition.scale.duration.200ms
+            class="modal-backdrop-custom"
+        >
+    <div class="modal-dialog modal-dialog-centered bg-white">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-primary text-white px-4 py-2">
                 <h5 class="modal-title">
                     {{ $articleId ? 'Modifier un article' : 'Ajouter un article' }}
                 </h5>
                 <button wire:click="closeModal" class="btn-close text-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body">
+            <div class="modal-body px-4 py-2">
 
                 <!-- Référence -->
                 <div class="mb-2">
@@ -168,38 +172,12 @@
 
             </div>
 
-            <div class="modal-footer">
-                <button wire:click="closeModal" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                <button wire:click="store" class="btn btn-primary">
+            <div class="modal-footer px-4 py-2">
+                <button wire:click="closeModal" class="btn btn-light me-2" data-bs-dismiss="modal">Annuler</button>
+                <button wire:click="storeArticle" class="btn btn-primary">
                     Enregistrer
                 </button>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Backdrop -->
-@if($showModal)
-    <div class="modal-backdrop fade show" style="z-index: 1050;"></div>
-@endif
-
-<style>
-    /* Fix pour le modal Livewire */
-    .modal.show {
-        display: block !important;
-    }
-
-    body.modal-open {
-        overflow: hidden;
-    }
-</style>
-
-@if($showModal)
-    <script>
-        document.body.classList.add('modal-open');
-    </script>
-@else
-    <script>
-        document.body.classList.remove('modal-open');
-    </script>
-@endif

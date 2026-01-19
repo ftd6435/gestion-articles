@@ -18,7 +18,7 @@ class Category extends Component
     public $name;
     public $description;
     public $status = true;
-    public $showModal = false;
+    public $showCategoryModal = false;
 
     protected function rules()
     {
@@ -64,12 +64,12 @@ class Category extends Component
     public function create()
     {
         $this->resetForm();
-        $this->showModal = true;
+        $this->showCategoryModal = true;
     }
 
-    public function closeModal()
+    public function closeCategoryModal()
     {
-        $this->showModal = false;
+        $this->showCategoryModal = false;
         $this->resetForm();
     }
 
@@ -83,13 +83,13 @@ class Category extends Component
             $this->description = $category->description;
             $this->status = (bool) $category->status;
 
-            $this->showModal = true;
+            $this->showCategoryModal = true;
         } catch (\Exception $e) {
             session()->flash('error', 'Catégorie introuvable');
         }
     }
 
-    public function store()
+    public function storeCategory()
     {
         $this->validate();
 
@@ -104,21 +104,38 @@ class Category extends Component
                     'updated_by' => Auth::id(),
                 ]);
                 $message = 'Catégorie modifiée avec succès';
+
+                logActivity('Modification d\'une catégorie', [
+                    'old' => [
+                        'name' => $category->name,
+                        'description' => $category->description,
+                        'status' => $category->status,
+                    ],
+                    'new' => [
+                        'name' => $this->name,
+                        'description' => $this->description,
+                        'status' => $this->status,
+                    ]
+                ], $category);
             } else {
                 // Create new
-                CategoryModel::create([
+                $category = CategoryModel::create([
                     'name' => $this->name,
                     'description' => $this->description,
                     'status' => $this->status,
                     'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
                 ]);
                 $message = 'Catégorie créée avec succès';
+
+                logActivity('Création d\'une catégorie', [
+                    'name' => $this->name,
+                    'description' => $this->description,
+                    'status' => $this->status,
+                ], $category);
             }
 
-            $this->dispatch('close-category-modal');
             $this->loadCategories();
-            $this->closeModal();
+            $this->closeCategoryModal();
 
             session()->flash('success', $message);
         } catch (\Exception $e) {
@@ -142,6 +159,12 @@ class Category extends Component
     {
         $category = CategoryModel::find($id);
 
+        logActivity('Demande de suppression d\'une catégorie', [
+            'name' => $category->name,
+            'description' => $category->description,
+            'status' => $category->status,
+        ], $category);
+
         $this->dispatch(
             'confirm-delete',
             id: $id,
@@ -154,6 +177,12 @@ class Category extends Component
         try {
             $category = CategoryModel::findOrFail($id);
             $name = $category->name;
+
+            logActivity('Suppression confirmée d\'une catégorie', [
+                'name' => $category->name,
+                'description' => $category->description,
+                'status' => $category->status,
+            ], $category);
 
             $category->delete();
 

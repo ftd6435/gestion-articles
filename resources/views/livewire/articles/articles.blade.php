@@ -5,7 +5,10 @@
             <h1 class="h3 fw-bold mb-1">Gestion des Articles</h1>
             <p class="text-muted mb-0">Gérez et analysez vos articles en détail</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <button wire:click="createCategory" class="btn btn-success">
+                <i class="fa fa-plus me-2"></i> Catégorie
+            </button>
             <button wire:click="create" class="btn btn-primary">
                 <i class="fa fa-plus me-2"></i> Nouvel article
             </button>
@@ -553,63 +556,13 @@
     @endif
 
     <!-- Modal -->
-    @include('livewire.articles.article-modal')
+    @if ($showModal)
+        @include('livewire.articles.article-modal')
+    @endif
+
+    @if ($showCategoryModal)
+        @include('livewire.articles.category-modal')
+    @endif
 
 </div>
 
-{{-- @push('scripts')
-<script>
-    // Initialize tooltips
-    document.addEventListener('livewire:init', () => {
-        // Reinitialize tooltips after Livewire updates
-        Livewire.hook('element.updated', (el) => {
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        });
-
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-
-    // Livewire event listeners
-    document.addEventListener('livewire:load', function() {
-        // Handle article details click
-        Livewire.on('show-article-details', (data) => {
-            // Show article details modal
-            const modal = new bootstrap.Modal(document.getElementById('articleDetailsModal'));
-            modal.show();
-        });
-
-        // Handle export
-        Livewire.on('export-started', () => {
-            if (typeof toastr !== 'undefined') {
-                toastr.info('Export en cours...', '', {timeOut: 3000});
-            }
-        });
-
-        Livewire.on('export-completed', (data) => {
-            if (typeof toastr !== 'undefined') {
-                toastr.success('Export terminé!', '', {timeOut: 3000});
-            }
-            // Trigger download
-            const link = document.createElement('a');
-            link.href = data.url;
-            link.download = data.filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-
-        // Handle delete confirmation
-        Livewire.on('confirm-delete', (data) => {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.')) {
-                Livewire.dispatch('confirmDelete', {id: data.id});
-            }
-        });
-    });
-</script>
-@endpush --}}

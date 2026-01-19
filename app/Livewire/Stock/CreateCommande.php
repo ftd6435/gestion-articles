@@ -3,6 +3,7 @@
 namespace App\Livewire\Stock;
 
 use App\Models\Articles\ArticleModel;
+use App\Models\Category;
 use App\Models\DeviseModel;
 use App\Models\FournisseurModel;
 use App\Models\Stock\CommandeFournisseur;
@@ -10,11 +11,12 @@ use App\Models\Stock\LigneCommandeFournisseur;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use Illuminate\Validation\Rule;
 
 class CreateCommande extends Component
 {
-    // Commande properties
+    /* ============================================================
+     |  COMMANDE
+     * ============================================================ */
     public $reference;
     public $fournisseur_id;
     public $devise_id;
@@ -23,237 +25,289 @@ class CreateCommande extends Component
     public $date_commande;
     public $status = 'EN_COURS';
 
-    // Ligne commande properties
+    /* ============================================================
+     |  LIGNE
+     * ============================================================ */
     public $article_id;
-    public $quantity = '';
-    public $unit_price = '';
-
-    // Lists
+    public $quantity;
+    public $unit_price;
     public $lignes = [];
-    public $fournisseurs = [];
-    public $devises = [];
-    public $articles = [];
-    public $availableArticles = []; // Articles non ajoutés
 
-    // UI State
-    public $showCommandeForm = true;
-    public $commandeCreated = false;
+    /* ============================================================
+     |  ARTICLE SEARCH
+     * ============================================================ */
+    public $articleSearch = '';
+    public $articles;
+    public $availableArticles;
+    public $filteredArticles;
 
+    /* ============================================================
+     |  QUICK ARTICLE CREATION
+     * ============================================================ */
+    public $showModal = false;
+    public $categories;
+
+    public $newArticle = [
+        'reference' => '',
+        'category_id' => '',
+        'designation' => '',
+        'description' => '',
+        'prix_achat' => '',
+        'prix_vente' => '',
+        'unite' => '',
+        'status' => true,
+    ];
+
+    /* ============================================================
+     |  LOOKUPS
+     * ============================================================ */
+    public $fournisseurs;
+    public $devises;
+
+    /* ============================================================
+     |  VALIDATION
+     * ============================================================ */
     protected function rules()
     {
         return [
-            'reference' => 'required|string|unique:commande_fournisseurs,reference',
+            'reference' => 'required|unique:commande_fournisseurs,reference',
             'fournisseur_id' => 'required|exists:fournisseur_models,id',
             'devise_id' => 'required|exists:devise_models,id',
-            'taux_change' => 'nullable|numeric|min:0',
-            'remise' => 'nullable|numeric|min:0|max:100',
             'date_commande' => 'required|date',
-            'status' => 'required|in:EN_COURS,PARTIELLE,TERMINEE,ANNULEE',
+            'remise' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required',
         ];
     }
 
-    protected $messages = [
-        'reference.required' => 'La référence est obligatoire',
-        'reference.unique' => 'Cette référence existe déjà',
-        'fournisseur_id.required' => 'Le fournisseur est obligatoire',
-        'devise_id.required' => 'La devise est obligatoire',
-        'date_commande.required' => 'La date de commande est obligatoire',
+    protected $articleRules = [
+        'newArticle.reference' => 'required|min:3|unique:article_models,reference',
+        'newArticle.category_id' => 'required|exists:categories,id',
+        'newArticle.designation' => 'required|min:3',
+        'devise_id' => 'required|exists:devise_models,id',
+        'newArticle.prix_achat' => 'nullable|numeric|min:0',
+        'newArticle.prix_vente' => 'nullable|numeric|min:0|gte:newArticle.prix_achat',
     ];
 
+    /* ============================================================
+ |  VALIDATION MESSAGES (French)
+ * ============================================================ */
+    protected function messages()
+    {
+        return [
+            // Commande rules
+            'reference.required' => 'La référence de la commande est obligatoire.',
+            'reference.unique' => 'Cette référence de commande existe déjà.',
+
+            'fournisseur_id.required' => 'Veuillez sélectionner un fournisseur.',
+            'fournisseur_id.exists' => 'Le fournisseur sélectionné est invalide.',
+
+            'devise_id.required' => 'Veuillez sélectionner une devise.',
+            'devise_id.exists' => 'La devise sélectionnée est invalide.',
+
+            'date_commande.required' => 'La date de commande est obligatoire.',
+            'date_commande.date' => 'La date de commande doit être une date valide.',
+
+            'remise.numeric' => 'La remise doit être un nombre.',
+            'remise.min' => 'La remise ne peut pas être négative.',
+            'remise.max' => 'La remise ne peut pas dépasser 100%.',
+
+            'status.required' => 'Le statut de la commande est obligatoire.',
+
+            // Article rules
+            'newArticle.reference.required' => 'La référence de l\'article est obligatoire.',
+            'newArticle.reference.min' => 'La référence doit contenir au moins :min caractères.',
+            'newArticle.reference.unique' => 'Cette référence d\'article existe déjà.',
+
+            'newArticle.category_id.required' => 'Veuillez sélectionner une catégorie.',
+            'newArticle.category_id.exists' => 'La catégorie sélectionnée est invalide.',
+
+            'newArticle.designation.required' => 'La désignation de l\'article est obligatoire.',
+            'newArticle.designation.min' => 'La désignation doit contenir au moins :min caractères.',
+
+            'devise_id.required' => 'Veuillez sélectionner une devise pour l\'article.',
+            'devise_id.exists' => 'La devise sélectionnée est invalide.',
+
+            'newArticle.prix_achat.numeric' => 'Le prix d\'achat doit être un nombre.',
+            'newArticle.prix_achat.min' => 'Le prix d\'achat ne peut pas être négatif.',
+
+            'newArticle.prix_vente.numeric' => 'Le prix de vente doit être un nombre.',
+            'newArticle.prix_vente.min' => 'Le prix de vente ne peut pas être négatif.',
+            'newArticle.prix_vente.gte' => 'Le prix de vente doit être supérieur ou égal au prix d\'achat.',
+
+            // Ligne commande validation
+            'article_id.required' => 'Veuillez sélectionner un article.',
+            'article_id.exists' => 'L\'article sélectionné est invalide.',
+
+            'quantity.required' => 'La quantité est obligatoire.',
+            'quantity.numeric' => 'La quantité doit être un nombre.',
+            'quantity.min' => 'La quantité doit être au moins :min.',
+
+            'unit_price.required' => 'Le prix unitaire est obligatoire.',
+            'unit_price.numeric' => 'Le prix unitaire doit être un nombre.',
+            'unit_price.min' => 'Le prix unitaire ne peut pas être négatif.',
+        ];
+    }
+
+    /* ============================================================
+     |  MOUNT
+     * ============================================================ */
     public function mount()
     {
-        $this->loadData();
         $this->date_commande = now()->format('Y-m-d');
         $this->reference = $this->generateReference();
-        $this->updateAvailableArticles();
-    }
 
-    public function loadData()
-    {
         $this->fournisseurs = FournisseurModel::active()->get();
         $this->devises = DeviseModel::active()->get();
-        $this->articles = ArticleModel::active()->get();
-    }
+        $this->categories = Category::active()->get();
 
-    // New method to update available articles (those not already in lines)
-    public function updateAvailableArticles()
-    {
-        $addedArticleIds = collect($this->lignes)->pluck('article_id')->toArray();
+        $this->articles = ArticleModel::with('devise')->active()->get();
 
-        $this->availableArticles = ArticleModel::active()
-            ->whereNotIn('id', $addedArticleIds)
-            ->get();
-    }
-
-    // When article is selected, auto-fill unit price
-    public function updatedArticleId($value)
-    {
-        if ($value) {
-            $article = ArticleModel::find($value);
-            if ($article) {
-                $this->unit_price = $article->prix_achat;
-            }
-        } else {
-            $this->unit_price = '';
+        // Get default devise and auto-select it
+        $defaultDevise = DeviseModel::getDefaultDevise();
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+            $this->taux_change = 1;
         }
+
+        $this->syncAvailableArticles();
     }
 
-    public function generateReference()
+    /* ============================================================
+     |  ARTICLE SEARCH / SELECT
+     * ============================================================ */
+    public function updatedArticleSearch()
     {
-        return 'CMD-' . rand(1000, 9999);
+        $this->filterArticles();
     }
 
+    public function updatedArticleId($id)
+    {
+        $article = $this->articles->firstWhere('id', $id);
+        $this->unit_price = $article?->prix_achat ?? null;
+    }
+
+    protected function syncAvailableArticles()
+    {
+        $usedIds = collect($this->lignes)->pluck('article_id');
+
+        $this->availableArticles = $this->articles
+            ->whereNotIn('id', $usedIds)
+            ->values();
+
+        $this->filterArticles();
+    }
+
+    protected function filterArticles()
+    {
+        if (strlen($this->articleSearch) < 2) {
+            $this->filteredArticles = $this->availableArticles;
+            return;
+        }
+
+        $search = strtolower($this->articleSearch);
+
+        $this->filteredArticles = $this->availableArticles
+            ->filter(
+                fn($a) =>
+                str_contains(strtolower($a->reference), $search) ||
+                    str_contains(strtolower($a->designation), $search)
+            )
+            ->values();
+    }
+
+    /* ============================================================
+     |  LIGNES
+     * ============================================================ */
     public function addLigne()
     {
         $this->validate([
             'article_id' => 'required|exists:article_models,id',
             'quantity' => 'required|numeric|min:1',
             'unit_price' => 'required|numeric|min:0',
-        ], [
-            'article_id.required' => 'L\'article est obligatoire',
-            'quantity.required' => 'La quantité est obligatoire',
-            'quantity.min' => 'La quantité doit être au moins 1',
-            'unit_price.required' => 'Le prix unitaire est obligatoire',
-            'unit_price.min' => 'Le prix unitaire doit être positif',
+        ],  [
+            'article_id.required' => 'Veuillez sélectionner un article.',
+            'article_id.exists' => 'L\'article sélectionné est invalide.',
+            'quantity.required' => 'La quantité est obligatoire.',
+            'quantity.numeric' => 'La quantité doit être un nombre.',
+            'quantity.min' => 'La quantité doit être au moins 1.',
+            'unit_price.required' => 'Le prix unitaire est obligatoire.',
+            'unit_price.numeric' => 'Le prix unitaire doit être un nombre.',
+            'unit_price.min' => 'Le prix unitaire ne peut pas être négatif.',
         ]);
 
-        $article = ArticleModel::find($this->article_id);
+        $article = $this->articles->firstWhere('id', $this->article_id);
 
-        // Vérifier si l'article existe déjà dans les lignes
-        $existingIndex = collect($this->lignes)->search(function ($ligne) {
-            return $ligne['article_id'] == $this->article_id;
-        });
+        $this->lignes[] = [
+            'article_id' => $article->id,
+            'article_code' => $article->reference,
+            'article_name' => $article->designation,
+            'quantity' => $this->quantity,
+            'unit_price' => $this->unit_price,
+            'subtotal' => $this->quantity * $this->unit_price,
+        ];
 
-        if ($existingIndex !== false) {
-            // Mettre à jour la quantité si l'article existe déjà
-            $this->lignes[$existingIndex]['quantity'] += $this->quantity;
-            $this->lignes[$existingIndex]['subtotal'] = $this->lignes[$existingIndex]['quantity'] * $this->lignes[$existingIndex]['unit_price'];
-
-            $this->dispatch('success', message: 'Quantité mise à jour pour cet article');
-        } else {
-            // Ajouter une nouvelle ligne
-            $this->lignes[] = [
-                'article_id' => $this->article_id,
-                'article_name' => $article->designation ?? 'N/A',
-                'article_code' => $article->reference ?? 'N/A',
-                'quantity' => $this->quantity,
-                'unit_price' => $this->unit_price,
-                'subtotal' => $this->quantity * $this->unit_price,
-            ];
-
-            $this->dispatch('success', message: 'Ligne ajoutée avec succès');
-
-            // Update available articles after adding
-            $this->updateAvailableArticles();
-        }
-
-        // Reset ligne form
-        $this->reset(['article_id', 'quantity', 'unit_price']);
+        $this->reset(['article_id', 'quantity', 'unit_price', 'articleSearch']);
+        $this->syncAvailableArticles();
     }
 
     public function removeLigne($index)
     {
-        if (isset($this->lignes[$index])) {
-            unset($this->lignes[$index]);
-            $this->lignes = array_values($this->lignes);
-
-            // Update available articles after removal
-            $this->updateAvailableArticles();
-
-            $this->dispatch('success', message: 'Ligne supprimée');
-        }
+        unset($this->lignes[$index]);
+        $this->lignes = array_values($this->lignes);
+        $this->syncAvailableArticles();
     }
 
-    public function updateLigneQuantity($index, $quantity)
+    public function updateLigneQuantity($index, $qty)
     {
-        if (isset($this->lignes[$index]) && $quantity > 0) {
-            $this->lignes[$index]['quantity'] = $quantity;
-            $this->lignes[$index]['subtotal'] = $quantity * $this->lignes[$index]['unit_price'];
-        }
+        if (!isset($this->lignes[$index])) return;
+
+        $this->lignes[$index]['quantity'] = max(1, $qty);
+        $this->lignes[$index]['subtotal'] =
+            $this->lignes[$index]['quantity'] * $this->lignes[$index]['unit_price'];
+    }
+
+    public function incrementQuantity($index)
+    {
+        if (!isset($this->lignes[$index])) return;
+
+        $this->lignes[$index]['quantity']++;
+        $this->lignes[$index]['subtotal'] =
+            $this->lignes[$index]['quantity'] * $this->lignes[$index]['unit_price'];
+    }
+
+    public function decrementQuantity($index)
+    {
+        if (!isset($this->lignes[$index])) return;
+
+        $this->lignes[$index]['quantity'] = max(1, $this->lignes[$index]['quantity'] - 1);
+        $this->lignes[$index]['subtotal'] =
+            $this->lignes[$index]['quantity'] * $this->lignes[$index]['unit_price'];
     }
 
     public function updateLignePrice($index, $price)
     {
-        if (isset($this->lignes[$index]) && $price >= 0) {
-            $this->lignes[$index]['unit_price'] = $price;
-            $this->lignes[$index]['subtotal'] = $this->lignes[$index]['quantity'] * $price;
-        }
+        if (!isset($this->lignes[$index])) return;
+
+        $this->lignes[$index]['unit_price'] = max(0, $price);
+        $this->lignes[$index]['subtotal'] =
+            $this->lignes[$index]['quantity'] * $price;
     }
 
+    /* ============================================================
+     |  TOTAL
+     * ============================================================ */
     public function getTotalAmount()
     {
         $total = collect($this->lignes)->sum('subtotal');
 
-        // Convertir la remise en nombre, défaut 0
-        $remise = is_numeric($this->remise) ? floatval($this->remise) : 0;
-
-        if ($remise > 0) {
-            $total = $total - ($total * ($remise / 100));
-        }
-
-        return $total;
+        return $this->remise > 0
+            ? $total * (1 - $this->remise / 100)
+            : $total;
     }
 
-    public function save()
-    {
-        // Valider la commande
-        $this->validate();
-
-        // Vérifier qu'il y a au moins une ligne
-        if (empty($this->lignes)) {
-            $this->dispatch('error', message: 'Veuillez ajouter au moins une ligne de commande');
-            return;
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Créer la commande
-            $commande = CommandeFournisseur::create([
-                'reference' => $this->reference,
-                'fournisseur_id' => $this->fournisseur_id,
-                'devise_id' => $this->devise_id,
-                'taux_change' => $this->taux_change,
-                'remise' => $this->remise,
-                'date_commande' => $this->date_commande,
-                'status' => $this->status,
-                'created_by' => Auth::id(),
-                'updated_by' => Auth::id(),
-            ]);
-
-            logActivity("Création d'une commande avec succès", [
-                'reference' => $this->reference,
-                'fournisseur_id' => $this->fournisseur_id,
-                'devise_id' => $this->devise_id,
-                'taux_change' => $this->taux_change,
-                'remise' => $this->remise,
-                'date_commande' => $this->date_commande,
-                'status' => $this->status,
-                'lignes' => $this->lignes
-            ], $commande);
-
-            // Créer les lignes
-            foreach ($this->lignes as $ligne) {
-                LigneCommandeFournisseur::create([
-                    'commande_id' => $commande->id,
-                    'article_id' => $ligne['article_id'],
-                    'quantity' => $ligne['quantity'],
-                    'unit_price' => $ligne['unit_price'],
-                ]);
-            }
-
-            DB::commit();
-
-            $this->dispatch('success', message: 'Commande créée avec succès');
-
-            // Redirection
-            return redirect()->route('stock.commandes');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $this->dispatch('error', message: 'Erreur lors de la création: ' . $e->getMessage());
-        }
-    }
-
+    /* ============================================================
+     |  RESET FORM METHOD
+     * ============================================================ */
     public function resetForm()
     {
         $this->reset([
@@ -267,23 +321,126 @@ class CreateCommande extends Component
             'article_id',
             'quantity',
             'unit_price',
-            'lignes'
+            'lignes',
+            'articleSearch'
         ]);
 
-        $this->date_commande = now()->format('Y-m-d');
         $this->reference = $this->generateReference();
+        $this->date_commande = now()->format('Y-m-d');
         $this->taux_change = 1;
         $this->remise = 0;
         $this->status = 'EN_COURS';
-        $this->updateAvailableArticles();
+
+        $this->syncAvailableArticles();
+
+        $this->dispatch('success', message: 'Formulaire réinitialisé avec succès');
+    }
+
+    /* ============================================================
+     |  SAVE COMMANDE
+     * ============================================================ */
+    public function save()
+    {
+        $this->validate();
+
+        if (empty($this->lignes)) {
+            $this->dispatch('error', message: 'Ajoutez au moins une ligne');
+            return;
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $commande = CommandeFournisseur::create([
+                'reference' => $this->reference,
+                'fournisseur_id' => $this->fournisseur_id,
+                'devise_id' => $this->devise_id,
+                'taux_change' => $this->taux_change,
+                'remise' => $this->remise,
+                'date_commande' => $this->date_commande,
+                'status' => $this->status,
+                'created_by' => Auth::id(),
+            ]);
+
+            foreach ($this->lignes as $ligne) {
+                LigneCommandeFournisseur::create([
+                    'commande_id' => $commande->id,
+                    'article_id' => $ligne['article_id'],
+                    'quantity' => $ligne['quantity'],
+                    'unit_price' => $ligne['unit_price'],
+                ]);
+            }
+
+            DB::commit();
+
+            logActivity("Création commande fournisseur", [], $commande);
+
+            return redirect()->route('stock.commandes');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $this->dispatch('error', message: $e->getMessage());
+        }
+    }
+
+    /* ============================================================
+     |  QUICK ARTICLE CREATION
+     * ============================================================ */
+    public function createArticle()
+    {
+        $this->resetNewArticle();
+        $this->showModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->resetNewArticle();
+    }
+
+    public function resetNewArticle()
+    {
+        $this->newArticle = [
+            'reference' => 'AR' . rand(100, 999),
+            'category_id' => '',
+            'designation' => '',
+            'description' => '',
+            'prix_achat' => '',
+            'prix_vente' => '',
+            'unite' => '',
+            'status' => true,
+        ];
+    }
+
+    public function storeArticle()
+    {
+        $this->validate($this->articleRules);
+
+        $article = ArticleModel::create([
+            ...$this->newArticle,
+            'devise_id' => $this->devise_id,
+            'created_by' => Auth::id(),
+        ]);
+
+        $this->articles->push($article);
+        $this->syncAvailableArticles();
+
+        $this->showModal = false;
+
+        $this->dispatch('success', message: 'Article créé avec succès');
+    }
+
+    /* ============================================================
+     |  UTILS
+     * ============================================================ */
+    protected function generateReference()
+    {
+        return 'CMD-' . now()->format('ymd') . '-' . rand(100, 999);
     }
 
     public function render()
     {
         view()->share('title', "Nouvelle Commande Fournisseur");
         view()->share('breadcrumb', "Créer Commande");
-
-        logActivity('Ouverture du panier de commande');
 
         return view('livewire.stock.create-commande', [
             'totalAmount' => $this->getTotalAmount(),

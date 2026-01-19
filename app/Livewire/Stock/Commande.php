@@ -385,8 +385,6 @@ class Commande extends Component
         view()->share('title', "Gestion des Commandes");
         view()->share('breadcrumb', "Commandes");
 
-        logActivity('Affichage des commandes');
-
         return view('livewire.stock.commande', [
             'commandes' => $this->loadCommandes(),
         ]);

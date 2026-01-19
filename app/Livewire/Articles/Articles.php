@@ -52,7 +52,12 @@ class Articles extends Component
     public $prix_vente;
     public $unite;
     public $status = true;
+
+    public $categoryId;
+    public $name;
+
     public $showModal = false;
+    public $showCategoryModal = false;
 
     protected function rules()
     {
@@ -68,6 +73,20 @@ class Articles extends Component
             'status' => 'boolean',
         ];
     }
+
+    // Add this property to your component class
+    protected $categoryRules = [
+        'name' => ['required', 'string', 'min:3', 'unique:categories,name'],
+        'description' => 'nullable|string',
+        'status' => 'boolean',
+    ];
+
+    // Add validation messages for category
+    protected $categoryMessages = [
+        'name.required' => 'Le nom de la catégorie est requis.',
+        'name.min' => 'Le nom doit contenir au moins 3 caractères.',
+        'name.unique' => 'Cette catégorie existe déjà.',
+    ];
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -263,6 +282,8 @@ class Articles extends Component
         $this->resetValidation();
     }
 
+    public function resetCategoryForm() {}
+
     public function create()
     {
         $this->resetForm();
@@ -273,6 +294,22 @@ class Articles extends Component
     {
         $this->showModal = false;
         $this->resetForm();
+    }
+
+    public function closeCategoryModal()
+    {
+        $this->showCategoryModal = false;
+        $this->reset(['name', 'description']);
+        $this->status = true;
+        $this->resetValidation();
+    }
+
+    public function createCategory()
+    {
+        $this->reset(['name', 'description']);
+        $this->status = true;
+
+        $this->showCategoryModal = true;
     }
 
     public function edit($id)
@@ -297,7 +334,7 @@ class Articles extends Component
         }
     }
 
-    public function store()
+    public function storeArticle()
     {
         $this->validate();
 
@@ -380,6 +417,40 @@ class Articles extends Component
                 'error',
                 'Une erreur est survenue : ' . $e->getMessage()
             );
+        }
+    }
+
+    public function storeCategory()
+    {
+        // Validate the category data
+        $this->validate($this->categoryRules, $this->categoryMessages);
+
+        try {
+            // Create new category
+            $category = Category::create([
+                'name' => $this->name,
+                'description' => $this->description,
+                'status' => $this->status,
+                'created_by' => Auth::id(),
+            ]);
+
+            $message = 'Catégorie créée avec succès';
+
+            // Log activity
+            logActivity('Création d\'une catégorie', [
+                'name' => $this->name,
+                'description' => $this->description,
+                'status' => $this->status,
+            ], $category);
+
+            $this->loadCategories();
+            $this->closeCategoryModal();
+            $this->resetPage();
+
+            // Flash success message
+            session()->flash('success', $message);
+        } catch (\Exception $e) {
+            session()->flash('error', 'Une erreur est survenue: ' . $e->getMessage());
         }
     }
 

@@ -18,8 +18,6 @@
         </div>
 
         <div class="card-body p-0">
-            @include('components.shared.alerts')
-
             <!-- Desktop/Tablet Table View -->
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover align-middle mb-0">
@@ -30,12 +28,13 @@
                             <th>Nom</th>
                             <th>Symbole</th>
                             <th width="100">Status</th>
-                            <th width="150" class="text-end">Actions</th>
+                            <th width="120">Par défaut</th>
+                            <th width="180" class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($devises as $devise)
-                            <tr>
+                            <tr class="{{ $devise->is_default ? 'table-success' : '' }}">
                                 <td>{{ $loop->iteration }}</td>
                                 <td class="fw-semibold">{{ $devise->code }}</td>
                                 <td class="text-muted">
@@ -45,9 +44,30 @@
                                     {{ $devise->symbole ? Str::limit($devise->symbole, 50) : 'N/D' }}
                                 </td>
                                 <td>
-                                    <span class="badge {{ $devise->status ? 'bg-success' : 'bg-secondary' }}">
+                                    <button wire:click="toggleStatusConfirm({{ $devise->id }})"
+                                            class="btn btn-sm {{ $devise->status ? 'btn-success' : 'btn-secondary' }}"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ $devise->status ? 'Désactiver' : 'Activer' }}">
                                         {{ $devise->status ? 'Actif' : 'Inactif' }}
-                                    </span>
+                                    </button>
+                                </td>
+                                <td>
+                                    @if($devise->is_default)
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i> Défaut
+                                        </span>
+                                    @else
+                                        <button wire:click="toggleDefaultConfirm({{ $devise->id }})"
+                                                class="btn btn-sm {{ $devise->status ? 'btn-outline-secondary' : 'btn-secondary' }}"
+                                                title="{{ $devise->status ? 'Définir comme devise par défaut' : 'Devise inactive' }}"
+                                                {{ !$devise->status ? 'disabled' : '' }}>
+                                            @if($devise->status)
+                                                <i class="fas fa-star me-1"></i> Définir
+                                            @else
+                                                <i class="fas fa-ban me-1"></i> Inactive
+                                            @endif
+                                        </button>
+                                    @endif
                                 </td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm" role="group">
@@ -58,25 +78,20 @@
                                             <i class="fa fa-pen"></i>
                                         </button>
 
-                                        <button wire:click="toggleStatus({{ $devise->id }})"
-                                                class="btn btn-outline-{{ $devise->status ? 'success' : 'secondary' }}"
-                                                data-bs-toggle="tooltip"
-                                                title="Changer le status">
-                                            <i class="fa fa-toggle-{{ $devise->status ? 'on' : 'off' }}"></i>
-                                        </button>
-
+                                        @if(!$devise->is_default)
                                         <button wire:click="deleteConfirm({{ $devise->id }})"
                                                 class="btn btn-outline-danger"
                                                 data-bs-toggle="tooltip"
                                                 title="Supprimer">
                                             <i class="fa fa-trash"></i>
                                         </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-5">
+                                <td colspan="7" class="text-center text-muted py-5">
                                     <i class="fa fa-folder-open fa-3x mb-3 opacity-25"></i>
                                     <p class="mb-0">Aucune devise trouvée</p>
                                 </td>
@@ -89,16 +104,36 @@
             <!-- Mobile Card View -->
             <div class="d-md-none">
                 @forelse($devises as $devise)
-                    <div class="border-bottom p-3">
+                    <div class="border-bottom p-3 {{ $devise->is_default ? 'bg-light-success' : '' }}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1 fw-semibold">{{ $devise->code }} | <span class="text-muted">{{ $devise->symbole ? $devise->symbole : 'Aucun symbole' }} </span></h6>
                                 <p class="text-muted small mb-2">
                                     {{ $devise->libelle ? Str::limit($devise->libelle, 60) : 'Aucun libelle' }}
                                 </p>
-                                <span class="badge {{ $devise->status ? 'bg-success' : 'bg-secondary' }}">
-                                    {{ $devise->status ? 'Actif' : 'Inactif' }}
-                                </span>
+
+                                <div class="d-flex gap-2 mb-2">
+                                    <button wire:click="toggleStatusConfirm({{ $devise->id }})"
+                                            class="btn btn-sm {{ $devise->status ? 'btn-success' : 'btn-secondary' }}">
+                                        {{ $devise->status ? 'Actif' : 'Inactif' }}
+                                    </button>
+
+                                    @if($devise->is_default)
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i> Défaut
+                                        </span>
+                                    @else
+                                        <button wire:click="toggleDefaultConfirm({{ $devise->id }})"
+                                                class="btn btn-sm {{ $devise->status ? 'btn-outline-secondary' : 'btn-secondary' }}"
+                                                {{ !$devise->status ? 'disabled' : '' }}>
+                                            @if($devise->status)
+                                                <i class="fas fa-star me-1"></i> Définir
+                                            @else
+                                                <i class="fas fa-ban me-1"></i> Inactive
+                                            @endif
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
@@ -108,15 +143,12 @@
                                 <i class="fa fa-pen me-1"></i> Modifier
                             </button>
 
-                            <button wire:click="toggleStatus({{ $devise->id }})"
-                                    class="btn btn-sm btn-outline-{{ $devise->status ? 'success' : 'secondary' }}">
-                                <i class="fa fa-toggle-{{ $devise->status ? 'on' : 'off' }}"></i>
-                            </button>
-
+                            @if(!$devise->is_default)
                             <button wire:click="deleteConfirm({{ $devise->id }})"
                                     class="btn btn-sm btn-outline-danger">
                                 <i class="fa fa-trash"></i>
                             </button>
+                            @endif
                         </div>
                     </div>
                 @empty
@@ -130,17 +162,25 @@
     </div>
 
     <!-- Modal -->
-    @include('livewire.comptabilite.devise-modal')
-</div>
+    @if ($showModal)
+        @include('livewire.comptabilite.devise-modal')
+    @endif
 
-@push('scripts')
-<script>
-    document.addEventListener('livewire:initialized', () => {
-        Livewire.on('confirm-delete', ({ id }) => {
-            if (confirm('Supprimer cette devise ?')) {
-                Livewire.dispatch('confirmDelete', { id });
-            }
-        });
-    });
-</script>
-@endpush
+    <style>
+        .bg-light-success {
+            background-color: rgba(25, 135, 84, 0.05) !important;
+        }
+
+        .table-success {
+            --bs-table-bg: rgba(25, 135, 84, 0.05);
+            --bs-table-striped-bg: rgba(25, 135, 84, 0.1);
+            --bs-table-striped-color: #000;
+            --bs-table-active-bg: rgba(25, 135, 84, 0.1);
+            --bs-table-active-color: #000;
+            --bs-table-hover-bg: rgba(25, 135, 84, 0.075);
+            --bs-table-hover-color: #000;
+            color: #000;
+            border-color: rgba(25, 135, 84, 0.1);
+        }
+    </style>
+</div>
