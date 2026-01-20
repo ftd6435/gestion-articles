@@ -434,7 +434,7 @@ class CreateCommande extends Component
      * ============================================================ */
     protected function generateReference()
     {
-        return 'CMD-' . now()->format('ymd') . '-' . rand(100, 999);
+        return 'CMD-' .  rand(1000, 9999);
     }
 
     public function render()

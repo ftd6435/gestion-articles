@@ -37,14 +37,18 @@ class CreateReception extends Component
     public function mount()
     {
         $this->loadCommandes();
-        $this->loadArticles();
-
         $this->magasins = MagasinModel::active()
             ->with('etageres')
             ->orderBy('nom')
             ->get();
 
         $this->date_reception = now()->format('Y-m-d');
+
+        // Log de consultation de la page
+        logActivity(
+            'Consultation de la page de création de réception',
+            ['date' => now()->format('Y-m-d')]
+        );
     }
 
     /** ================== LOADERS ================== */
@@ -56,9 +60,19 @@ class CreateReception extends Component
             ->get();
     }
 
-    private function loadArticles()
+    private function loadArticlesForSelectedCommande()
     {
-        $this->articles = ArticleModel::orderBy('designation')->get();
+        if (!$this->selectedCommande) {
+            $this->articles = [];
+            return;
+        }
+
+        // Charger uniquement les articles de la commande sélectionnée
+        $this->articles = ArticleModel::whereHas('ligneCommandes', function ($query) {
+            $query->where('commande_id', $this->commande_id);
+        })
+            ->orderBy('designation')
+            ->get();
     }
 
     /** ================== REACTIVE ================== */
@@ -69,7 +83,25 @@ class CreateReception extends Component
             'receptions.ligneReceptions'
         ])->find($this->commande_id);
 
+        // Charger uniquement les articles de cette commande
+        $this->loadArticlesForSelectedCommande();
+
         $this->lines = [];
+        $this->reset(['article_id', 'magasin_id', 'etagere_id', 'quantity', 'date_expiration']);
+
+        // Log de sélection de commande
+        if ($this->selectedCommande) {
+            logActivity(
+                'SELECT_COMMANDE_RECEPTION',
+                [
+                    'commande_id' => $this->commande_id,
+                    'commande_ref' => $this->selectedCommande->reference,
+                    'fournisseur' => $this->selectedCommande->fournisseur->name ?? 'N/A',
+                    'status' => $this->selectedCommande->status,
+                ],
+                $this->selectedCommande
+            );
+        }
     }
 
     public function updatedMagasinId()
@@ -89,7 +121,6 @@ class CreateReception extends Component
             ->sum('quantity');
     }
 
-
     /** ================== BUSINESS ================== */
     private function alreadyReceivedQty($articleId)
     {
@@ -100,11 +131,28 @@ class CreateReception extends Component
 
     public function addLine()
     {
+        if (!$this->selectedCommande) {
+            $this->dispatch('error', message: 'Veuillez sélectionner une commande avant d\'ajouter des articles.');
+            return;
+        }
+
         $this->validate([
             'article_id' => 'required',
             'magasin_id' => 'required',
             'etagere_id' => 'required',
             'quantity' => 'required|numeric|min:1',
+        ], [
+            'article_id.required' => 'La sélection d\'un article est obligatoire.',
+            'magasin_id.required' => 'La sélection d\'un magasin est obligatoire.',
+            'etagere_id.required' => 'La sélection d\'une étagère est obligatoire.',
+            'quantity.required' => 'La quantité est obligatoire.',
+            'quantity.numeric' => 'La quantité doit être un nombre.',
+            'quantity.min' => 'La quantité doit être au moins de 1.',
+        ], [
+            'article_id' => 'Article',
+            'magasin_id' => 'Magasin',
+            'etagere_id' => 'Étagère',
+            'quantity' => 'Quantité',
         ]);
 
         $commandeLine = $this->selectedCommande
@@ -120,7 +168,6 @@ class CreateReception extends Component
         $pendingInForm   = $this->pendingQtyInCurrentReception($this->article_id);
 
         $remaining = $commandeLine->quantity - $alreadyReceived - $pendingInForm;
-
 
         if ($this->quantity > $remaining) {
             $this->addError(
@@ -145,6 +192,21 @@ class CreateReception extends Component
             'date_expiration' => $this->date_expiration,
         ];
 
+        // Log d'ajout d'une ligne
+        logActivity(
+            "Ajout d'une ligne",
+            [
+                'article_id' => $article->id,
+                'article_name' => $article->designation,
+                'magasin' => $magasin->nom,
+                'etagere' => $etagere->code_etagere,
+                'quantity' => $this->quantity,
+                'commande_id' => $this->commande_id,
+                'remaining_qty' => $remaining - $this->quantity,
+                'lines_count' => count($this->lines),
+            ]
+        );
+
         $this->reset([
             'article_id',
             'magasin_id',
@@ -157,6 +219,24 @@ class CreateReception extends Component
 
     public function removeLine($index)
     {
+        if (!isset($this->lines[$index])) {
+            return;
+        }
+
+        $removedLine = $this->lines[$index];
+
+        // Log de suppression d'une ligne
+        logActivity(
+            "Suppression d'une ligne",
+            [
+                'article_id' => $removedLine['article_id'],
+                'article_name' => $removedLine['article_name'],
+                'quantity' => $removedLine['quantity'],
+                'commande_id' => $this->commande_id,
+                'lines_count_before' => count($this->lines),
+            ]
+        );
+
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
     }
@@ -169,6 +249,18 @@ class CreateReception extends Component
             return;
         }
 
+        // Validation supplémentaire
+        $this->validate([
+            'commande_id' => 'required|exists:commande_fournisseurs,id',
+        ], [
+            'commande_id.required' => 'La commande est obligatoire.',
+            'commande_id.exists' => 'La commande sélectionnée n\'existe pas.',
+        ]);
+
+        // Calcul du total des quantités
+        $totalQuantity = array_sum(array_column($this->lines, 'quantity'));
+
+        // Création de la réception
         $reception = ReceptionFournisseur::create([
             'reference' => 'REC-' . rand(1000, 9999),
             'commande_id' => $this->commande_id,
@@ -176,6 +268,7 @@ class CreateReception extends Component
             'created_by' => Auth::id(),
         ]);
 
+        // Création des lignes de réception
         foreach ($this->lines as $line) {
             LigneReceptionFournisseur::create([
                 'reception_id' => $reception->id,
@@ -198,9 +291,34 @@ class CreateReception extends Component
             }
         }
 
+        $newStatus = $completed ? 'TERMINEE' : 'PARTIELLE';
         $this->selectedCommande->update([
-            'status' => $completed ? 'TERMINEE' : 'PARTIELLE'
+            'status' => $newStatus
         ]);
+
+        // Log de création de réception
+        logActivity(
+            'Création de la réception',
+            [
+                'reception_id' => $reception->id,
+                'reception_ref' => $reception->reference,
+                'commande_id' => $this->commande_id,
+                'commande_ref' => $this->selectedCommande->reference,
+                'total_lines' => count($this->lines),
+                'total_quantity' => $totalQuantity,
+                'new_commande_status' => $newStatus,
+                'articles' => array_map(function ($line) {
+                    return [
+                        'id' => $line['article_id'],
+                        'name' => $line['article_name'],
+                        'quantity' => $line['quantity'],
+                        'magasin' => $line['magasin_name'],
+                        'etagere' => $line['etagere_name'],
+                    ];
+                }, $this->lines),
+            ],
+            $reception
+        );
 
         session()->flash('success', 'Réception enregistrée avec succès.');
 
