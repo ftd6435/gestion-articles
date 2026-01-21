@@ -221,6 +221,14 @@ class AppLoader {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded → AppLoader boot');
     window.appLoader = new AppLoader();
+
+    // ✅ Mobile safety hide
+    setTimeout(() => {
+        const loader = document.getElementById('app-loader');
+        if (loader) {
+            loader.classList.add('loader-hidden');
+        }
+    }, 2500);
 });
 
 /* ----------------------------------------
