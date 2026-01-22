@@ -178,8 +178,27 @@ class Paiement extends Component
                     'notes'         => $this->notes,
                     'updated_by'    => Auth::id(),
                 ]);
+
+                logActivity('Modification d\'un paiement fournisseur', [
+                    'old' => [
+                        'commande_id' => $paiement->commande_id,
+                        'reception_id' => $paiement->reception_id,
+                        'date_paiement' => $paiement->date_paiement,
+                        'montant' => $paiement->montant,
+                        'mode_paiement' => $paiement->mode_paiement,
+                        'notes' => $paiement->notes,
+                    ],
+                    'new' => [
+                        'commande_id' => $this->commande_id,
+                        'reception_id' => $this->reception_id,
+                        'date_paiement' => $this->date_paiement,
+                        'montant' => $this->montant,
+                        'mode_paiement' => $this->mode_paiement,
+                        'notes' => $this->notes,
+                    ]
+                ], $paiement);
             } else {
-                PaiementFournisseur::create([
+                $paiement = PaiementFournisseur::create([
                     'commande_id'   => $this->commande_id,
                     'reception_id'  => $this->reception_id,
                     'reference'     => 'PAY-' . rand(1000, 9999),
@@ -190,6 +209,16 @@ class Paiement extends Component
                     'created_by'    => Auth::id(),
                     'updated_by'    => Auth::id(),
                 ]);
+
+                logActivity('Création d\'un paiement fournisseur', [
+                    'commande_id' => $this->commande_id,
+                    'reception_id' => $this->reception_id,
+                    'reference' => $paiement->reference,
+                    'date_paiement' => $this->date_paiement,
+                    'montant' => $this->montant,
+                    'mode_paiement' => $this->mode_paiement,
+                    'notes' => $this->notes,
+                ], $paiement);
             }
         });
 
@@ -319,6 +348,14 @@ class Paiement extends Component
         try {
             $paiement = PaiementFournisseur::findOrFail($id);
             $reference = $paiement->reference;
+
+            logActivity('Suppression d\'un paiement fournisseur', [
+                'reference' => $paiement->reference,
+                'commande_id' => $paiement->commande_id,
+                'reception_id' => $paiement->reception_id,
+                'montant' => $paiement->montant,
+                'mode_paiement' => $paiement->mode_paiement,
+            ], $paiement);
 
             $paiement->delete();
 

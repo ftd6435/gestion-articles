@@ -1,14 +1,40 @@
 <div class="container-fluid py-4">
 
     {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold mb-0">
-            <i class="fas fa-file-invoice-dollar me-2"></i>Ventes clients
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+
+        {{-- Title --}}
+        <h4 class="fw-bold mb-0 d-flex align-items-center">
+            <i class="fas fa-file-invoice-dollar me-2"></i>
+            <span>Ventes clients</span>
         </h4>
 
-        <button class="btn btn-primary" wire:click="createVente">
-            <i class="fas fa-plus me-2"></i>Nouvelle vente
-        </button>
+        {{-- Actions --}}
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+
+            {{-- Currency Filter --}}
+            @if(!empty($availableDevises) && count($availableDevises) > 0)
+                <select wire:model.live="selectedDeviseId"
+                    class="form-select w-100 w-sm-auto">
+                    @foreach($availableDevises as $devise)
+                        <option value="{{ $devise->id }}">
+                            {{ $devise->code }} ({{ $devise->symbole ?? $devise->code }})
+                            @if($devise->is_default)
+                                - Par défaut
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+            @endif
+
+            {{-- Create Button --}}
+            <button class="btn btn-primary w-100 w-sm-auto"
+                wire:click="createVente">
+                <i class="fas fa-plus me-2"></i>
+                Nouvelle vente
+            </button>
+
+        </div>
     </div>
 
     {{-- Statistics Cards --}}
@@ -36,7 +62,7 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Payé</h6>
                             <h4 class="mb-0 fw-bold text-success">
-                                {{ number_format($totalPaid, 0, ',', ' ') }}
+                                {{ number_format($totalPaid, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
                             </h4>
                         </div>
                         <div class="bg-success text-white rounded-circle p-3">
@@ -54,7 +80,7 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Dû</h6>
                             <h4 class="mb-0 fw-bold text-danger">
-                                {{ number_format($totalDue, 0, ',', ' ') }}
+                                {{ number_format($totalDue, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
                             </h4>
                         </div>
                         <div class="bg-danger text-white rounded-circle p-3">
@@ -105,18 +131,32 @@
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Date de début</label>
                     <input type="date"
                            class="form-control"
                            wire:model.live.debounce.200ms="date_from">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Date de fin</label>
                     <input type="date"
                            class="form-control"
                            wire:model.live.debounce.200ms="date_to">
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="w-100">
+                        <label class="form-label">Devise</label>
+                        <select wire:model.live="selectedDeviseId" class="form-select">
+                            <option value="">Toutes</option>
+                            @foreach($availableDevises as $devise)
+                                <option value="{{ $devise->id }}">
+                                    {{ $devise->code }} ({{ $devise->symbole ?? $devise->code }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <div class="col-md-1 d-flex align-items-end">
@@ -241,7 +281,7 @@
                             <td colspan="8" class="text-center text-muted py-5">
                                 <i class="fas fa-inbox fa-3x mb-3"></i>
                                 <p class="mb-0">Aucune vente trouvée</p>
-                                @if($search || $status || $date_from || $date_to)
+                                @if($search || $status || $date_from || $date_to || $selectedDeviseId)
                                     <p class="small mt-2">
                                         <button class="btn btn-sm btn-link" wire:click="resetFilters">
                                             Réinitialiser les filtres

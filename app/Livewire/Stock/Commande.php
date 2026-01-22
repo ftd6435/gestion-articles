@@ -221,6 +221,13 @@ class Commande extends Component
         }
 
         $commande->update(['status' => 'ANNULEE']);
+
+        logActivity('Annulation d\'une commande', [
+            'reference' => $commande->reference,
+            'fournisseur_id' => $commande->fournisseur_id,
+            'status' => $commande->status,
+        ], $commande);
+
         session()->flash('success', "Commande annulée avec succès");
     }
 
@@ -268,7 +275,7 @@ class Commande extends Component
                     'updated_by' => Auth::id(),
                 ]);
 
-                logActivity('Demande de suppression d\'une commande', [
+                logActivity('Modification d\'une commande', [
                     'old' => [
                         'reference'    => $commande->reference,
                         'fournisseur_id'    => $commande->fournisseur_id,
@@ -290,7 +297,7 @@ class Commande extends Component
                 $message = 'Commande modifiée avec succès.';
             } else {
                 // CREATE new command
-                CommandeFournisseur::create([
+                $commande = CommandeFournisseur::create([
                     'fournisseur_id' => $this->fournisseur_id,
                     'devise_id' => $this->devise_id,
                     'reference' => $this->reference,
@@ -301,6 +308,16 @@ class Commande extends Component
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
+
+                logActivity('Création d\'une commande', [
+                    'fournisseur_id' => $this->fournisseur_id,
+                    'devise_id' => $this->devise_id,
+                    'reference' => $this->reference,
+                    'taux_change' => $this->taux_change ?? 1,
+                    'remise' => $this->remise ?? 0,
+                    'date_commande' => $this->date_commande ?? now(),
+                    'status' => $this->status,
+                ], $commande);
 
                 $message = 'Commande créée avec succès.';
             }

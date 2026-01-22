@@ -281,8 +281,6 @@ class Fournisseur extends Component
         view()->share('title', "Gestion des Fournisseurs");
         view()->share('breadcrumb', "Fournisseurs");
 
-        logActivity('Affichage des fournisseurs');
-
         return view('livewire.fournisseur');
     }
 }

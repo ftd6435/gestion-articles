@@ -110,9 +110,22 @@ class Etagere extends Component
                     'updated_by' => Auth::id(),
                 ]);
                 $message = 'Etagère modifiée avec succès';
+
+                logActivity('Modification d\'une étagère', [
+                    'old' => [
+                        'code_etagere' => $etagere->code_etagere,
+                        'magasin_id' => $etagere->magasin_id,
+                        'status' => $etagere->status,
+                    ],
+                    'new' => [
+                        'code_etagere' => $this->code_etagere,
+                        'magasin_id' => $this->magasin_id,
+                        'status' => $this->status,
+                    ]
+                ], $etagere);
             } else {
                 // Create new
-                EtagereModel::create([
+                $etagere = EtagereModel::create([
                     'code_etagere' => $this->code_etagere,
                     'magasin_id' => $this->magasin_id,
                     'status' => $this->status,
@@ -120,6 +133,12 @@ class Etagere extends Component
                     'updated_by' => Auth::id(),
                 ]);
                 $message = 'Etagère créée avec succès';
+
+                logActivity('Création d\'une étagère', [
+                    'code_etagere' => $this->code_etagere,
+                    'magasin_id' => $this->magasin_id,
+                    'status' => $this->status,
+                ], $etagere);
             }
 
             $this->loadEtageres();
@@ -134,10 +153,17 @@ class Etagere extends Component
     public function toggleStatus($id)
     {
         $etagere = EtagereModel::findOrFail($id);
+        $oldStatus = $etagere->status;
         $etagere->update([
             'status' => !$etagere->status,
             'updated_by' => Auth::id(),
         ]);
+
+        logActivity('Modification du statut d\'une étagère', [
+            'old_status' => $oldStatus,
+            'new_status' => $etagere->status,
+            'code_etagere' => $etagere->code_etagere,
+        ], $etagere);
 
         $this->loadEtageres();
         session()->flash('success', 'Statut modifié avec succès');
@@ -159,6 +185,12 @@ class Etagere extends Component
         try {
             $etagere = EtagereModel::findOrFail($id);
             $code = $etagere->code_etagere;
+
+            logActivity('Suppression d\'une étagère', [
+                'code_etagere' => $etagere->code_etagere,
+                'magasin_id' => $etagere->magasin_id,
+                'status' => $etagere->status,
+            ], $etagere);
 
             $etagere->delete();
 

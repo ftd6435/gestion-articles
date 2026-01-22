@@ -14,12 +14,17 @@ use App\Models\Warehouse\EtagereModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 
 class CreateVente extends Component
 {
     public $reference;
     public $client_id;
     public $devise_id;
+
+    public $currency = 'FG';
+
     public $date_facture;
     public $type_vente = 'DETAIL';
     public $remise = 0;
@@ -27,9 +32,21 @@ class CreateVente extends Component
     public $venteId;
     public $showPaiementForm = false;
 
+    // Searchable client input
+    public $clientSearch = '';
+    public $showClientDropdown = false;
+    public $filteredClients = [];
+    public $selectedClient = null;
+    public $clientName = '';
+    public $clientTelephone = '';
+
+    // Searchable article input for each line
+    public $articleSearches = [];
+    public $showArticleDropdowns = [];
+    public $filteredArticles = [];
+
     // Creating a new client
     public $showModal = false;
-    public $selectedClient = null;
 
     public $clientId;
     public $name;
@@ -45,11 +62,24 @@ class CreateVente extends Component
     public $mode_paiement;
     public $paiement_notes;
 
-    public $clients = [];
-    public $articles = [];
-    public $devises = [];
+    public $clients;
+
+    public $articles;
+
+    public $devises;
 
     public $lignes = [];
+
+    // Define a Line array structure (CHANGÉ: tableau au lieu d'objet)
+    protected $lineStructure = [
+        'article_id' => null,
+        'etagere_id' => null,
+        'quantity' => 0,
+        'unit_price' => 0,
+        'available' => 0,
+        'article_designation' => '',
+        'article_reference' => '',
+    ];
 
     protected $rules = [
         'client_id' => 'required|exists:client_models,id',
@@ -75,9 +105,21 @@ class CreateVente extends Component
 
     public function mount()
     {
-        $this->clients  = ClientModel::active()->orderBy('name')->get();
-        $this->articles = ArticleModel::active()->orderBy('designation')->get();
-        $this->devises = DeviseModel::active()->orderBy('code')->get();
+        // Initialize as empty collections
+        $this->clients = new Collection();
+        $this->articles = new Collection();
+        $this->devises = new Collection();
+
+        // Load data
+        $this->loadClients();
+        $this->loadArticles();
+        $this->loadDevises();
+
+        $defaultDevise = DeviseModel::getDefaultDevise();
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+            $this->currency = $defaultDevise->symbole ?? $defaultDevise->code;
+        }
 
         $this->date_facture = now()->format('Y-m-d');
         $this->paiement_date = now()->format('Y-m-d');
@@ -87,35 +129,175 @@ class CreateVente extends Component
         $this->addLine();
     }
 
+    /**
+     * Load clients from database
+     */
+    private function loadClients(): void
+    {
+        $this->clients = ClientModel::active()->orderBy('name')->get();
+        $this->filteredClients = $this->clients->take(10)->toArray();
+    }
+
+    /**
+     * Load articles from database
+     */
+    private function loadArticles(): void
+    {
+        $this->articles = ArticleModel::active()->orderBy('designation')->get();
+        $this->filteredArticles = $this->articles->take(10)->toArray();
+    }
+
+    /**
+     * Load devises from database
+     */
+    private function loadDevises(): void
+    {
+        $this->devises = DeviseModel::active()->orderBy('code')->get();
+    }
+
     /* ===================== REFERENCE ===================== */
 
-    private function generateReference()
+    private function generateReference(): string
     {
         $year = now()->format('y');
-        $count = VenteModel::whereYear('created_at', $year)->count() + 1;
+        $count = VenteModel::count() + 1;
         $rand = rand(10, 99);
 
         return 'V' . '-' . $rand . '' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 
+    /* ================ SEARCHABLE CLIENT SELECT ====================*/
+
+    public function updatedClientSearch(): void
+    {
+        if (empty($this->clientSearch)) {
+            $this->filteredClients = $this->clients->take(10)->toArray();
+            $this->showClientDropdown = true;
+            return;
+        }
+
+        $search = strtolower($this->clientSearch);
+        $this->filteredClients = $this->clients
+            ->filter(function ($client) use ($search) {
+                return str_contains(strtolower($client->name), $search) ||
+                    str_contains(strtolower($client->telephone), $search) ||
+                    str_contains(strtolower($client->email), $search);
+            })
+            ->take(10)
+            ->toArray();
+
+        $this->showClientDropdown = true;
+    }
+
+    public function selectClient($clientId): void
+    {
+        $client = $this->clients->firstWhere('id', $clientId);
+        if ($client) {
+            $this->client_id = $client->id;
+            $this->clientName = $client->name;
+            $this->clientTelephone = $client->telephone;
+            $this->clientSearch = $client->name . ' - ' . $client->telephone;
+            $this->showClientDropdown = false;
+        }
+    }
+
+    public function clearClient(): void
+    {
+        $this->client_id = null;
+        $this->clientName = '';
+        $this->clientTelephone = '';
+        $this->clientSearch = '';
+        $this->showClientDropdown = false;
+    }
+
+    public function closeClientDropdown(): void
+    {
+        // Delay closing to allow click on dropdown items
+        $this->dispatch('dropdown-close-delay');
+    }
+
+    /* ================ SEARCHABLE ARTICLE SELECT ====================*/
+
+    public function updatedArticleSearches($value, $key): void
+    {
+        $index = str_replace('articleSearches.', '', $key);
+
+        if (empty($value)) {
+            $this->filteredArticles[$index] = $this->articles->take(10)->toArray();
+            $this->showArticleDropdowns[$index] = true;
+            return;
+        }
+
+        $search = strtolower($value);
+        $this->filteredArticles[$index] = $this->articles
+            ->filter(function ($article) use ($search) {
+                return str_contains(strtolower($article->designation), $search) ||
+                    str_contains(strtolower($article->reference), $search) ||
+                    str_contains(strtolower($article->code_barre), $search);
+            })
+            ->take(10)
+            ->toArray();
+
+        $this->showArticleDropdowns[$index] = true;
+    }
+
+    public function selectArticle($index, $articleId): void
+    {
+        $article = $this->articles->firstWhere('id', $articleId);
+        if ($article) {
+            $this->lignes[$index]['article_id'] = $article->id;
+            $this->lignes[$index]['article_designation'] = $article->designation;
+            $this->lignes[$index]['article_reference'] = $article->reference;
+            $this->lignes[$index]['unit_price'] = $article->prix_vente ?? 0;
+            $this->articleSearches[$index] = $article->designation . ' (' . $article->reference . ')';
+            $this->showArticleDropdowns[$index] = false;
+
+            // Recalculate available quantity
+            $this->calculateAvailable($index);
+        }
+    }
+
+    public function clearArticle($index): void
+    {
+        $this->lignes[$index]['article_id'] = null;
+        $this->lignes[$index]['article_designation'] = '';
+        $this->lignes[$index]['article_reference'] = '';
+        $this->lignes[$index]['unit_price'] = 0;
+        $this->lignes[$index]['available'] = 0;
+        $this->lignes[$index]['etagere_id'] = null;
+        $this->articleSearches[$index] = '';
+        $this->showArticleDropdowns[$index] = false;
+    }
+
+    public function closeArticleDropdown($index): void
+    {
+        $this->dispatch('article-dropdown-close-delay', index: $index);
+    }
+
     /* ================ ADD A NEW CLIENT ====================*/
 
-    public function openClientModal()
+    public function openClientModal(): void
     {
         $this->selectedClient = null;
         $this->showModal = true;
     }
 
-    public function closeModal()
+    public function closeModal(): void
     {
         $this->showModal = false;
+        $this->resetClientForm();
     }
 
-    public function storeClient()
+    public function resetClientForm(): void
+    {
+        $this->reset(['name', 'telephone', 'type', 'email', 'adresse', 'clientId']);
+        $this->status = true;
+    }
+
+    public function storeClient(): void
     {
         $this->validate([
             'name' => 'required|string|min:3|max:100',
-
             'telephone' => [
                 'required',
                 'string',
@@ -124,35 +306,41 @@ class CreateVente extends Component
                 'regex:/^[0-9]+$/',
                 Rule::unique('client_models', 'telephone')->ignore($this->clientId),
             ],
-
             'type' => ['required', Rule::in(['GROSSISTE', 'DETAILLANT', 'MIXTE'])],
-
             'email' => 'nullable|email|max:100',
-
             'adresse' => 'nullable|string|max:100',
-
             'status' => 'boolean',
         ]);
 
         try {
-            $this->selectedClient = ClientModel::create(
-                [
-                    'name'       => $this->name,
-                    'telephone'  => $this->telephone,
-                    'type'       => $this->type,
-                    'email'      => $this->email,
-                    'adresse'    => $this->adresse,
-                    'status'     => $this->status,
-                    'created_by' => Auth::id(),
-                ]
-            );
-
-            logActivity('created client', [
+            $client = ClientModel::create([
                 'name'       => $this->name,
                 'telephone'  => $this->telephone,
-            ], $this->selectedClient);
+                'type'       => $this->type,
+                'email'      => $this->email,
+                'adresse'    => $this->adresse,
+                'status'     => $this->status,
+                'created_by' => Auth::id(),
+            ]);
 
-            $this->showModal = false;
+            // Log activity with French description
+            logActivity(
+                'création rapide d\'un client',
+                [
+                    'client_id' => $client->id,
+                    'nom' => $this->name,
+                    'telephone' => $this->telephone,
+                ],
+                $client // Passer l'objet au lieu de la classe
+            );
+
+            // Reload clients and update filtered list
+            $this->loadClients();
+
+            // Auto-select the new client
+            $this->selectClient($client->id);
+
+            $this->closeModal();
 
             $this->dispatch(
                 'success',
@@ -168,65 +356,88 @@ class CreateVente extends Component
 
     /* ===================== LINES ===================== */
 
-    public function addLine()
+    public function addLine(): void
     {
-        $this->lignes[] = [
-            'article_id'  => null,
-            'etagere_id'  => null,
-            'quantity'    => 0,
-            'unit_price'  => 0,
-            'available'   => 0,
-        ];
+        $index = count($this->lignes);
+        $this->lignes[] = $this->lineStructure; // CHANGÉ: tableau directement
+        $this->articleSearches[$index] = '';
+        $this->showArticleDropdowns[$index] = false;
+        $this->filteredArticles[$index] = $this->articles->take(10)->toArray();
     }
 
-    public function removeLine($index)
+    public function removeLine(int $index): void
     {
         unset($this->lignes[$index]);
+        unset($this->articleSearches[$index]);
+        unset($this->showArticleDropdowns[$index]);
+        unset($this->filteredArticles[$index]);
+
         $this->lignes = array_values($this->lignes);
+        $this->articleSearches = array_values($this->articleSearches);
+        $this->showArticleDropdowns = array_values($this->showArticleDropdowns);
+        $this->filteredArticles = array_values($this->filteredArticles);
     }
 
-    public function subTotal()
+    public function getSubTotal(): float
     {
-        return collect($this->lignes)->sum(
-            fn($l) => ((float) $l['quantity'] ?? 0) * ((float) $l['unit_price'] ?? 0)
-        );
+        $total = 0;
+        foreach ($this->lignes as $line) {
+            $quantity = (float) ($line['quantity'] ?? 0);
+            $unitPrice = (float) ($line['unit_price'] ?? 0);
+            $total += $quantity * $unitPrice;
+        }
+        return $total;
     }
 
-    public function remiseAmount()
+    public function getRemiseAmount(): float
     {
-        return $this->subTotal() * ((float) $this->remise / 100);
+        return $this->getSubTotal() * ((float) $this->remise / 100);
     }
 
-    public function updatedRemise($value)
+    public function updatedRemise($value): void
     {
         $this->remise = max(0, min(100, (float) $value));
     }
 
-    public function totalAfterRemise()
+    public function updatedDeviseId($value)
     {
-        return $this->subTotal() - $this->remiseAmount();
+        $devise = DeviseModel::find($value);
+        $this->currency = $devise->symbole ?? $devise->code;
+    }
+
+    public function getTotalAfterRemise(): float
+    {
+        return $this->getSubTotal() - $this->getRemiseAmount();
     }
 
     /* ===================== STOCK ===================== */
 
-    public function updatedLignes($value, $key)
+    public function updatedLignes($value, $key): void
     {
         [$index, $field] = explode('.', $key);
 
         if (in_array($field, ['article_id', 'etagere_id'])) {
-            $this->calculateAvailable($index);
+            $this->calculateAvailable((int) $index);
         }
 
         // Auto-update unit price when article changes
         if ($field === 'article_id' && !empty($value)) {
-            $article = ArticleModel::find($value);
+            $article = $this->articles->firstWhere('id', $value);
             if ($article) {
                 $this->lignes[$index]['unit_price'] = $article->prix_vente ?? 0;
             }
         }
+
+        if ($field === 'quantity' && isset($this->lignes[$index]['quantity'])) {
+            $this->lignes[$index]['quantity'] = (float) $this->lignes[$index]['quantity'];
+        }
+
+        if ($field === 'unit_price' && isset($this->lignes[$index]['unit_price'])) {
+            $this->lignes[$index]['unit_price'] = (float) $this->lignes[$index]['unit_price'];
+        }
     }
 
-    private function calculateAvailable($index)
+    private function calculateAvailable(int $index): void
     {
         $line = $this->lignes[$index];
 
@@ -243,7 +454,7 @@ class CreateVente extends Component
         );
     }
 
-    private function availableQuantity($articleId, $etagereId, $excludeIndex = null): int
+    private function availableQuantity($articleId, $etagereId, ?int $excludeIndex = null): int
     {
         $availableFromDB = $this->getDatabaseStock($articleId, $etagereId);
 
@@ -267,37 +478,44 @@ class CreateVente extends Component
         return max(0, $availableFromDB - $reservedInForm);
     }
 
-    public function getEtageresProperty()
+    public function getEtageresProperty(): array
     {
-        return collect($this->lignes)->mapWithKeys(function ($ligne, $index) {
+        $etageresByLine = [];
+
+        foreach ($this->lignes as $index => $ligne) {
             if (empty($ligne['article_id'])) {
-                return [$index => collect()];
+                $etageresByLine[$index] = collect();
+                continue;
             }
 
+            // Corrigez la requête pour utiliser AND au lieu de OR
             $etageres = EtagereModel::with('magasin')
                 ->whereHas('ligneReceptions', function ($query) use ($ligne) {
                     $query->where('article_id', $ligne['article_id']);
                 })
-                ->orWhereHas('ligneVentes', function ($query) use ($ligne) {
-                    $query->where('article_id', $ligne['article_id']);
-                })
                 ->get()
-                ->unique('id')
+                ->filter(function ($etagere) use ($ligne) {
+                    // Vérifiez qu'il y a du stock réel pour cet article
+                    $stock = $this->getDatabaseStock($ligne['article_id'], $etagere->id);
+                    return $stock > 0;
+                })
                 ->map(function ($etagere) use ($ligne, $index) {
-                    return [
+                    return (object) [
                         'id' => $etagere->id,
                         'code' => $etagere->code_etagere,
                         'magasin' => $etagere->magasin?->nom,
                         'available' => $this->availableQuantity(
                             $ligne['article_id'],
                             $etagere->id,
-                            $index // Exclude current line
+                            $index
                         ),
                     ];
                 });
 
-            return [$index => $etageres];
-        });
+            $etageresByLine[$index] = $etageres;
+        }
+
+        return $etageresByLine;
     }
 
     /* ===================== SAVE ===================== */
@@ -327,14 +545,14 @@ class CreateVente extends Component
 
             // Compare total requested against actual database stock
             if ($totalRequested > $availableFromDB) {
-                $article = ArticleModel::find($articleId);
+                $article = $this->articles->firstWhere('id', $articleId);
                 $etagere = EtagereModel::find($etagereId);
 
                 // Find which lines use this article-shelf combination
                 foreach ($this->lignes as $index => $line) {
                     if ($line['article_id'] == $articleId && $line['etagere_id'] == $etagereId) {
                         $errors["lignes.$index.quantity"] =
-                            "Stock insuffisant pour {$article->designation} sur {$etagere->code_etagere}. " .
+                            "Stock insuffisant pour {$article?->designation} sur {$etagere?->code_etagere}. " .
                             "Total demandé: {$totalRequested}, Disponible: {$availableFromDB}";
                     }
                 }
@@ -367,7 +585,12 @@ class CreateVente extends Component
     private function createSaleLines($venteId): void
     {
         foreach ($this->lignes as $line) {
-            $etagere = EtagereModel::findOrFail($line['etagere_id']);
+            // Utilisez find() au lieu de findOrFail() et vérifiez si l'étagère existe
+            $etagere = EtagereModel::find($line['etagere_id']);
+
+            if (!$etagere) {
+                throw new \Exception("L'étagère avec l'ID {$line['etagere_id']} n'existe pas.");
+            }
 
             LigneVenteClient::create([
                 'vente_id'   => $venteId,
@@ -383,6 +606,18 @@ class CreateVente extends Component
 
     public function store()
     {
+        // Convertir pour le log
+        $lignesArray = [];
+        foreach ($this->lignes as $index => $line) {
+            $lignesArray[$index] = [
+                'article_id' => $line['article_id'] ?? null,
+                'etagere_id' => $line['etagere_id'] ?? null,
+                'quantity' => $line['quantity'] ?? null,
+                'unit_price' => $line['unit_price'] ?? null,
+                'article_designation' => $line['article_designation'] ?? '',
+            ];
+        }
+
         $this->validate();
 
         // Validate stock availability
@@ -405,14 +640,23 @@ class CreateVente extends Component
                 'date_facture' => $this->date_facture,
                 'type_vente'  => $this->type_vente,
                 'remise'      => $this->remise,
-                'total'       => $this->totalAfterRemise(),
+                'total'       => $this->getTotalAfterRemise(),
                 'status'      => 'IMPAYEE',
                 'created_by'  => Auth::id(),
             ]);
 
-            logActivity('created vente', [
-                'reference'   => $this->reference,
-            ], $vente);
+            // Log vente creation with French description - CORRIGÉ: passer l'objet
+            logActivity(
+                'Création nouvelle vente',
+                [
+                    'vente_id' => $vente->id,
+                    'reference' => $this->reference,
+                    'client_id' => $this->client_id,
+                    'montant_total' => $this->getTotalAfterRemise(),
+                    'devise_id' => $this->devise_id,
+                ],
+                $vente // Passer l'objet au lieu de la classe
+            );
 
             // Create sale lines
             $this->createSaleLines($vente->id);
@@ -420,14 +664,17 @@ class CreateVente extends Component
             DB::commit();
 
             $this->venteId = $vente->id;
-            $this->selectedClient = null;
             $this->showPaiementForm = true;
 
             // Reset payment amount when showing payment form
-            $this->paiement_montant = $this->totalAfterRemise();
+            $this->paiement_montant = $this->getTotalAfterRemise();
         } catch (\Throwable $e) {
             DB::rollBack();
-            session()->flash('error', 'Erreur lors de la création de la vente: ' . $e->getMessage());
+
+            $this->dispatch(
+                'error',
+                message: 'Erreur lors de la création de la vente: ' . $e->getMessage()
+            );
         }
     }
 
@@ -439,7 +686,7 @@ class CreateVente extends Component
                 'required',
                 'numeric',
                 'min:0',
-                'max:' . $this->totalAfterRemise()
+                'max:' . $this->getTotalAfterRemise()
             ],
             'mode_paiement' => 'required|in:ESPECES,VIREMENT,MOBILE MONEY',
         ], [
@@ -458,21 +705,33 @@ class CreateVente extends Component
                 'date_paiement' => $this->paiement_date,
                 'montant' => $this->paiement_montant,
                 'mode_paiement' => $this->mode_paiement,
-                'reference' => 'PAY-' . strtoupper(uniqid()),
+                'reference' => 'PAY-' . rand(1000, 9999),
                 'notes' => $this->paiement_notes,
                 'created_by' => Auth::id(),
             ]);
 
-            // Calculate total paid including this payment
-            $totalPaid = $vente->paiements()->sum('montant') + $this->paiement_montant;
+            // Log payment creation with French description - CORRIGÉ: passer l'objet
+            logActivity(
+                'Paiement client enregistré',
+                [
+                    'paiement_id' => $paiement->id,
+                    'reference' => $paiement->reference,
+                    'vente_id' => $vente->id,
+                    'vente_ref' => $vente->reference,
+                    'montant' => $this->paiement_montant,
+                    'mode_paiement' => $this->mode_paiement,
+                ],
+                $paiement
+            );
 
-            logActivity('created paiement client', [
-                'reference'   => $paiement->reference,
-                'vente_ref' => $vente->reference
-            ], $paiement);
+            $vente->refresh();
+            $totalPaid = (float) $vente->paiements()->sum('montant');
+            $totalDue = (float) $vente->totalAfterRemise();
 
-            // Update vente status
-            if (abs($totalPaid - $vente->total) < 0.01) { // Using float comparison with tolerance
+            $tolerance = 0.01;
+            $oldStatus = $vente->status;
+
+            if (abs($totalDue - $totalPaid) <= $tolerance) {
                 $vente->status = 'PAYEE';
             } elseif ($totalPaid > 0) {
                 $vente->status = 'PARTIELLE';
@@ -480,15 +739,37 @@ class CreateVente extends Component
                 $vente->status = 'IMPAYEE';
             }
 
+            // Log status change if it changed - CORRIGÉ: passer l'objet
+            if ($oldStatus !== $vente->status) {
+                logActivity(
+                    'Statut vente mis à jour',
+                    [
+                        'vente_id' => $vente->id,
+                        'reference' => $vente->reference,
+                        'ancien_statut' => $oldStatus,
+                        'nouveau_statut' => $vente->status,
+                        'montant_paye' => $totalPaid,
+                    ],
+                    $vente // Passer l'objet au lieu de la classe
+                );
+            }
+
             $vente->save();
 
             DB::commit();
 
-            session()->flash('success', 'Paiement effectué avec succès');
+            $this->dispatch(
+                'success',
+                message: 'Paiement effectué avec succès'
+            );
+
             return redirect()->route('ventes.ventes');
         } catch (\Throwable $e) {
             DB::rollBack();
-            session()->flash('error', 'Erreur lors du paiement: ' . $e->getMessage());
+            $this->dispatch(
+                'error',
+                message: 'Erreur lors du paiement: ' . $e->getMessage()
+            );
         }
     }
 

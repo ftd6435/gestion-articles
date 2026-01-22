@@ -536,8 +536,6 @@ class Articles extends Component
         view()->share('title', "Gestion des Articles");
         view()->share('breadcrumb', "Articles");
 
-        logActivity('Affichage des articles', null, $articles);
-
         return view('livewire.articles.articles', [
             'articles' => $articles,
         ]);

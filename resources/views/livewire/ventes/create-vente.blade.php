@@ -9,9 +9,17 @@
                     <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
                         <i class="fas fa-shopping-cart text-primary"></i>
                     </div>
-                    <h5 class="fw-bold mb-0">Nouvelle Vente</h5>
+                    <div>
+                        <h5 class="fw-bold mb-0">Nouvelle Vente</h5>
+                        <small class="text-muted">#{{ $reference }}</small>
+                    </div>
                 </div>
-                <span class="badge bg-primary fs-6">#{{ $reference }}</span>
+                <button class="btn btn-success btn-sm d-flex align-items-center"
+                        wire:click="openClientModal"
+                        type="button">
+                    <i class="fas fa-plus-circle me-1"></i>
+                    <span class="d-none d-sm-inline">Client</span>
+                </button>
             </div>
 
             {{-- Desktop layout --}}
@@ -29,21 +37,11 @@
                 </div>
 
                 <button class="btn btn-success px-4 py-3 d-flex align-items-center fw-medium shadow"
-                        wire:click="openClientModal">
+                        wire:click="openClientModal"
+                        type="button">
                     <i class="fas fa-plus-circle me-2"></i>
                     Ajouter un Client
                 </button>
-            </div>
-
-            {{-- Mobile action area --}}
-            <div class="d-md-none">
-                <div class="border-top pt-3 mt-2">
-                    <button class="btn btn-success w-100 d-flex align-items-center justify-content-center py-3 fw-medium"
-                            wire:click="openClientModal">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Ajouter un Client
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -53,149 +51,465 @@
     @if (!$showPaiementForm)
         <form wire:submit.prevent="store">
 
+            {{-- Mobile Summary Card --}}
+            <div class="card border-0 shadow-sm mb-3 d-md-none">
+                <div class="card-body p-3">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-muted small">Total</div>
+                                <div class="fw-bold h5 text-success">{{ number_format($this->getSubTotal(), 0) }} {{ $currency }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="text-muted small">Remise</div>
+                                <div class="fw-bold h6 text-danger">{{ $remise }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Infos --}}
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Client *</label>
-                        <select class="form-select @error('client_id') is-invalid @enderror" wire:model="client_id">
-                            @if ($selectedClient)
-                                <option value="{{ $selectedClient->id }}">{{ $selectedClient->name }} - {{ $selectedClient->telephone }}</option>
-                            @else
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3 d-none d-md-block">Informations générales</h6>
+
+                    <div class="row g-3">
+                        {{-- Searchable Client Select --}}
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Client *</label>
+                            <div class="position-relative">
+                                <div class="input-group input-group-sm">
+                                    <input type="text"
+                                        class="form-control @error('client_id') is-invalid @enderror"
+                                        wire:model.live.debounce.300ms="clientSearch"
+                                        wire:blur="closeClientDropdown"
+                                        placeholder="Rechercher client..."
+                                        autocomplete="off"
+                                        @if($client_id) disabled @endif>
+
+                                    @if($client_id)
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" wire:click="clearClient">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    @else
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                @error('client_id')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+
+                                {{-- Client Dropdown --}}
+                                @if($showClientDropdown && !$client_id && count($filteredClients) > 0)
+                                    <div class="position-absolute top-100 start-0 end-0 z-3 mt-1">
+                                        <div class="card border shadow-sm" style="max-height: 200px; overflow-y: auto;">
+                                            <div class="list-group list-group-flush">
+                                                @foreach($filteredClients as $client)
+                                                    <button type="button"
+                                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2"
+                                                        wire:click="selectClient({{ $client['id'] }})"
+                                                        wire:key="client-{{ $client['id'] }}">
+                                                        <div class="text-start">
+                                                            <div class="fw-medium text-truncate" style="max-width: 150px;">{{ $client['name'] }}</div>
+                                                            <small class="text-muted">{{ $client['telephone'] }}</small>
+                                                        </div>
+                                                        <span class="badge bg-light text-dark d-none d-sm-inline">{{ $client['type'] }}</span>
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Selected Client Info --}}
+                                @if($client_id)
+                                    <div class="mt-2">
+                                        <div class="d-flex align-items-center gap-2 p-2 bg-light rounded">
+                                            <div class="flex-grow-1 text-truncate">
+                                                <div class="fw-medium">{{ $clientName }}</div>
+                                                <small class="text-muted">{{ $clientTelephone }}</small>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-success">✓</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control form-control-sm" wire:model="date_facture">
+                        </div>
+
+                        <div class="col-6 col-md-2">
+                            <label class="form-label">Type</label>
+                            <select class="form-select form-select-sm" wire:model="type_vente">
+                                <option value="GROS">Gros</option>
+                                <option value="DETAIL">Detail</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-2">
+                            <label class="form-label">Devise *</label>
+                            <select class="form-select form-select-sm @error('devise_id') is-invalid @enderror" wire:model.live="devise_id">
                                 <option value="">Sélectionner</option>
-                                @foreach($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->name }} - {{ $client->telephone }}</option>
+                                @foreach($devises as $devise)
+                                    <option value="{{ $devise->id }}">
+                                       {{ $devise->code }}
+                                    </option>
                                 @endforeach
-                            @endif
-                        </select>
-                        @error('client_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                            </select>
+                            @error('devise_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Date</label>
-                        <input type="date" class="form-control" wire:model="date_facture">
+                        <div class="col-6 col-md-2">
+                            <label class="form-label">Remise (%)</label>
+                            <input type="number"
+                                class="form-control form-control-sm @error('remise') is-invalid @enderror"
+                                min="0"
+                                max="100"
+                                step="1"
+                                wire:model.live.debounce.300ms="remise">
+                            @error('remise')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label">Type</label>
-                        <select class="form-select" wire:model="type_vente">
-                            <option value="GROS">Gros</option>
-                            <option value="DETAIL">Detail</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label">Devise *</label>
-                        <select class="form-select @error('devise_id') is-invalid @enderror" wire:model="devise_id">
-                            <option value="">Sélectionner</option>
-                            @foreach($devises as $devise)
-                                <option value="{{ $devise->id }}">
-                                    {{ $devise->symbole ?? $devise->code }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('devise_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-2">
-                        <label class="form-label">Remise (%)</label>
-                        <input type="number"
-                            class="form-control @error('remise') is-invalid @enderror"
-                            min="0"
-                            max="100"
-                            step="1"
-                            wire:model.live.debounce.300ms="remise">
-                        @error('remise')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
                 </div>
             </div>
 
             {{-- Articles --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Articles vendus</h6>
+                        <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center"
+                                wire:click="addLine">
+                            <i class="fas fa-plus me-1"></i>
+                            <span class="d-none d-sm-inline">Ajouter</span>
+                        </button>
+                    </div>
 
-                    <h6 class="fw-bold mb-3">Articles vendus</h6>
-
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Article</th>
-                                    <th>Étagère</th>
-                                    <th class="text-end">Qté</th>
-                                    <th class="text-end">PU</th>
-                                    <th class="text-end">Total</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                @foreach($lignes as $index => $ligne)
+                    {{-- Desktop Table --}}
+                    <div class="d-none d-md-block">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead class="table-light">
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
+                                        <th>#</th>
+                                        <th>Article</th>
+                                        <th>Étagère</th>
+                                        <th class="text-end">Qté</th>
+                                        <th class="text-end">PU</th>
+                                        <th class="text-end">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
 
-                                        {{-- Article --}}
-                                        <td>
-                                            <select class="form-select form-select-sm @error('lignes.' . $index . '.article_id') is-invalid @enderror"
-                                                    wire:model.live.debounce.300ms="lignes.{{ $index }}.article_id">
-                                                <option value="">---</option>
-                                                @foreach($articles as $article)
-                                                    <option value="{{ $article->id }}">
-                                                        {{ $article->designation }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                <tbody>
+                                    @foreach($lignes as $index => $ligne)
+                                        @php
+                                            // Accéder aux valeurs du tableau
+                                            $article_id = $ligne['article_id'] ?? null;
+                                            $etagere_id = $ligne['etagere_id'] ?? null;
+                                            $quantity = floatval($ligne['quantity'] ?? 0);
+                                            $unit_price = floatval($ligne['unit_price'] ?? 0);
+                                            $available = intval($ligne['available'] ?? 0);
+                                            $article_designation = $ligne['article_designation'] ?? '';
+                                            $article_reference = $ligne['article_reference'] ?? '';
+                                        @endphp
+
+                                        <tr>
+                                            <td class="align-middle">{{ $index + 1 }}</td>
+
+                                            {{-- Searchable Article --}}
+                                            <td>
+                                                <div class="position-relative">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text"
+                                                            class="form-control @error('lignes.' . $index . '.article_id') is-invalid @enderror"
+                                                            wire:model.live.debounce.300ms="articleSearches.{{ $index }}"
+                                                            wire:blur="closeArticleDropdown({{ $index }})"
+                                                            placeholder="Rechercher article..."
+                                                            autocomplete="off">
+
+                                                        @if($article_id)
+                                                            <button class="btn btn-outline-secondary btn-sm" type="button" wire:click="clearArticle({{ $index }})">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        @else
+                                                            <span class="input-group-text bg-light">
+                                                                <i class="fas fa-search"></i>
+                                                            </span>
+                                                        @endif
+                                                    </div>
+
+                                                    @error('lignes.' . $index . '.article_id')
+                                                        <div class="text-danger small">{{ $message }}</div>
+                                                    @enderror
+
+                                                    {{-- Article Dropdown --}}
+                                                    @if(($showArticleDropdowns[$index] ?? false) && !$article_id && isset($filteredArticles[$index]) && count($filteredArticles[$index]) > 0)
+                                                        <div class="position-absolute top-100 start-0 end-0 z-3 mt-1">
+                                                            <div class="card border shadow-sm" style="max-height: 200px; overflow-y: auto;">
+                                                                <div class="list-group list-group-flush">
+                                                                    @foreach($filteredArticles[$index] as $article)
+                                                                        <button type="button"
+                                                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2"
+                                                                            wire:click="selectArticle({{ $index }}, {{ $article['id'] }})"
+                                                                            wire:key="article-{{ $index }}-{{ $article['id'] }}">
+                                                                            <div class="text-start">
+                                                                                <div class="fw-medium text-truncate" style="max-width: 200px;">{{ $article['designation'] }}</div>
+                                                                                <small class="text-muted">Réf: {{ $article['reference'] }}</small>
+                                                                            </div>
+                                                                            <div class="text-end">
+                                                                                <small class="text-success fw-bold">{{ number_format($article['prix_vente'] ?? 0, 0) }} {{ $currency }}</small>
+                                                                            </div>
+                                                                        </button>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </td>
+
+                                            {{-- Etagere --}}
+                                            <td>
+                                                <select class="form-select form-select-sm @error('lignes.' . $index . '.etagere_id') is-invalid @enderror"
+                                                        wire:model.live.debounce.300ms="lignes.{{ $index }}.etagere_id">
+                                                    <option value="">---</option>
+                                                    @php
+                                                        $lineEtageres = $this->etageres[$index] ?? collect();
+                                                    @endphp
+                                                    @foreach($lineEtageres as $etagere)
+                                                        @if ($etagere->available > 0)
+                                                            <option value="{{ $etagere->id }}">
+                                                                {{ $etagere->code }}
+                                                                ({{ $etagere->magasin }})
+                                                                - Dis: {{ $etagere->available }}
+                                                            </option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+                                                @error('lignes.' . $index . '.etagere_id')
+                                                    <div class="text-danger small">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+
+                                            {{-- Quantity --}}
+                                            <td class="text-end">
+                                                <input type="number"
+                                                    class="form-control form-control-sm text-end @error('lignes.' . $index . '.quantity') is-invalid @enderror @if($quantity > $available) border-danger @endif"
+                                                    wire:model.live.debounce.300ms="lignes.{{ $index }}.quantity"
+                                                    min="1">
+                                                @if($quantity > $available)
+                                                    <div class="text-danger small mt-1">
+                                                        Stock: {{ $available }}
+                                                    </div>
+                                                @endif
+                                                @error('lignes.' . $index . '.quantity')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+
+                                            {{-- Unit price --}}
+                                            <td class="text-end">
+                                                <input type="number"
+                                                    class="form-control form-control-sm text-end @error('lignes.' . $index . '.unit_price') is-invalid @enderror"
+                                                    wire:model.live.debounce.300ms="lignes.{{ $index }}.unit_price"
+                                                    min="0"
+                                                    step="0.01">
+                                                @error('lignes.' . $index . '.unit_price')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+
+                                            {{-- Line total --}}
+                                            <td class="text-end fw-bold align-middle">
+                                                @php
+                                                    $lineTotal = ($quantity ?? 0) * ($unit_price ?? 0);
+                                                @endphp
+                                                {{ number_format($lineTotal, 0) }} {{ $currency }}
+                                            </td>
+
+                                            {{-- Delete --}}
+                                            <td class="text-end align-middle">
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        wire:click="removeLine({{ $index }})"
+                                                        title="Supprimer cette ligne">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+
+                                {{-- FOOTER TOTAL --}}
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="5" class="text-end">Sous-total</th>
+                                        <th class="text-end">
+                                            {{ number_format($this->getSubTotal(), 0) }} {{ $currency }}
+                                        </th>
+                                        <th></th>
+                                    </tr>
+
+                                    <tr>
+                                        <th colspan="5" class="text-end">Remise ({{ $remise }}%)</th>
+                                        <th class="text-end text-danger">
+                                            - {{ number_format($this->getRemiseAmount(), 0) }} {{ $currency }}
+                                        </th>
+                                        <th></th>
+                                    </tr>
+
+                                    <tr>
+                                        <th colspan="5" class="text-end fw-bold">Total à payer</th>
+                                        <th class="text-end fw-bold text-success">
+                                            {{ number_format($this->getTotalAfterRemise(), 0) }} {{ $currency }}
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Mobile Cards for Lines --}}
+                    <div class="d-md-none">
+                        @foreach($lignes as $index => $ligne)
+                            @php
+                                $article_id = $ligne['article_id'] ?? null;
+                                $etagere_id = $ligne['etagere_id'] ?? null;
+                                $quantity = floatval($ligne['quantity'] ?? 0);
+                                $unit_price = floatval($ligne['unit_price'] ?? 0);
+                                $available = intval($ligne['available'] ?? 0);
+                                $article_designation = $ligne['article_designation'] ?? '';
+                            @endphp
+
+                            <div class="card border mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <div class="fw-bold">Ligne {{ $index + 1 }}</div>
+                                            @if($article_designation)
+                                                <small class="text-muted">{{ $article_designation }}</small>
+                                            @endif
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                wire:click="removeLine({{ $index }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+
+                                    {{-- Searchable Article --}}
+                                    <div class="mb-2">
+                                        <label class="form-label small">Article *</label>
+                                        <div class="position-relative">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text"
+                                                    class="form-control @error('lignes.' . $index . '.article_id') is-invalid @enderror"
+                                                    wire:model.live.debounce.300ms="articleSearches.{{ $index }}"
+                                                    wire:blur="closeArticleDropdown({{ $index }})"
+                                                    placeholder="Rechercher article..."
+                                                    autocomplete="off">
+
+                                                @if($article_id)
+                                                    <button class="btn btn-outline-secondary btn-sm" type="button" wire:click="clearArticle({{ $index }})">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                @else
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="fas fa-search"></i>
+                                                    </span>
+                                                @endif
+                                            </div>
+
                                             @error('lignes.' . $index . '.article_id')
                                                 <div class="text-danger small">{{ $message }}</div>
                                             @enderror
-                                        </td>
 
+                                            {{-- Article Dropdown --}}
+                                            @if(($showArticleDropdowns[$index] ?? false) && !$article_id && isset($filteredArticles[$index]) && count($filteredArticles[$index]) > 0)
+                                                <div class="position-absolute top-100 start-0 end-0 z-3 mt-1">
+                                                    <div class="card border shadow-sm" style="max-height: 200px; overflow-y: auto;">
+                                                        <div class="list-group list-group-flush">
+                                                            @foreach($filteredArticles[$index] as $article)
+                                                                <button type="button"
+                                                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2"
+                                                                    wire:click="selectArticle({{ $index }}, {{ $article['id'] }})"
+                                                                    wire:key="article-{{ $index }}-{{ $article['id'] }}">
+                                                                    <div class="text-start">
+                                                                        <div class="fw-medium text-truncate" style="max-width: 200px;">{{ $article['designation'] }}</div>
+                                                                        <small class="text-muted">Réf: {{ $article['reference'] }}</small>
+                                                                    </div>
+                                                                    <div class="text-end">
+                                                                        <small class="text-success fw-bold">{{ number_format($article['prix_vente'] ?? 0, 0) }} {{ $currency }}</small>
+                                                                    </div>
+                                                                </button>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2">
                                         {{-- Etagere --}}
-                                        <td>
+                                        <div class="col-6">
+                                            <label class="form-label small">Étagère *</label>
                                             <select class="form-select form-select-sm @error('lignes.' . $index . '.etagere_id') is-invalid @enderror"
                                                     wire:model.live.debounce.300ms="lignes.{{ $index }}.etagere_id">
                                                 <option value="">---</option>
-                                                @foreach($this->etageres[$index] ?? [] as $etagere)
-                                                    @if ($etagere['available'] > 0)
-                                                        <option value="{{ $etagere['id'] }}">
-                                                            {{ $etagere['code'] }}
-                                                            ({{ $etagere['magasin'] }})
-                                                            - Dis: {{ $etagere['available'] }}
-                                                        </option>
-                                                    @endif
+                                                @php
+                                                    $lineEtageres = $this->etageres[$index] ?? collect();
+                                                @endphp
+                                                @foreach($lineEtageres as $etagere)
+                                                    @if ($etagere->available > 0)
+                                                            <option value="{{ $etagere->id }}">
+                                                                {{ $etagere->code }}
+                                                                - Dis: {{ $etagere->available }}
+                                                            </option>
+                                                        @endif
                                                 @endforeach
                                             </select>
                                             @error('lignes.' . $index . '.etagere_id')
                                                 <div class="text-danger small">{{ $message }}</div>
                                             @enderror
-                                        </td>
+                                        </div>
 
                                         {{-- Quantity --}}
-                                        <td class="text-end">
+                                        <div class="col-6">
+                                            <label class="form-label small">Quantité *</label>
+
                                             <input type="number"
-                                                class="form-control form-control-sm text-end @error('lignes.' . $index . '.quantity') is-invalid @enderror @if($ligne['quantity'] > $ligne['available']) border-danger @endif"
+                                                class="form-control form-control-sm @error('lignes.' . $index . '.quantity') is-invalid @enderror @if($quantity > $available) border-danger @endif"
                                                 wire:model.live.debounce.300ms="lignes.{{ $index }}.quantity"
                                                 min="1">
-                                            @if($ligne['quantity'] > $ligne['available'])
+                                            @if($quantity > $available)
                                                 <div class="text-danger small mt-1">
-                                                    Stock disponible: {{ $ligne['available'] }}
+                                                    Stock: {{ $available }}
                                                 </div>
                                             @endif
                                             @error('lignes.' . $index . '.quantity')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
-                                        </td>
+                                        </div>
 
                                         {{-- Unit price --}}
-                                        <td class="text-end">
+                                        <div class="col-6">
+                                            <label class="form-label small">Prix unitaire *</label>
                                             <input type="number"
                                                 class="form-control form-control-sm text-end @error('lignes.' . $index . '.unit_price') is-invalid @enderror"
                                                 wire:model.live.debounce.300ms="lignes.{{ $index }}.unit_price"
@@ -204,65 +518,61 @@
                                             @error('lignes.' . $index . '.unit_price')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
-                                        </td>
+                                        </div>
 
                                         {{-- Line total --}}
-                                        <td class="text-end fw-bold">
-                                            {{ number_format(
-                                                ((float) $ligne['quantity'] ?? 0) * ((float) $ligne['unit_price'] ?? 0),
-                                                2
-                                            ) }}
-                                        </td>
+                                        <div class="col-6">
+                                            <label class="form-label small">Total ligne</label>
+                                            <div class="form-control form-control-sm bg-light text-end fw-bold">
+                                                @php
+                                                    $lineTotal = ($quantity ?? 0) * ($unit_price ?? 0);
+                                                @endphp
+                                                {{ number_format($lineTotal, 0) }} {{ $currency }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
 
-                                        {{-- Delete --}}
-                                        <td class="text-end">
-                                            <button type="button" class="btn btn-sm btn-outline-danger"
-                                                    wire:click="removeLine({{ $index }})"
-                                                    title="Supprimer cette ligne">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-
-                            {{-- FOOTER TOTAL --}}
-                            <tfoot class="table-light">
-                                <tr>
-                                    <th colspan="5" class="text-end">Sous-total</th>
-                                    <th class="text-end">
-                                        {{ number_format($this->subTotal(), 2) }}
-                                    </th>
-                                    <th></th>
-                                </tr>
-
-                                <tr>
-                                    <th colspan="5" class="text-end">Remise ({{ $remise }}%)</th>
-                                    <th class="text-end text-danger">
-                                        - {{ number_format($this->remiseAmount(), 2) }}
-                                    </th>
-                                    <th></th>
-                                </tr>
-
-                                <tr>
-                                    <th colspan="5" class="text-end fw-bold">Total à payer</th>
-                                    <th class="text-end fw-bold text-success">
-                                        {{ number_format($this->totalAfterRemise(), 2) }}
-                                    </th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        {{-- Mobile Summary --}}
+                        <div class="card border mt-3">
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="text-center">
+                                            <div class="text-muted small">Sous-total</div>
+                                            <div class="fw-bold h5">{{ number_format($this->getSubTotal(), 0) }} {{ $currency }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-center">
+                                            <div class="text-muted small">Remise</div>
+                                            <div class="fw-bold h5 text-danger">- {{ number_format($this->getRemiseAmount(), 0) }} {{ $currency }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mt-2 pt-2 border-top">
+                                        <div class="text-center">
+                                            <div class="text-muted small">Total à payer</div>
+                                            <div class="fw-bold h4 text-success">{{ number_format($this->getTotalAfterRemise(), 0) }} {{ $currency }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <button type="button" class="btn btn-outline-primary mt-3"
-                            wire:click="addLine">
-                        <i class="fas fa-plus me-2"></i>Ajouter ligne
-                    </button>
+                    {{-- Desktop Add Line Button --}}
+                    <div class="d-none d-md-block">
+                        <button type="button" class="btn btn-outline-primary mt-3"
+                                wire:click="addLine">
+                            <i class="fas fa-plus me-2"></i>Ajouter ligne
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {{-- Footer --}}
+            {{-- Footer Actions --}}
             <div class="mt-4 d-flex justify-content-end gap-2">
                 <a href="{{ route('ventes.ventes') }}" class="btn btn-secondary">
                     Annuler
@@ -270,9 +580,13 @@
                 <button type="submit" class="btn btn-success"
                         @disabled(
                             !$client_id || !$devise_id ||
-                            collect($lignes)->isEmpty() ||
+                            empty($lignes) ||
                             collect($lignes)->contains(fn($l) =>
-                                $l['quantity'] > $l['available']
+                                empty($l['article_id']) ||
+                                empty($l['etagere_id']) ||
+                                empty($l['quantity']) ||
+                                $l['quantity'] <= 0 ||
+                                $l['quantity'] > ($l['available'] ?? 0)
                             )
                         )>
                     <i class="fas fa-save me-2"></i>Enregistrer
@@ -301,12 +615,21 @@
                         </thead>
                         <tbody>
                             @foreach($lignes as $l)
+                                @php
+                                    // CORRECTION: Utiliser la syntaxe tableau
+                                    $article = $articles->firstWhere('id', $l['article_id'] ?? null);
+                                @endphp
                                 <tr>
-                                    <td>{{ $articles->firstWhere('id', $l['article_id'])->designation ?? '' }}</td>
-                                    <td class="text-end">{{ $l['quantity'] }}</td>
-                                    <td class="text-end">{{ number_format($l['unit_price'], 2) }}</td>
+                                    <td>{{ $article->designation ?? '' }}</td>
+                                    <td class="text-end">{{ $l['quantity'] ?? 0 }}</td>
+                                    <td class="text-end">{{ number_format($l['unit_price'] ?? 0, 2) }}</td>
                                     <td class="text-end">
-                                        {{ number_format($l['quantity'] * $l['unit_price'], 2) }}
+                                        @php
+                                            $quantity = $l['quantity'] ?? 0;
+                                            $unit_price = $l['unit_price'] ?? 0;
+                                            $lineTotal = $quantity * $unit_price;
+                                        @endphp
+                                        {{ number_format($lineTotal, 2) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -314,18 +637,18 @@
                         <tfoot class="table-light">
                             <tr>
                                 <th colspan="3" class="text-end">Total</th>
-                                <th class="text-end">{{ number_format($this->subTotal(), 2) }}</th>
+                                <th class="text-end">{{ number_format($this->getSubTotal(), 2) }}</th>
                             </tr>
                             <tr>
                                 <th colspan="3" class="text-end">Remise</th>
                                 <th class="text-end text-danger">
-                                    - {{ number_format($this->remiseAmount(), 2) }}
+                                    - {{ number_format($this->getRemiseAmount(), 2) }}
                                 </th>
                             </tr>
                             <tr>
                                 <th colspan="3" class="text-end fw-bold">Net à payer</th>
                                 <th class="text-end fw-bold text-success">
-                                    {{ number_format($this->totalAfterRemise(), 2) }}
+                                    {{ number_format($this->getTotalAfterRemise(), 2) }}
                                 </th>
                             </tr>
                         </tfoot>
@@ -364,13 +687,13 @@
                             wire:model.live.debounce.300ms="paiement_montant"
                             step="0.01"
                             min="0"
-                            max="{{ $this->totalAfterRemise() }}">
+                            max="{{ $this->getTotalAfterRemise() }}">
                         @error('paiement_montant')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        @if($paiement_montant > $this->totalAfterRemise())
+                        @if($paiement_montant > $this->getTotalAfterRemise())
                             <div class="text-danger small mt-1">
-                                Le montant payé ne peut pas dépasser {{ number_format($this->totalAfterRemise(), 2) }}
+                                Le montant payé ne peut pas dépasser {{ number_format($this->getTotalAfterRemise(), 2) }}
                             </div>
                         @endif
                     </div>
@@ -379,7 +702,7 @@
                         <label class="form-label">Payé</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light">
-                                {{ $devises->firstWhere('id', $devise_id)->symbole ?? '' }}
+                                {{ $currency }}
                             </span>
                             <input class="form-control bg-light"
                                 value="{{ number_format((float) $paiement_montant ?? 0, 2) }}"
@@ -391,11 +714,11 @@
                         <label class="form-label">Reste</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light">
-                                {{ $devises->firstWhere('id', $devise_id)->symbole ?? '' }}
+                                {{ $currency }}
                             </span>
                             <input class="form-control bg-light text-danger fw-bold"
                                 value="{{ number_format(
-                                    max(0, $this->totalAfterRemise() - ((float) $paiement_montant ?? 0)),
+                                    max(0, $this->getTotalAfterRemise() - ((float) $paiement_montant ?? 0)),
                                     2
                                 ) }}"
                                 disabled>
@@ -406,16 +729,16 @@
                 <div class="mt-3">
                     <label class="form-label">Notes (optionnel)</label>
                     <textarea class="form-control"
-                              wire:model="paiement_notes"
-                              rows="2"
-                              placeholder="Notes additionnelles sur le paiement..."></textarea>
+                            wire:model="paiement_notes"
+                            rows="2"
+                            placeholder="Notes additionnelles sur le paiement..."></textarea>
                 </div>
 
                 <div class="text-end mt-4">
                     <button class="btn btn-success"
                             wire:click="storePaiement"
-                            @disabled($paiement_montant > $this->totalAfterRemise() || $paiement_montant <= 0)
-                            title="{{ $paiement_montant > $this->totalAfterRemise() ? 'Le montant payé est trop élevé' : '' }}">
+                            @disabled($paiement_montant > $this->getTotalAfterRemise() || $paiement_montant <= 0)
+                            title="{{ $paiement_montant > $this->getTotalAfterRemise() ? 'Le montant payé est trop élevé' : '' }}">
                         <i class="fas fa-check me-2"></i>Finaliser le paiement
                     </button>
                 </div>
@@ -429,3 +752,20 @@
     @endif
 
 </div>
+
+<script>
+document.addEventListener('livewire:initialized', () => {
+    // Add a small delay before closing dropdown to allow click on items
+    Livewire.on('dropdown-close-delay', () => {
+        setTimeout(() => {
+            Livewire.dispatch('close-dropdown');
+        }, 200);
+    });
+
+    Livewire.on('article-dropdown-close-delay', (event) => {
+        setTimeout(() => {
+            Livewire.dispatch('close-article-dropdown', {index: event.index});
+        }, 200);
+    });
+});
+</script>

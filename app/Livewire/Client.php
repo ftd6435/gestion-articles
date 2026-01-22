@@ -311,8 +311,6 @@ class Client extends Component
         view()->share('title', "Gestion des clients");
         view()->share('breadcrumb', "Clients");
 
-        logActivity('Affichage des clients');
-
         return view('livewire.client');
     }
 }

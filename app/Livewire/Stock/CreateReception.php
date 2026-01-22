@@ -43,12 +43,6 @@ class CreateReception extends Component
             ->get();
 
         $this->date_reception = now()->format('Y-m-d');
-
-        // Log de consultation de la page
-        logActivity(
-            'Consultation de la page de création de réception',
-            ['date' => now()->format('Y-m-d')]
-        );
     }
 
     /** ================== LOADERS ================== */

@@ -195,6 +195,12 @@ class UpdateProfile extends Component
         // Mettre à jour l'utilisateur
         $this->user->update($updateData);
 
+        logActivity('Modification du profil utilisateur', [
+            'updated_fields' => array_keys($updateData),
+            'user_id' => $this->user->id,
+            'user_name' => $this->user->name,
+        ], $this->user);
+
         // Rafraîchir l'utilisateur pour obtenir les nouvelles données
         $this->user->refresh();
 

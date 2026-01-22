@@ -146,10 +146,17 @@ class Category extends Component
     public function toggleStatus($id)
     {
         $category = CategoryModel::findOrFail($id);
+        $oldStatus = $category->status;
         $category->update([
             'status' => !$category->status,
             'updated_by' => Auth::id(),
         ]);
+
+        logActivity('Modification du statut d\'une catégorie', [
+            'old_status' => $oldStatus,
+            'new_status' => $category->status,
+            'name' => $category->name,
+        ], $category);
 
         $this->loadCategories();
         session()->flash('success', 'Statut modifié avec succès');

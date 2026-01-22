@@ -4,6 +4,7 @@ namespace App\Livewire\Ventes;
 
 use App\Models\Ventes\VenteModel;
 use App\Models\Ventes\VentePaiementClient;
+use App\Models\DeviseModel;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,6 +26,7 @@ class Vente extends Component
     public $status = '';
     public $date_from = '';
     public $date_to = '';
+    public $selectedDeviseId = null; // Add currency filter
 
     // Paiement fields
     public $paiement_date;
@@ -39,16 +41,41 @@ class Vente extends Component
     public $totalDue = 0;
     public $ventesInProgress = 0;
 
-    protected $queryString = ['search', 'status', 'date_from', 'date_to'];
+    // Add for currency
+    public $availableDevises = [];
+    public $currentDevise = null;
+
+    protected $queryString = ['search', 'status', 'date_from', 'date_to', 'selectedDeviseId'];
 
     public function mount()
     {
         $this->paiement_date = now()->format('Y-m-d');
+
+        // Load available currencies
+        $this->availableDevises = DeviseModel::active()->get();
+
+        // Set default currency
+        $defaultDevise = DeviseModel::getDefaultDevise();
+        $this->selectedDeviseId = $defaultDevise ? $defaultDevise->id : null;
+        $this->currentDevise = $defaultDevise;
+
+        $this->loadStatistics();
+    }
+
+    // Add this method to handle currency change
+    public function updatedSelectedDeviseId()
+    {
+        $this->resetPage();
         $this->loadStatistics();
     }
 
     public function loadStatistics()
     {
+        // Get current devise
+        $this->currentDevise = $this->selectedDeviseId
+            ? DeviseModel::find($this->selectedDeviseId)
+            : DeviseModel::getDefaultDevise();
+
         // Create separate queries for different operations
         $baseQuery = VenteModel::query();
         $this->applyFilters($baseQuery);
@@ -69,20 +96,20 @@ class Vente extends Component
         $idsQuery = clone $baseQuery;
         $ventesId = $idsQuery->pluck('id')->toArray();
 
-        // Calculate total paid - CORRECT
+        // Calculate total paid
         $this->totalPaid = VentePaiementClient::whereIn('vente_id', $ventesId)->sum('montant');
 
-        // Calculate total due - also needs correction
+        // Calculate total due
         $this->totalDue = $ventes->sum(function ($vente) {
             $total = $vente->totalAfterRemise() ?? 0;
-            $paid = $vente->paiements->sum('montant') ?? 0; // Use the loaded collection
+            $paid = $vente->paiements->sum('montant') ?? 0;
             return $total - $paid;
         });
     }
 
     public function updated($property)
     {
-        if (in_array($property, ['search', 'status', 'date_from', 'date_to'])) {
+        if (in_array($property, ['search', 'status', 'date_from', 'date_to', 'selectedDeviseId'])) {
             $this->resetPage();
             $this->loadStatistics();
         }
@@ -90,7 +117,7 @@ class Vente extends Component
 
     public function resetFilters()
     {
-        $this->reset(['search', 'status', 'date_from', 'date_to']);
+        $this->reset(['search', 'status', 'date_from', 'date_to', 'selectedDeviseId']);
         $this->resetPage();
         $this->loadStatistics();
     }
@@ -116,6 +143,11 @@ class Vente extends Component
 
         if ($this->date_to) {
             $query->whereDate('date_facture', '<=', $this->date_to);
+        }
+
+        // Add currency filter
+        if ($this->selectedDeviseId) {
+            $query->where('devise_id', $this->selectedDeviseId);
         }
     }
 
@@ -155,7 +187,7 @@ class Vente extends Component
 
     public function canPaiementModal($id)
     {
-        $this->selectedVente = VenteModel::with(['paiements'])->findOrFail($id);
+        $this->selectedVente = VenteModel::with(['paiements', 'devise'])->findOrFail($id);
         $this->venteId = $id;
         $this->paiement_montant = max(0, $this->selectedVente->totalAfterRemise() - $this->selectedVente->paiements()->sum('montant'));
         $this->showPaiementModal = true;
@@ -188,6 +220,15 @@ class Vente extends Component
             return;
         }
 
+        // Check if user is super_admin - use direct check
+        if (!Auth::check() || Auth::user()->role !== 'super_admin') {
+            $this->dispatch(
+                'error',
+                message: 'Seuls les super administrateurs peuvent supprimer des ventes.'
+            );
+            return;
+        }
+
         $this->showDeleteModal = true;
     }
 
@@ -214,11 +255,12 @@ class Vente extends Component
                 'numeric',
                 'min:0',
                 function ($attribute, $value, $fail) {
-                    $vente = VenteModel::find($this->venteId);
+                    $vente = VenteModel::with('devise')->find($this->venteId);
                     if ($vente) {
                         $maxAmount = $vente->remainingAmount();
                         if ($value > $maxAmount) {
-                            $fail("Le montant payé ne peut pas dépasser " . number_format($maxAmount, 2) . " " . ($vente->devise->symbole ?? ''));
+                            $currency = $vente->devise ? ($vente->devise->symbole ?? $vente->devise->code) : 'FG';
+                            $fail("Le montant payé ne peut pas dépasser " . number_format($maxAmount, 2) . " {$currency}");
                         }
                     }
                 }
@@ -231,7 +273,8 @@ class Vente extends Component
         try {
             $vente = VenteModel::findOrFail($this->venteId);
 
-            VentePaiementClient::create([
+            // Create payment record
+            $paiement = VentePaiementClient::create([
                 'vente_id' => $vente->id,
                 'date_paiement' => $this->paiement_date,
                 'montant' => $this->paiement_montant,
@@ -241,6 +284,20 @@ class Vente extends Component
                 'created_by' => Auth::id(),
             ]);
 
+            // Log payment creation activity
+            logActivity(
+                'Création de paiment de client',
+                [
+                    'vente_id' => $vente->id,
+                    'vente_reference' => $vente->reference,
+                    'montant' => $this->paiement_montant,
+                    'mode_paiement' => $this->mode_paiement,
+                    'paiement_id' => $paiement->id,
+                    'paiement_reference' => $paiement->reference,
+                ],
+                VentePaiementClient::class
+            );
+
             // REFRESH the model to get fresh data including the new payment
             $vente->refresh();
 
@@ -248,6 +305,7 @@ class Vente extends Component
             $totalDue = (float) $vente->totalAfterRemise();
 
             $tolerance = 0.01;
+            $oldStatus = $vente->status;
 
             if (abs($totalDue - $totalPaid) <= $tolerance) {
                 $vente->status = 'PAYEE';
@@ -255,6 +313,22 @@ class Vente extends Component
                 $vente->status = 'PARTIELLE';
             } else {
                 $vente->status = 'IMPAYEE';
+            }
+
+            // Log status change if it changed
+            if ($oldStatus !== $vente->status) {
+                logActivity(
+                    'Modification du status de paiement',
+                    [
+                        'vente_id' => $vente->id,
+                        'vente_reference' => $vente->reference,
+                        'old_status' => $oldStatus,
+                        'new_status' => $vente->status,
+                        'total_paid' => $totalPaid,
+                        'total_due' => $totalDue,
+                    ],
+                    VenteModel::class
+                );
             }
 
             $vente->save();
@@ -284,10 +358,26 @@ class Vente extends Component
         DB::beginTransaction();
 
         try {
+            $oldStatus = $this->selectedVente->status;
+
             $this->selectedVente->update([
                 'status' => 'ANNULEE',
                 'updated_by' => Auth::id(),
             ]);
+
+            // Log cancellation activity
+            logActivity(
+                'Annulation d\'une vente',
+                [
+                    'vente_id' => $this->selectedVente->id,
+                    'vente_reference' => $this->selectedVente->reference,
+                    'old_status' => $oldStatus,
+                    'new_status' => 'ANNULEE',
+                    'action' => 'cancellation',
+                    'user_id' => Auth::id(),
+                ],
+                VenteModel::class
+            );
 
             DB::commit();
 
@@ -318,13 +408,43 @@ class Vente extends Component
     {
         if (!$this->selectedVente) return;
 
+        // Double check super_admin permission - use direct check
+        if (!Auth::check() || Auth::user()->role !== 'super_admin') {
+            $this->dispatch(
+                'delete-error',
+                message: 'Permission refusée. Seuls les super administrateurs peuvent supprimer des ventes.'
+            );
+            $this->showDeleteModal = false;
+            return;
+        }
+
         DB::beginTransaction();
 
         try {
+            // Store data for logging before deletion
+            $venteData = [
+                'id' => $this->selectedVente->id,
+                'reference' => $this->selectedVente->reference,
+                'client_id' => $this->selectedVente->client_id,
+                'client_name' => $this->selectedVente->client?->name,
+                'total_amount' => $this->selectedVente->totalAfterRemise(),
+                'status' => $this->selectedVente->status,
+                'devise_id' => $this->selectedVente->devise_id,
+                'ligne_ventes_count' => $this->selectedVente->ligneVentes()->count(),
+                'paiements_count' => $this->selectedVente->paiements()->count(),
+            ];
+
             // Delete related records first
             $this->selectedVente->ligneVentes()->delete();
             $this->selectedVente->paiements()->delete();
             $this->selectedVente->delete();
+
+            // Log deletion activity
+            logActivity(
+                'Suppression d\'une vente',
+                $venteData,
+                VenteModel::class
+            );
 
             DB::commit();
 

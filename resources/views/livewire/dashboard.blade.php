@@ -6,6 +6,23 @@
             <p class="text-muted mb-0">Vue d'ensemble de votre activité</p>
         </div>
         <div class="d-flex gap-2">
+            <!-- Currency Filter -->
+            @if(!empty($availableDevises) && count($availableDevises) > 0)
+                <div class="me-2">
+                    <select wire:model.live="selectedDeviseId" class="form-select form-select-sm">
+                        @foreach($availableDevises as $devise)
+                            <option value="{{ $devise->id }}"
+                                {{ $devise->is_default ? 'selected' : '' }}>
+                                {{ $devise->code }} ({{ $devise->symbole ?? $devise->code }})
+                                @if($devise->is_default)
+                                    - Par défaut
+                                @endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
             <button wire:click="refreshDashboard" class="btn btn-sm btn-outline-primary">
                 <i class="fas fa-sync-alt me-1"></i> Actualiser
             </button>
@@ -139,7 +156,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted small mb-1">Chiffre d'affaires</p>
-                            <h3 class="fw-bold mb-0">{{ number_format($totalRevenue, 0, ',', ' ') }} FG</h3>
+                            <h3 class="fw-bold mb-0">{{ number_format($totalRevenue, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</h3>
                         </div>
                         <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                             <i class="fas fa-money-bill-wave text-dark"></i>
@@ -147,7 +164,7 @@
                     </div>
                     <div class="mt-2">
                         <span class="badge bg-success bg-opacity-10 text-success small">
-                            <i class="fas fa-arrow-up me-1"></i>{{ number_format($totalPaymentsReceived, 0, ',', ' ') }} FG reçus
+                            <i class="fas fa-arrow-up me-1"></i>{{ number_format($totalPaymentsReceived, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }} reçus
                         </span>
                     </div>
                 </div>
@@ -172,20 +189,20 @@
                             <div class="row g-2">
                                 <div class="col-6">
                                     <div class="text-center p-3 bg-light rounded">
-                                        <div class="h4 fw-bold text-warning mb-1">{{ number_format($totalPurchases, 0, ',', ' ') }} FG</div>
+                                        <div class="h4 fw-bold text-warning mb-1">{{ number_format($totalPurchases, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                         <small class="text-muted">Total Achats</small>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="text-center p-3 bg-light rounded">
-                                        <div class="h4 fw-bold text-info mb-1">{{ number_format($totalPaymentsMade, 0, ',', ' ') }} FG</div>
+                                        <div class="h4 fw-bold text-info mb-1">{{ number_format($totalPaymentsMade, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                         <small class="text-muted">Paiements Effectués</small>
                                     </div>
                                 </div>
                                 <div class="col-12 mt-2">
                                     <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
                                         <small class="text-muted">En attente de paiement</small>
-                                        <span class="fw-bold text-danger">{{ number_format($pendingPayments, 0, ',', ' ') }} FG</span>
+                                        <span class="fw-bold text-danger">{{ number_format($pendingPayments, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -205,7 +222,7 @@
                             <div class="row g-2">
                                 <div class="col-6">
                                     <div class="text-center p-3 bg-light rounded">
-                                        <div class="h4 fw-bold text-success mb-1">{{ number_format($totalStockValue, 0, ',', ' ') }} FG</div>
+                                        <div class="h4 fw-bold text-success mb-1">{{ number_format($totalStockValue, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                         <small class="text-muted">Valeur Stock</small>
                                     </div>
                                 </div>
@@ -279,12 +296,12 @@
                         </div>
                         <div class="card-body">
                             <div class="text-center p-3">
-                                <div class="h2 fw-bold text-danger mb-2">{{ number_format($pendingReceivables, 0, ',', ' ') }} FG</div>
+                                <div class="h2 fw-bold text-danger mb-2">{{ number_format($pendingReceivables, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                 <small class="text-muted">Montant total en attente</small>
                                 <div class="mt-3">
                                     <span class="badge bg-light text-dark">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        {{ number_format($totalPaymentsReceived, 0, ',', ' ') }} FG déjà reçus
+                                        {{ number_format($totalPaymentsReceived, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }} déjà reçus
                                     </span>
                                 </div>
                             </div>
@@ -384,7 +401,7 @@
                             </div>
                             <div class="d-flex justify-content-between">
                                 <small class="text-muted">Total reçu/payé</small>
-                                <small class="fw-semibold">{{ number_format($newPaymentsToday * 1000, 0, ',', ' ') }} FG</small>
+                                <small class="fw-semibold">{{ number_format($newPaymentsToday * 1000, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</small>
                             </div>
                         </div>
                     </div>
@@ -428,7 +445,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-success">{{ number_format($client['total_spent'], 0, ',', ' ') }} FG</div>
+                                                <div class="fw-bold text-success">{{ number_format($client['total_spent'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                                 <small class="text-muted">{{ $client['total_purchases'] }} achats</small>
                                             </div>
                                         </div>
@@ -474,7 +491,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-primary">{{ number_format($supplier['total_supplied'], 0, ',', ' ') }} FG</div>
+                                                <div class="fw-bold text-primary">{{ number_format($supplier['total_supplied'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                                 <small class="text-muted">{{ $supplier['total_orders'] }} commandes</small>
                                             </div>
                                         </div>
@@ -522,7 +539,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-success">{{ number_format($article['revenue'], 0, ',', ' ') }} FG</div>
+                                                <div class="fw-bold text-success">{{ number_format($article['revenue'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
                                                 <small class="text-muted">{{ $article['stock'] }} en stock</small>
                                             </div>
                                         </div>
@@ -632,7 +649,7 @@
                                                 </small>
                                             </div>
                                             <div class="fw-bold text-primary">
-                                                {{ number_format($order['amount'], 0, ',', ' ') }} FG
+                                                {{ number_format($order['amount'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
                                             </div>
                                         </div>
                                     </a>
@@ -667,7 +684,7 @@
                                                 </small>
                                             </div>
                                             <div class="fw-bold text-success">
-                                                {{ number_format($sale['amount'], 0, ',', ' ') }} FG
+                                                {{ number_format($sale['amount'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
                                             </div>
                                         </div>
                                     </a>
@@ -701,7 +718,7 @@
                                                 </small>
                                             </div>
                                             <div class="fw-bold {{ $payment['type'] === 'client' ? 'text-success' : 'text-info' }}">
-                                                {{ number_format($payment['amount'], 0, ',', ' ') }} FG
+                                                {{ number_format($payment['amount'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
                                             </div>
                                         </div>
                                     </div>
@@ -751,5 +768,4 @@
             </div>
         </div>
     </div>
-
 </div>

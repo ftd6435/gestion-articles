@@ -105,9 +105,24 @@ class Magasin extends Component
                     'updated_by' => Auth::id(),
                 ]);
                 $message = 'Magasin modifié avec succès';
+
+                logActivity('Modification d\'un magasin', [
+                    'old' => [
+                        'code_magasin' => $magasin->code_magasin,
+                        'nom' => $magasin->nom,
+                        'localisation' => $magasin->localisation,
+                        'status' => $magasin->status,
+                    ],
+                    'new' => [
+                        'code_magasin' => $this->code_magasin,
+                        'nom' => $this->nom,
+                        'localisation' => $this->localisation,
+                        'status' => $this->status,
+                    ]
+                ], $magasin);
             } else {
                 // Create new
-                MagasinModel::create([
+                $magasin = MagasinModel::create([
                     'code_magasin' => $this->code_magasin,
                     'nom' => $this->nom,
                     'localisation' => $this->localisation,
@@ -116,6 +131,13 @@ class Magasin extends Component
                     'updated_by' => Auth::id(),
                 ]);
                 $message = 'Magasin créé avec succès';
+
+                logActivity('Création d\'un magasin', [
+                    'code_magasin' => $this->code_magasin,
+                    'nom' => $this->nom,
+                    'localisation' => $this->localisation,
+                    'status' => $this->status,
+                ], $magasin);
             }
 
             $this->loadMagasins();
@@ -129,11 +151,19 @@ class Magasin extends Component
 
     public function toggleStatus($id)
     {
-        $devise = MagasinModel::findOrFail($id);
-        $devise->update([
-            'status' => !$devise->status,
+        $magasin = MagasinModel::findOrFail($id);
+        $oldStatus = $magasin->status;
+        $magasin->update([
+            'status' => !$magasin->status,
             'updated_by' => Auth::id(),
         ]);
+
+        logActivity('Modification du statut d\'un magasin', [
+            'old_status' => $oldStatus,
+            'new_status' => $magasin->status,
+            'code_magasin' => $magasin->code_magasin,
+            'nom' => $magasin->nom,
+        ], $magasin);
 
         $this->loadMagasins();
         session()->flash('success', 'Statut modifié avec succès');
@@ -156,6 +186,13 @@ class Magasin extends Component
             $magasin = MagasinModel::findOrFail($id);
             $nom = $magasin->nom;
             $code = $magasin->code_magasin;
+
+            logActivity('Suppression d\'un magasin', [
+                'code_magasin' => $magasin->code_magasin,
+                'nom' => $magasin->nom,
+                'localisation' => $magasin->localisation,
+                'status' => $magasin->status,
+            ], $magasin);
 
             $magasin->delete();
 

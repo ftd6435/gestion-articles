@@ -105,8 +105,6 @@ class UserManagement extends Component
         view()->share('title', "Gestion des Utilisateurs");
         view()->share('breadcrumb', "Utilisateurs");
 
-        logActivity('Affichage des utilisateurs');
-
         return view('livewire.user-management', [
             'users' => $users,
             'currentUser' => $currentUser,
@@ -152,7 +150,7 @@ class UserManagement extends Component
         ]);
 
         try {
-            User::create([
+            $user = User::create([
                 'name' => $this->name,
                 'email' => $this->email,
                 'telephone' => $this->telephone,
@@ -160,6 +158,13 @@ class UserManagement extends Component
                 'password' => Hash::make($this->password),
                 'status' => true,
             ]);
+
+            logActivity('Création d\'un utilisateur', [
+                'name' => $this->name,
+                'email' => $this->email,
+                'telephone' => $this->telephone,
+                'role' => $this->role,
+            ], $user);
 
             $this->dispatch('success', message: 'Utilisateur créé avec succès.');
             $this->closeCreateModal();
@@ -199,6 +204,13 @@ class UserManagement extends Component
 
         $userToUpdate->status = !$userToUpdate->status;
         $userToUpdate->save();
+
+        logActivity('Modification du statut d\'un utilisateur', [
+            'user_id' => $userToUpdate->id,
+            'user_name' => $userToUpdate->name,
+            'old_status' => !$userToUpdate->status,
+            'new_status' => $userToUpdate->status,
+        ], $userToUpdate);
 
         $statusText = $userToUpdate->status ? 'activé' : 'désactivé';
         $this->dispatch('success', message: "Utilisateur {$statusText} avec succès.");
@@ -240,6 +252,13 @@ class UserManagement extends Component
 
         $userToUpdate->role = $this->newRole;
         $userToUpdate->save();
+
+        logActivity('Modification du rôle d\'un utilisateur', [
+            'user_id' => $userToUpdate->id,
+            'user_name' => $userToUpdate->name,
+            'old_role' => $userToUpdate->getOriginal('role'),
+            'new_role' => $this->newRole,
+        ], $userToUpdate);
 
         $this->dispatch('success', message: 'Rôle mis à jour avec succès.');
 

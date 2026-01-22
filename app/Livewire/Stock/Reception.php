@@ -149,15 +149,32 @@ class Reception extends Component
                     'updated_by' => Auth::id(),
                 ]);
 
+                logActivity('Modification d\'une réception', [
+                    'old' => [
+                        'commande_id' => $reception->commande_id,
+                        'date_reception' => $reception->date_reception,
+                    ],
+                    'new' => [
+                        'commande_id' => $this->commande_id,
+                        'date_reception' => $this->date_reception,
+                    ]
+                ], $reception);
+
                 $message = 'Réception modifiée avec succès.';
             } else {
                 // CREATE new reception
-                ReceptionFournisseur::create([
+                $reception = ReceptionFournisseur::create([
                     'reference' => 'REC-' . rand(1000, 9999),
                     'commande_id' => $this->commande_id,
                     'date_reception' => $this->date_reception,
                     'created_by' => Auth::id(),
                 ]);
+
+                logActivity('Création d\'une réception', [
+                    'reference' => $reception->reference,
+                    'commande_id' => $this->commande_id,
+                    'date_reception' => $this->date_reception,
+                ], $reception);
 
                 $message = 'Réception créée avec succès.';
             }
@@ -263,6 +280,12 @@ class Reception extends Component
         try {
             $reception = ReceptionFournisseur::findOrFail($id);
             $reference = $reception->commande->reference;
+
+            logActivity('Suppression d\'une réception', [
+                'reference' => $reception->reference,
+                'commande_id' => $reception->commande_id,
+                'date_reception' => $reception->date_reception,
+            ], $reception);
 
             $reception->delete();
 

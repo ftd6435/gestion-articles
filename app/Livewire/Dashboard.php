@@ -8,11 +8,8 @@ use App\Models\ClientModel;
 use App\Models\DeviseModel;
 use App\Models\FournisseurModel;
 use App\Models\Stock\CommandeFournisseur;
-use App\Models\Stock\LigneCommandeFournisseur;
-use App\Models\Stock\LigneReceptionFournisseur;
 use App\Models\Stock\PaiementFournisseur;
 use App\Models\Stock\ReceptionFournisseur;
-use App\Models\Ventes\LigneVenteClient;
 use App\Models\Ventes\VenteModel;
 use App\Models\Ventes\VentePaiementClient;
 use App\Models\Warehouse\MagasinModel;
@@ -23,6 +20,9 @@ use Livewire\Component;
 
 class Dashboard extends Component
 {
+    // Add this property for currency selection
+    public $selectedDeviseId = null;
+
     // Statistics
     public $totalClients = 0;
     public $totalSuppliers = 0;
@@ -74,22 +74,53 @@ class Dashboard extends Component
     public $latestPayments = [];
     public $lowStockAlerts = [];
 
+    // Add this for available currencies
+    public $availableDevises = [];
+    public $currentDevise = null;
+
     public function mount()
+    {
+        // Load available currencies
+        $this->availableDevises = DeviseModel::active()->get();
+
+        // Set default currency
+        $defaultDevise = DeviseModel::getDefaultDevise();
+        $this->selectedDeviseId = $defaultDevise ? $defaultDevise->id : null;
+        $this->currentDevise = $defaultDevise;
+
+        $this->loadDashboardData();
+    }
+
+    // Add this method to handle currency change
+    public function updatedSelectedDeviseId()
     {
         $this->loadDashboardData();
     }
 
     public function loadDashboardData()
     {
-        // Basic counts
-        $this->totalClients = ClientModel::count();
-        $this->totalSuppliers = FournisseurModel::count();
-        $this->totalArticles = ArticleModel::count();
-        $this->totalCategories = Category::count();
-        $this->totalOrders = CommandeFournisseur::count();
-        $this->totalSales = VenteModel::count();
-        $this->totalWarehouses = MagasinModel::count();
-        $this->totalShelves = EtagereModel::count();
+        // Get the selected currency or default
+        $devise = $this->selectedDeviseId
+            ? DeviseModel::find($this->selectedDeviseId)
+            : DeviseModel::getDefaultDevise();
+
+        if (!$devise) {
+            $devise = DeviseModel::active()->first();
+        }
+
+        // Store the selected devise for use in calculations
+        $this->selectedDeviseId = $devise ? $devise->id : null;
+        $this->currentDevise = $devise;
+
+        // Basic counts - filter by currency
+        $this->totalClients = ClientModel::count(); // Clients don't typically have a currency
+        $this->totalSuppliers = FournisseurModel::count(); // Suppliers don't typically have a currency
+        $this->totalArticles = ArticleModel::where('devise_id', $this->selectedDeviseId)->count();
+        $this->totalCategories = Category::count(); // Categories don't have currency
+        $this->totalOrders = CommandeFournisseur::where('devise_id', $this->selectedDeviseId)->count();
+        $this->totalSales = VenteModel::where('devise_id', $this->selectedDeviseId)->count();
+        $this->totalWarehouses = MagasinModel::count(); // Warehouses don't have currency
+        $this->totalShelves = EtagereModel::count(); // Shelves don't have currency
         $this->totalCurrency = DeviseModel::count();
 
         // Financial calculations
@@ -113,49 +144,72 @@ class Dashboard extends Component
 
     private function calculateFinancials()
     {
-        // Total Revenue (from sales with discount applied)
-        $this->totalRevenue = VenteModel::with('ligneVentes')->get()->sum(function ($vente) {
-            $subtotal = $vente->ligneVentes->sum(function ($ligne) {
-                return ($ligne->quantity ?? 0) * ($ligne->unit_price ?? 0);
+        // Get the selected currency
+        $deviseId = $this->selectedDeviseId;
+
+        // Total Revenue (from sales with discount applied) - filtered by currency
+        $this->totalRevenue = VenteModel::where('devise_id', $deviseId)
+            ->with('ligneVentes')
+            ->get()
+            ->sum(function ($vente) {
+                $subtotal = $vente->ligneVentes->sum(function ($ligne) {
+                    return ($ligne->quantity ?? 0) * ($ligne->unit_price ?? 0);
+                });
+                $discount = $subtotal * (($vente->remise ?? 0) / 100);
+                return $subtotal - $discount;
             });
-            $discount = $subtotal * (($vente->remise ?? 0) / 100);
-            return $subtotal - $discount;
-        });
 
-        // Total Purchases (from commandes with discount applied)
-        $this->totalPurchases = CommandeFournisseur::with('ligneCommandes')->get()->sum(function ($commande) {
-            $subtotal = $commande->ligneCommandes->sum(function ($ligne) {
-                return ($ligne->quantity ?? 0) * ($ligne->unit_price ?? 0);
+        // Total Purchases (from commandes with discount applied) - filtered by currency
+        $this->totalPurchases = CommandeFournisseur::where('devise_id', $deviseId)
+            ->with('ligneCommandes')
+            ->get()
+            ->sum(function ($commande) {
+                $subtotal = $commande->ligneCommandes->sum(function ($ligne) {
+                    return ($ligne->quantity ?? 0) * ($ligne->unit_price ?? 0);
+                });
+                $discount = $subtotal * (($commande->remise ?? 0) / 100);
+                return $subtotal - $discount;
             });
-            $discount = $subtotal * (($commande->remise ?? 0) / 100);
-            return $subtotal - $discount;
-        });
 
-        // Total Payments Received (from client payments)
-        $this->totalPaymentsReceived = VentePaiementClient::sum('montant');
+        // Total Payments Received (from client payments) - filter by currency through sales
+        $this->totalPaymentsReceived = VentePaiementClient::whereHas('vente', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        })->sum('montant');
 
-        // Total Payments Made (to suppliers)
-        $this->totalPaymentsMade = PaiementFournisseur::sum('montant');
+        // Total Payments Made (to suppliers) - filter by currency through commandes
+        $this->totalPaymentsMade = PaiementFournisseur::whereHas('commande', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        })->sum('montant');
 
-        // Calculate pending receivables (sales not fully paid)
-        $this->pendingReceivables = VenteModel::with('ligneVentes', 'paiements')->get()->sum(function ($vente) {
-            $total = $vente->totalAfterRemise();
-            $paid = $vente->totalPaid();
-            return max(0, $total - $paid);
-        });
+        // Calculate pending receivables (sales not fully paid) - filtered by currency
+        $this->pendingReceivables = VenteModel::where('devise_id', $deviseId)
+            ->with('ligneVentes', 'paiements')
+            ->get()
+            ->sum(function ($vente) {
+                $total = $vente->totalAfterRemise();
+                $paid = $vente->totalPaid();
+                return max(0, $total - $paid);
+            });
 
-        // Calculate pending payments (receptions not fully paid)
-        $this->pendingPayments = ReceptionFournisseur::with('ligneReceptions', 'paiements')->get()->sum(function ($reception) {
-            $total = $reception->getTotalAmount();
-            $paid = $reception->getTotalPaid();
-            return max(0, $total - $paid);
-        });
+        // Calculate pending payments (receptions not fully paid) - filtered by currency through commandes
+        $this->pendingPayments = ReceptionFournisseur::whereHas('commande', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        })
+            ->with('ligneReceptions', 'paiements')
+            ->get()
+            ->sum(function ($reception) {
+                $total = $reception->getTotalAmount();
+                $paid = $reception->getTotalPaid();
+                return max(0, $total - $paid);
+            });
     }
 
     private function calculateStock()
     {
-        // Calculate stock value and alerts
-        $articles = ArticleModel::with(['ligneReceptions', 'ligneVentes'])->get();
+        // Calculate stock value and alerts - filtered by currency
+        $articles = ArticleModel::where('devise_id', $this->selectedDeviseId)
+            ->with(['ligneReceptions', 'ligneVentes'])
+            ->get();
 
         $this->totalStockValue = 0;
         $this->lowStockItems = 0;
@@ -181,32 +235,61 @@ class Dashboard extends Component
     private function calculateDailyActivities()
     {
         $today = now()->startOfDay();
+        $deviseId = $this->selectedDeviseId;
 
         $this->newClientsToday = ClientModel::whereDate('created_at', $today)->count();
         $this->newSuppliersToday = FournisseurModel::whereDate('created_at', $today)->count();
-        $this->newArticlesToday = ArticleModel::whereDate('created_at', $today)->count();
-        $this->newOrdersToday = CommandeFournisseur::whereDate('created_at', $today)->count();
-        $this->newSalesToday = VenteModel::whereDate('created_at', $today)->count();
-        $this->newPaymentsToday = VentePaiementClient::whereDate('date_paiement', $today)
-            ->count() + PaiementFournisseur::whereDate('date_paiement', $today)->count();
+        $this->newArticlesToday = ArticleModel::where('devise_id', $deviseId)
+            ->whereDate('created_at', $today)
+            ->count();
+        $this->newOrdersToday = CommandeFournisseur::where('devise_id', $deviseId)
+            ->whereDate('created_at', $today)
+            ->count();
+        $this->newSalesToday = VenteModel::where('devise_id', $deviseId)
+            ->whereDate('created_at', $today)
+            ->count();
+        $this->newPaymentsToday = VentePaiementClient::whereHas('vente', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        })
+            ->whereDate('date_paiement', $today)
+            ->count() +
+            PaiementFournisseur::whereHas('commande', function ($query) use ($deviseId) {
+                $query->where('devise_id', $deviseId);
+            })
+            ->whereDate('date_paiement', $today)
+            ->count();
     }
 
     private function calculateStatusCounts()
     {
+        $deviseId = $this->selectedDeviseId;
+
         $this->activeClients = ClientModel::where('status', true)->count();
         $this->activeSuppliers = FournisseurModel::where('status', true)->count();
-        $this->activeArticles = ArticleModel::where('status', true)->count();
-        $this->pendingOrders = CommandeFournisseur::where('status', 'pending')->count();
-        $this->completedOrders = CommandeFournisseur::where('status', 'completed')->count();
-        $this->pendingSales = VenteModel::where('status', 'pending')->count();
-        $this->completedSales = VenteModel::where('status', 'completed')->count();
+        $this->activeArticles = ArticleModel::where('devise_id', $deviseId)
+            ->where('status', true)
+            ->count();
+        $this->pendingOrders = CommandeFournisseur::where('devise_id', $deviseId)
+            ->where('status', 'pending')
+            ->count();
+        $this->completedOrders = CommandeFournisseur::where('devise_id', $deviseId)
+            ->where('status', 'completed')
+            ->count();
+        $this->pendingSales = VenteModel::where('devise_id', $deviseId)
+            ->where('status', 'pending')
+            ->count();
+        $this->completedSales = VenteModel::where('devise_id', $deviseId)
+            ->where('status', 'completed')
+            ->count();
     }
 
     private function loadTopLists()
     {
-        // Top 5 Clients by purchase amount
-        $this->topClients = ClientModel::with(['ventes' => function ($query) {
-            $query->with('ligneVentes');
+        $deviseId = $this->selectedDeviseId;
+
+        // Top 5 Clients by purchase amount - filter by currency through sales
+        $this->topClients = ClientModel::with(['ventes' => function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId)->with('ligneVentes');
         }])->get()->map(function ($client) {
             $totalSpent = $client->ventes->sum(function ($vente) {
                 return $vente->totalAfterRemise();
@@ -224,9 +307,9 @@ class Dashboard extends Component
             ];
         })->sortByDesc('total_spent')->take(5)->values();
 
-        // Top 5 Suppliers by order amount
-        $this->topSuppliers = FournisseurModel::with(['commandes' => function ($query) {
-            $query->with('ligneCommandes');
+        // Top 5 Suppliers by order amount - filter by currency through commandes
+        $this->topSuppliers = FournisseurModel::with(['commandes' => function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId)->with('ligneCommandes');
         }])->get()->map(function ($supplier) {
             $totalSupplied = $supplier->commandes->sum(function ($commande) {
                 $subtotal = $commande->ligneCommandes->sum(function ($ligne) {
@@ -248,8 +331,9 @@ class Dashboard extends Component
             ];
         })->sortByDesc('total_supplied')->take(5)->values();
 
-        // Top 5 Articles by sales quantity
-        $this->topArticles = ArticleModel::withCount(['ligneVentes as total_sold'])
+        // Top 5 Articles by sales quantity - filtered by currency
+        $this->topArticles = ArticleModel::where('devise_id', $deviseId)
+            ->withCount(['ligneVentes as total_sold'])
             ->with(['ligneVentes' => function ($query) {
                 $query->select('article_id', DB::raw('SUM(quantity * unit_price) as revenue'))
                     ->groupBy('article_id');
@@ -274,8 +358,10 @@ class Dashboard extends Component
                 ];
             });
 
-        // Top 5 Categories by article count
-        $this->topCategories = Category::withCount('articles')
+        // Top 5 Categories by article count - filter articles by currency
+        $this->topCategories = Category::withCount(['articles' => function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        }])
             ->orderByDesc('articles_count')
             ->limit(5)
             ->get()
@@ -288,8 +374,9 @@ class Dashboard extends Component
                 ];
             });
 
-        // Low stock alerts (articles with stock <= 10)
-        $this->lowStockAlerts = ArticleModel::with(['ligneReceptions', 'ligneVentes', 'category'])
+        // Low stock alerts (articles with stock <= 10) - filtered by currency
+        $this->lowStockAlerts = ArticleModel::where('devise_id', $deviseId)
+            ->with(['ligneReceptions', 'ligneVentes', 'category'])
             ->get()
             ->filter(function ($article) {
                 $totalReceived = $article->ligneReceptions->sum('quantity') ?? 0;
@@ -318,8 +405,11 @@ class Dashboard extends Component
 
     private function loadLatestActivities()
     {
-        // Latest 5 Orders
-        $this->latestOrders = CommandeFournisseur::with(['fournisseur', 'ligneCommandes'])
+        $deviseId = $this->selectedDeviseId;
+
+        // Latest 5 Orders - filtered by currency
+        $this->latestOrders = CommandeFournisseur::where('devise_id', $deviseId)
+            ->with(['fournisseur', 'ligneCommandes'])
             ->latest()
             ->limit(5)
             ->get()
@@ -343,8 +433,9 @@ class Dashboard extends Component
                 ];
             });
 
-        // Latest 5 Sales
-        $this->latestSales = VenteModel::with(['client', 'ligneVentes'])
+        // Latest 5 Sales - filtered by currency
+        $this->latestSales = VenteModel::where('devise_id', $deviseId)
+            ->with(['client', 'ligneVentes'])
             ->latest()
             ->limit(5)
             ->get()
@@ -366,8 +457,11 @@ class Dashboard extends Component
                 ];
             });
 
-        // Latest 5 Payments (combined from clients and suppliers)
-        $clientPayments = VentePaiementClient::with(['vente.client'])
+        // Latest 5 Payments (combined from clients and suppliers) - filtered by currency
+        $clientPayments = VentePaiementClient::whereHas('vente', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        })
+            ->with(['vente.client'])
             ->latest()
             ->limit(3)
             ->get()
@@ -383,7 +477,10 @@ class Dashboard extends Component
                 ];
             });
 
-        $supplierPayments = PaiementFournisseur::with(['commande.fournisseur'])
+        $supplierPayments = PaiementFournisseur::whereHas('commande', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId);
+        })
+            ->with(['commande.fournisseur'])
             ->latest()
             ->limit(2)
             ->get()
