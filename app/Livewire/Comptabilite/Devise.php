@@ -440,15 +440,38 @@ class Devise extends Component
         try {
             $devise = DeviseModel::find($id);
 
-            // Prevent deletion if it's the default devise
-            if ($devise && $devise->is_default) {
-                $this->dispatch('error', message: 'Impossible de supprimer la devise par défaut. Veuillez d\'abord définir une autre devise comme défaut.');
+            if (!$devise) {
+                $this->dispatch(
+                    'delete-error',
+                    message: 'Devise introuvable.'
+                );
                 return;
             }
 
-            // Check if devise is used
-            if ($devise && ($devise->articles()->exists() || $devise->ventes()->exists())) {
-                $this->dispatch('error', message: 'Cette devise est utilisée dans des articles ou des ventes et ne peut pas être supprimée.');
+            // Prevent deletion if it's the default devise
+            if ($devise->is_default) {
+                $this->dispatch(
+                    'delete-error',
+                    message: 'Impossible de supprimer la devise par défaut. Veuillez d\'abord définir une autre devise comme défaut.'
+                );
+                return;
+            }
+
+            // Check if devise has any articles
+            if ($devise->articles()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la devise \"{$devise->libelle}\" car elle est utilisée dans des articles."
+                );
+                return;
+            }
+
+            // Check if devise has any ventes
+            if ($devise->ventes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la devise \"{$devise->libelle}\" car elle est utilisée dans des ventes."
+                );
                 return;
             }
 
@@ -475,12 +498,32 @@ class Devise extends Component
 
             // Double-check: Prevent deletion if it's the default devise
             if ($devise->is_default) {
-                throw new \Exception('Impossible de supprimer la devise par défaut.');
+                $this->dispatch(
+                    'delete-error',
+                    message: 'Impossible de supprimer la devise par défaut.'
+                );
+                DB::rollBack();
+                return;
             }
 
-            // Double-check: Prevent deletion if used
-            if ($devise->articles()->exists() || $devise->ventes()->exists()) {
-                throw new \Exception('Cette devise est utilisée dans des articles ou des ventes et ne peut pas être supprimée.');
+            // Double-check: Prevent deletion if used in articles
+            if ($devise->articles()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la devise \"{$devise->libelle}\" car elle est utilisée dans des articles."
+                );
+                DB::rollBack();
+                return;
+            }
+
+            // Double-check: Prevent deletion if used in ventes
+            if ($devise->ventes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la devise \"{$devise->libelle}\" car elle est utilisée dans des ventes."
+                );
+                DB::rollBack();
+                return;
             }
 
             $libelle = $devise->libelle;

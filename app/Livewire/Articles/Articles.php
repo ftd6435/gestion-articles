@@ -93,6 +93,9 @@ class Articles extends Component
         'filterCategory' => ['except' => ''],
         'filterDevise' => ['except' => ''],
         'filterStatus' => ['except' => ''],
+        'filterStockLevel' => ['except' => ''],
+        'filterMargin' => ['except' => ''],
+        'filterLastUpdated' => ['except' => ''],
         'page' => ['except' => 1],
     ];
 
@@ -158,20 +161,58 @@ class Articles extends Component
             }
         });
 
-        // Stock level filter (you'll need to implement this differently)
-        // This is complex as it requires calculating stock for each article
+        // Stock level filter
         $query->when($this->filterStockLevel, function ($query) {
-            // This would need a subquery or separate calculation
-            // For now, we'll leave it as is
+            $query->whereRaw(
+                '
+                (COALESCE((SELECT SUM(quantity) FROM ligne_reception_fournisseurs WHERE article_id = article_models.id), 0) -
+                 COALESCE((SELECT SUM(quantity) FROM ligne_vente_clients WHERE article_id = article_models.id), 0))
+                BETWEEN ? AND ?',
+                $this->getStockLevelRange($this->filterStockLevel)
+            );
         });
 
         // Margin filter
         $query->when($this->filterMargin, function ($query) {
-            // This requires calculating margin for each article
-            // Implementation depends on your database structure
+            $query->whereRaw(
+                '
+                CASE
+                    WHEN prix_achat > 0 AND prix_vente > 0
+                    THEN ((prix_vente - prix_achat) / prix_achat) * 100
+                    ELSE 0
+                END BETWEEN ? AND ?',
+                $this->getMarginRange($this->filterMargin)
+            );
         });
 
         return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get stock level range for filtering
+     */
+    private function getStockLevelRange($level)
+    {
+        return match ($level) {
+            'low' => [1, 9], // Stock faible (< 10)
+            'medium' => [10, 50], // Stock moyen (10-50)
+            'high' => [51, PHP_INT_MAX], // Stock élevé (> 50)
+            'out' => [PHP_INT_MIN, 0], // Rupture (negative stock)
+            default => [PHP_INT_MIN, PHP_INT_MAX] // All
+        };
+    }
+
+    /**
+     * Get margin range for filtering
+     */
+    private function getMarginRange($level)
+    {
+        return match ($level) {
+            'low' => [0, 19.99], // Faible (< 20%)
+            'medium' => [20, 50], // Moyenne (20-50%)
+            'high' => [50.01, PHP_INT_MAX], // Élevée (> 50%)
+            default => [0, PHP_INT_MAX] // All
+        };
     }
 
     public function calculateStatistics()
@@ -468,9 +509,55 @@ class Articles extends Component
         session()->flash('success', 'Statut modifié avec succès');
     }
 
+    protected $listeners = ['confirmDelete'];
+
     public function deleteConfirm($id)
     {
         $article = ArticleModel::find($id);
+
+        if (!$article) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Article introuvable.'
+            );
+            return;
+        }
+
+        // Check if article has any ligneCommandes
+        if ($article->ligneCommandes()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer l'article \"{$article->reference}\" car il a des lignes de commande."
+            );
+            return;
+        }
+
+        // Check if article has any ligneReceptions
+        if ($article->ligneReceptions()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer l'article \"{$article->reference}\" car il a des réceptions."
+            );
+            return;
+        }
+
+        // Check if article has any ligneVentes
+        if ($article->ligneVentes()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer l'article \"{$article->reference}\" car il a des ventes."
+            );
+            return;
+        }
+
+        // Check if article has any etageres
+        if ($article->etageres()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer l'article \"{$article->reference}\" car il est stocké dans des étagères."
+            );
+            return;
+        }
 
         logActivity('Demande de suppression d\'un article', [
             'reference'    => $article->reference,
@@ -494,6 +581,42 @@ class Articles extends Component
         try {
             $article = ArticleModel::findOrFail($id);
             $name = $article->reference . ' ' . $article->designation;
+
+            // Check if article has any ligneCommandes
+            if ($article->ligneCommandes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer l'article \"{$name}\" car il a des lignes de commande."
+                );
+                return;
+            }
+
+            // Check if article has any ligneReceptions
+            if ($article->ligneReceptions()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer l'article \"{$name}\" car il a des réceptions."
+                );
+                return;
+            }
+
+            // Check if article has any ligneVentes
+            if ($article->ligneVentes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer l'article \"{$name}\" car il a des ventes."
+                );
+                return;
+            }
+
+            // Check if article has any etageres
+            if ($article->etageres()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer l'article \"{$name}\" car il est stocké dans des étagères."
+                );
+                return;
+            }
 
             logActivity('Suppression confirmée d\'un article', [
                 'reference'    => $article->reference,

@@ -264,6 +264,32 @@ class Reception extends Component
         try {
             $reception = ReceptionFournisseur::find($id);
 
+            if (!$reception) {
+                $this->dispatch(
+                    'delete-error',
+                    message: 'Réception introuvable.'
+                );
+                return;
+            }
+
+            // Check if reception has paiements
+            if ($reception->paiements()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la réception car elle a été payée."
+                );
+                return;
+            }
+
+            // Check if user is super_admin
+            if (Auth::user()->role !== 'super_admin') {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Seul un super administrateur peut supprimer une réception. Tous les articles reçus seront supprimés."
+                );
+                return;
+            }
+
             // Dispatch l'événement avec le nom du commande
             $this->dispatch(
                 'confirm-delete',
@@ -281,6 +307,24 @@ class Reception extends Component
             $reception = ReceptionFournisseur::findOrFail($id);
             $reference = $reception->commande->reference;
 
+            // Check if reception has paiements
+            if ($reception->paiements()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la réception car elle a été payée."
+                );
+                return;
+            }
+
+            // Check if user is super_admin
+            if (Auth::user()->role !== 'super_admin') {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Seul un super administrateur peut supprimer une réception. Tous les articles reçus seront supprimés."
+                );
+                return;
+            }
+
             logActivity('Suppression d\'une réception', [
                 'reference' => $reception->reference,
                 'commande_id' => $reception->commande_id,
@@ -288,6 +332,15 @@ class Reception extends Component
             ], $reception);
 
             $reception->delete();
+
+            // Update commande status back to EN_COURS since reception is deleted
+            $reception->commande->update(['status' => 'EN_COURS']);
+
+            logActivity('Mise à jour du statut de la commande après suppression de réception', [
+                'commande_reference' => $reception->commande->reference,
+                'ancien_status' => $reception->commande->getOriginal('status'),
+                'nouveau_status' => 'EN_COURS',
+            ], $reception->commande);
 
             $this->loadCommandes();
 

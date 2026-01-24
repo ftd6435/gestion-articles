@@ -344,6 +344,32 @@ class Commande extends Component
         try {
             $commande = CommandeFournisseur::find($id);
 
+            if (!$commande) {
+                $this->dispatch(
+                    'delete-error',
+                    message: 'Commande introuvable.'
+                );
+                return;
+            }
+
+            // Check if commande has any receptions
+            if ($commande->receptions()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la commande \"{$commande->reference}\" car elle a des réceptions."
+                );
+                return;
+            }
+
+            // Check if commande has any paiements
+            if ($commande->paiements()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la commande \"{$commande->reference}\" car elle a des paiements."
+                );
+                return;
+            }
+
             logActivity('Demande de suppression d\'une commande', [
                 'reference'    => $commande->reference,
                 'fournisseur'    => $commande->fournisseur->name,
@@ -369,6 +395,24 @@ class Commande extends Component
         try {
             $commande = CommandeFournisseur::findOrFail($id);
             $reference = $commande->reference;
+
+            // Check if commande has any receptions
+            if ($commande->receptions()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la commande \"{$reference}\" car elle a des réceptions."
+                );
+                return;
+            }
+
+            // Check if commande has any paiements
+            if ($commande->paiements()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la commande \"{$reference}\" car elle a des paiements."
+                );
+                return;
+            }
 
             logActivity('Suppression confirmée d\'une commande', [
                 'reference'    => $commande->reference,

@@ -260,6 +260,23 @@ class Client extends Component
     {
         $client = ClientModel::find($id);
 
+        if (!$client) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Client introuvable.'
+            );
+            return;
+        }
+
+        // Check if client has any ventes (purchases)
+        if ($client->ventes()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer le client \"{$client->name}\" car il a des achats enregistrés."
+            );
+            return;
+        }
+
         logActivity('Demande de suppression d\'un client', [
             'name'    => $client->name,
             'telephone'    => $client->telephone,
@@ -281,6 +298,15 @@ class Client extends Component
         try {
             $client = ClientModel::findOrFail($id);
             $name = $client->name;
+
+            // Check if client has any ventes (purchases)
+            if ($client->ventes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer le client \"{$name}\" car il a des achats enregistrés."
+                );
+                return;
+            }
 
             logActivity('Suppression confirmée d\'un client', [
                 'name'    => $client->name,

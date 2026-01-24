@@ -735,6 +735,9 @@
                 </div>
 
                 <div class="text-end mt-4">
+                    <a href="{{ route('ventes.ventes') }}" class="btn btn-secondary me-2">
+                        Liste des ventes
+                    </a>
                     <button class="btn btn-success"
                             wire:click="storePaiement"
                             @disabled($paiement_montant > $this->getTotalAfterRemise() || $paiement_montant <= 0)

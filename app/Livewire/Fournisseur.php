@@ -227,6 +227,23 @@ class Fournisseur extends Component
         try {
             $fournisseur = FournisseurModel::find($id);
 
+            if (!$fournisseur) {
+                $this->dispatch(
+                    'delete-error',
+                    message: 'Fournisseur introuvable.'
+                );
+                return;
+            }
+
+            // Check if fournisseur has any commandes
+            if ($fournisseur->commandes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer le fournisseur \"{$fournisseur->name}\" car il a des commandes enregistrées."
+                );
+                return;
+            }
+
             logActivity('Demande de suppression d\'un fournisseur', [
                 'name'    => $fournisseur->name,
                 'telephone'    => $fournisseur->telephone,
@@ -250,6 +267,15 @@ class Fournisseur extends Component
         try {
             $fournisseur = FournisseurModel::findOrFail($id);
             $name = $fournisseur->name;
+
+            // Check if fournisseur has any commandes
+            if ($fournisseur->commandes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer le fournisseur \"{$name}\" car il a des commandes enregistrées."
+                );
+                return;
+            }
 
             logActivity('Suppression confirmée d\'un fournisseur', [
                 'name'    => $fournisseur->name,

@@ -166,6 +166,23 @@ class Category extends Component
     {
         $category = CategoryModel::find($id);
 
+        if (!$category) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Catégorie introuvable.'
+            );
+            return;
+        }
+
+        // Check if category has any articles
+        if ($category->articles()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer la catégorie \"{$category->name}\" car elle contient des articles."
+            );
+            return;
+        }
+
         logActivity('Demande de suppression d\'une catégorie', [
             'name' => $category->name,
             'description' => $category->description,
@@ -184,6 +201,15 @@ class Category extends Component
         try {
             $category = CategoryModel::findOrFail($id);
             $name = $category->name;
+
+            // Check if category has any articles
+            if ($category->articles()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer la catégorie \"{$name}\" car elle contient des articles."
+                );
+                return;
+            }
 
             logActivity('Suppression confirmée d\'une catégorie', [
                 'name' => $category->name,

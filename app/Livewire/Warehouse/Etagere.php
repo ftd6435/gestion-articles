@@ -45,6 +45,7 @@ class Etagere extends Component
     {
         $this->loadEtageres();
         $this->loadMagasins();
+        $this->code_etagere = 'ET' . rand(1000, 9999);
     }
 
     public function loadEtageres()
@@ -109,6 +110,7 @@ class Etagere extends Component
                     'status' => $this->status,
                     'updated_by' => Auth::id(),
                 ]);
+
                 $message = 'Etagère modifiée avec succès';
 
                 logActivity('Modification d\'une étagère', [
@@ -169,9 +171,28 @@ class Etagere extends Component
         session()->flash('success', 'Statut modifié avec succès');
     }
 
+    protected $listeners = ['confirmDelete'];
+
     public function deleteConfirm($id)
     {
         $etagere = EtagereModel::find($id);
+
+        if (!$etagere) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Étagère introuvable.'
+            );
+            return;
+        }
+
+        // Check if etagere has any ligneReceptions or ligneVentes
+        if ($etagere->ligneReceptions()->exists() || $etagere->ligneVentes()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer l'étagère \"{$etagere->code_etagere}\" car elle contient des réceptions ou ventes."
+            );
+            return;
+        }
 
         $this->dispatch(
             'confirm-delete',
@@ -185,6 +206,15 @@ class Etagere extends Component
         try {
             $etagere = EtagereModel::findOrFail($id);
             $code = $etagere->code_etagere;
+
+            // Check if etagere has any ligneReceptions or ligneVentes
+            if ($etagere->ligneReceptions()->exists() || $etagere->ligneVentes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer l'étagère \"{$code}\" car elle contient des réceptions ou ventes."
+                );
+                return;
+            }
 
             logActivity('Suppression d\'une étagère', [
                 'code_etagere' => $etagere->code_etagere,

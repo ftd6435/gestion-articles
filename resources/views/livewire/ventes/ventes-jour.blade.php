@@ -17,7 +17,7 @@
                 <i class="fas fa-calendar me-1"></i>
                 {{ $periodeLabels[$selectedPeriode] ?? $selectedPeriode }}
                 ({{ \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') }}
-                @if($dateFrom != $dateTo)
+                @if ($dateFrom != $dateTo)
                     au {{ \Carbon\Carbon::parse($dateTo)->format('d/m/Y') }}
                 @endif
                 )
@@ -52,6 +52,14 @@
                 </li>
             </ul>
 
+            <select class="form-select me-2" wire:model.live="devise_id" style="width: auto; min-width: 120px;">
+                @foreach ($devises as $devise)
+                    <option value="{{ $devise->id }}">
+                        {{ $devise->code }} - ({{ $devise->symbole ?? $devise->code }})
+                    </option>
+                @endforeach
+            </select>
+
             <button class="btn btn-primary me-2" onclick="printSalesReport()" title="Imprimer" id="print-btn">
                 <i class="fas fa-print me-2"></i>Imprimer
             </button>
@@ -83,7 +91,7 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Net</h6>
                             <h4 class="mb-0 fw-bold text-info">
-                                {{ number_format($totalNet, 0, ',', ' ') }} FG
+                                {{ number_format($totalNet, 0, ',', ' ') }} {{ $currency }}
                             </h4>
                         </div>
                         <div class="bg-info text-white rounded-circle p-3">
@@ -101,9 +109,9 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Remise</h6>
                             <h4 class="mb-0 fw-bold text-warning">
-                                {{ number_format($totalRemise, 0, ',', ' ') }} FG
+                                {{ number_format($totalRemise, 0, ',', ' ') }} {{ $currency }}
                             </h4>
-                            @if($totalNet > 0)
+                            @if ($totalNet > 0)
                                 <small class="text-muted">
                                     ({{ number_format(($totalRemise / $totalNet) * 100, 1) }}% en moyenne)
                                 </small>
@@ -124,12 +132,12 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Perçu</h6>
                             <h4 class="mb-0 fw-bold text-success">
-                                {{ number_format($totalPaid, 0, ',', ' ') }} FG
+                                {{ number_format($totalPaid, 0, ',', ' ') }} {{ $currency }}
                             </h4>
                             @php
                                 $totalFinal = $totalNet - $totalRemise;
                             @endphp
-                            @if($totalFinal > 0)
+                            @if ($totalFinal > 0)
                                 <small class="text-muted">
                                     ({{ number_format(($totalPaid / $totalFinal) * 100, 1) }}% réglé)
                                 </small>
@@ -153,7 +161,7 @@
                 <h4 class="text-muted">
                     {{ $periodeLabels[$selectedPeriode] ?? $selectedPeriode }}
                     ({{ \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') }}
-                    @if($dateFrom != $dateTo)
+                    @if ($dateFrom != $dateTo)
                         au {{ \Carbon\Carbon::parse($dateTo)->format('d/m/Y') }}
                     @endif
                     )
@@ -168,15 +176,15 @@
                 </div>
                 <div class="col-3 text-center">
                     <p class="mb-1"><strong>Total Net</strong></p>
-                    <h4 class="text-info">{{ number_format($totalNet, 0, ',', ' ') }} FG</h4>
+                    <h4 class="text-info">{{ number_format($totalNet, 0, ',', ' ') }} {{ $currency }}</h4>
                 </div>
                 <div class="col-3 text-center">
                     <p class="mb-1"><strong>Total Remise</strong></p>
-                    <h4 class="text-warning">{{ number_format($totalRemise, 0, ',', ' ') }} FG</h4>
+                    <h4 class="text-warning">{{ number_format($totalRemise, 0, ',', ' ') }} {{ $currency }}</h4>
                 </div>
                 <div class="col-3 text-center">
                     <p class="mb-1"><strong>Total Perçu</strong></p>
-                    <h4 class="text-success">{{ number_format($totalPaid, 0, ',', ' ') }} FG</h4>
+                    <h4 class="text-success">{{ number_format($totalPaid, 0, ',', ' ') }} {{ $currency }}</h4>
                 </div>
             </div>
             <hr>
@@ -208,7 +216,6 @@
                             $finalAmount = $vente->totalAfterRemise();
                             $paid = $vente->totalPaid();
                             $remaining = $vente->remainingAmount();
-                            $currency = $vente->devise?->symbole ?? $vente->devise?->code ?? 'FG';
                         @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
@@ -219,7 +226,7 @@
                                 {{ number_format($netAmount, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td class="text-end">
-                                @if($vente->remise > 0)
+                                @if ($vente->remise > 0)
                                     <span class="text-warning">
                                         {{ number_format($discountAmount, 0, ',', ' ') }} {{ $currency }}
                                     </span> |
@@ -239,22 +246,22 @@
                             </td>
                             <td>
                                 @php
-                                    $config = match($vente->status) {
+                                    $config = match ($vente->status) {
                                         'PAYEE' => [
                                             'class' => 'bg-success bg-opacity-10 text-success border-success',
-                                            'label' => 'Payée'
+                                            'label' => 'Payée',
                                         ],
                                         'PARTIELLE' => [
                                             'class' => 'bg-warning bg-opacity-10 text-warning border-warning',
-                                            'label' => 'Partielle'
+                                            'label' => 'Partielle',
                                         ],
                                         'IMPAYEE' => [
                                             'class' => 'bg-danger bg-opacity-10 text-danger border-danger',
-                                            'label' => 'Impayée'
+                                            'label' => 'Impayée',
                                         ],
                                         default => [
                                             'class' => 'bg-info bg-opacity-10 text-info border-info',
-                                            'label' => ucfirst($vente->status)
+                                            'label' => ucfirst($vente->status),
                                         ],
                                     };
                                 @endphp
@@ -274,26 +281,26 @@
                     @endforelse
 
                     {{-- Summary Row --}}
-                    @if($ventes->count() > 0)
+                    @if ($ventes->count() > 0)
                         @php
                             $totalFinal = $totalNet - $totalRemise;
                         @endphp
                         <tr class="table-active fw-bold">
                             <td colspan="4" class="text-end">TOTAUX:</td>
                             <td class="text-end">
-                                {{ number_format($totalNet, 0, ',', ' ') }} FG
+                                {{ number_format($totalNet, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td class="text-end text-warning">
-                                {{ number_format($totalRemise, 0, ',', ' ') }} FG
+                                {{ number_format($totalRemise, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td class="text-end fw-bold">
-                                {{ number_format($totalFinal, 0, ',', ' ') }} FG
+                                {{ number_format($totalFinal, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td class="text-end text-success">
-                                {{ number_format($totalPaid, 0, ',', ' ') }} FG
+                                {{ number_format($totalPaid, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td class="text-end text-danger">
-                                {{ number_format($totalDue, 0, ',', ' ') }} FG
+                                {{ number_format($totalDue, 0, ',', ' ') }} {{ $currency }}
                             </td>
                             <td></td>
                         </tr>
@@ -303,7 +310,7 @@
         </div>
 
         {{-- Print Footer --}}
-        @if($ventes->count() > 0)
+        @if ($ventes->count() > 0)
             <div class="print-footer d-none mt-4 pt-4 border-top">
                 <div class="row">
                     <div class="col-6">

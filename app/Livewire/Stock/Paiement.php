@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Stock;
 
+use App\Models\DeviseModel;
 use Carbon\Carbon;
 use App\Models\Stock\CommandeFournisseur;
 use App\Models\Stock\PaiementFournisseur;
@@ -28,6 +29,7 @@ class Paiement extends Component
     public $dateFrom;
     public $dateTo;
     public $filterMode = '';
+    public $filterDevise = '';
     public $commandeSearch = '';
 
     /** ================= FORM ================= */
@@ -48,6 +50,11 @@ class Paiement extends Component
     public $selectedReception;
 
     /** ================= MODES ================= */
+    public $devises;
+    public $devise_id;
+    public $currency = 'FG';
+
+    /** ================= MODES ================= */
     public array $modesPaiement = [
         'ESPECES'   => 'Espèces',
         'CHEQUE'    => 'Chèque',
@@ -60,6 +67,25 @@ class Paiement extends Component
     public function mount()
     {
         $this->date_paiement = now()->format('Y-m-d');
+
+        $this->devises = DeviseModel::active()->get();
+
+        $defaultDevise = DeviseModel::getDefaultDevise();
+
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+            $this->currency = $defaultDevise->symbole ?? $defaultDevise->code;
+        }
+
+        $this->loadCommandes();
+    }
+
+    public function updatedDeviseId($value)
+    {
+        $devise = DeviseModel::find($value);
+        $this->devise_id = $devise->id;
+        $this->currency = $devise->symbole ?? $devise->code;
+
         $this->loadCommandes();
     }
 
@@ -72,6 +98,7 @@ class Paiement extends Component
             'receptions.ligneReceptions',
             'receptions.paiements'
         ])
+            ->where('devise_id', $this->devise_id)
             ->get()
             ->filter(
                 fn($cmd) =>
@@ -95,6 +122,7 @@ class Paiement extends Component
             'dateFrom',
             'dateTo',
             'filterMode',
+            'filterDevise',
         ]);
 
         // Reset pagination to first page
@@ -436,6 +464,13 @@ class Paiement extends Component
             $query->where('mode_paiement', $this->filterMode);
         }
 
+        // Apply devise filter
+        if ($this->filterDevise) {
+            $query->whereHas('commande', function ($cq) {
+                $cq->where('devise_id', $this->filterDevise);
+            });
+        }
+
         $paiements = $query->latest('date_paiement')->paginate(10);
 
         view()->share('title', "Gestion des paiements fournisseurs");
@@ -444,6 +479,7 @@ class Paiement extends Component
         return view('livewire.stock.paiement', [
             'paiements' => $paiements,
             'modesPaiement' => $this->modesPaiement,
+            'devises' => $this->devises,
         ]);
     }
 }

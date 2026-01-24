@@ -169,9 +169,28 @@ class Magasin extends Component
         session()->flash('success', 'Statut modifié avec succès');
     }
 
+    protected $listeners = ['confirmDelete'];
+
     public function deleteConfirm($id)
     {
         $magasin = MagasinModel::find($id);
+
+        if (!$magasin) {
+            $this->dispatch(
+                'delete-error',
+                message: 'Magasin introuvable.'
+            );
+            return;
+        }
+
+        // Check if magasin has any etageres, ligneReceptions, or ligneVentes
+        if ($magasin->etageres()->exists() || $magasin->ligneReceptions()->exists() || $magasin->ligneVentes()->exists()) {
+            $this->dispatch(
+                'delete-error',
+                message: "Impossible de supprimer le magasin \"{$magasin->nom}\" car il contient des étagères, réceptions ou ventes."
+            );
+            return;
+        }
 
         $this->dispatch(
             'confirm-delete',
@@ -186,6 +205,15 @@ class Magasin extends Component
             $magasin = MagasinModel::findOrFail($id);
             $nom = $magasin->nom;
             $code = $magasin->code_magasin;
+
+            // Check if magasin has any etageres, ligneReceptions, or ligneVentes
+            if ($magasin->etageres()->exists() || $magasin->ligneReceptions()->exists() || $magasin->ligneVentes()->exists()) {
+                $this->dispatch(
+                    'delete-error',
+                    message: "Impossible de supprimer le magasin \"{$nom}\" car il contient des étagères, réceptions ou ventes."
+                );
+                return;
+            }
 
             logActivity('Suppression d\'un magasin', [
                 'code_magasin' => $magasin->code_magasin,

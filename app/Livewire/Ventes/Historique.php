@@ -3,6 +3,7 @@
 namespace App\Livewire\Ventes;
 
 use App\Models\ClientModel;
+use App\Models\DeviseModel;
 use App\Models\Ventes\VenteModel;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -20,6 +21,10 @@ class Historique extends Component
     public $client_id = '';
     public $chartType = 'monthly';
     public $chartPeriod = 'current_year';
+
+    public $devises;
+    public $devise_id;
+    public $currency = 'FG';
 
     public $totalVentes = 0;
     public $totalPaid = 0;
@@ -51,6 +56,26 @@ class Historique extends Component
         // Set default date range to last 30 days
         $this->date_from = Carbon::now()->subDays(30)->format('Y-m-d');
         $this->date_to = Carbon::now()->format('Y-m-d');
+
+        $this->devises = DeviseModel::active()->get();
+
+        $defaultDevise = DeviseModel::getDefaultDevise();
+
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+            $this->currency = $defaultDevise->symbole ?? $defaultDevise->code;
+        }
+
+        $this->loadStatistics();
+        $this->loadChartData();
+        $this->loadAnalytics();
+    }
+
+    public function updatedDeviseId($value)
+    {
+        $devise = DeviseModel::find($value);
+        $this->devise_id = $devise->id;
+        $this->currency = $devise->symbole ?? $devise->code;
 
         $this->loadStatistics();
         $this->loadChartData();
@@ -89,6 +114,11 @@ class Historique extends Component
 
     protected function applyFilters($query)
     {
+        // Devise filter
+        if ($this->devise_id) {
+            $query->where('devise_id', $this->devise_id);
+        }
+
         // Search filter
         if ($this->search) {
             $query->where(function ($q) {
@@ -342,6 +372,14 @@ class Historique extends Component
     public function resetFilters()
     {
         $this->reset(['search', 'status', 'date_from', 'date_to', 'client_id']);
+
+        // Reset devise to default
+        $defaultDevise = DeviseModel::getDefaultDevise();
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+            $this->currency = $defaultDevise->symbole ?? $defaultDevise->code;
+        }
+
         $this->resetPage();
         $this->loadStatistics();
         $this->loadChartData();

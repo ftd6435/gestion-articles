@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Ventes;
 
+use App\Models\DeviseModel;
 use App\Models\Ventes\VenteModel;
 use Livewire\Component;
 use Carbon\Carbon;
@@ -18,8 +19,31 @@ class VentesJour extends Component
     public $dateFrom;
     public $dateTo;
 
+    public $devises;
+    public $devise_id;
+    public $currency = 'FG';
+
     public function mount()
     {
+        $this->devises = DeviseModel::active()->get();
+
+        $defaultDevise = DeviseModel::getDefaultDevise();
+
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+            $this->currency = $defaultDevise->symbole ?? $defaultDevise->code;
+        }
+
+        $this->setDateRange();
+        $this->loadVentes();
+    }
+
+    public function updatedDeviseId($value)
+    {
+        $devise = DeviseModel::find($value);
+        $this->devise_id = $devise->id;
+        $this->currency = $devise->symbole ?? $devise->code;
+
         $this->setDateRange();
         $this->loadVentes();
     }
@@ -62,6 +86,7 @@ class VentesJour extends Component
         $this->setDateRange();
 
         $query = VenteModel::query()
+            ->where('devise_id', $this->devise_id)
             ->whereBetween('date_facture', [$this->dateFrom, $this->dateTo])
             ->whereIn('status', ['PAYEE', 'PARTIELLE', 'IMPAYEE'])
             ->with(['client', 'paiements', 'devise', 'ligneVentes']);
