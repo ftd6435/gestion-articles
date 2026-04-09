@@ -23,6 +23,7 @@ class Client extends Component
     public $email;
     public $adresse;
     public $status = true;
+    public $is_default = false;
 
     /* ===================== RULES ===================== */
 
@@ -47,6 +48,7 @@ class Client extends Component
             'adresse' => 'nullable|string|max:100',
 
             'status' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 
@@ -99,11 +101,18 @@ class Client extends Component
 
         $this->type = 'DETAILLANT';
         $this->status = true;
+        $this->is_default = false;
         $this->resetValidation();
     }
 
     public function create()
     {
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('clients', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des clients.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -134,6 +143,12 @@ class Client extends Component
 
     public function edit($id)
     {
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('clients', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des clients.');
+            return;
+        }
+
         try {
             $client = ClientModel::findOrFail($id);
 
@@ -144,6 +159,7 @@ class Client extends Component
             $this->email     = $client->email;
             $this->adresse   = $client->adresse;
             $this->status    = (bool) $client->status;
+            $this->is_default = (bool) $client->is_default;
 
             $this->showModal = true;
         } catch (\Exception $e) {
@@ -155,9 +171,25 @@ class Client extends Component
 
     public function storeClient()
     {
+        $currentUser = Auth::user();
+        if ($this->clientId) {
+            if (!$currentUser?->canAccess('clients', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des clients.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('clients', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des clients.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
+            if ($this->is_default) {
+                $this->status = true;
+            }
 
             if ($this->clientId) {
                 $client = ClientModel::findOrFail($this->clientId);
@@ -169,8 +201,13 @@ class Client extends Component
                     'email'      => $this->email,
                     'adresse'    => $this->adresse,
                     'status'     => $this->status,
+                    'is_default' => $this->is_default,
                     'updated_by' => Auth::id(),
                 ]);
+
+                if ($this->is_default) {
+                    ClientModel::where('id', '!=', $client->id)->update(['is_default' => false]);
+                }
 
                 logActivity('Modification d\'un client', [
                     'old' => [
@@ -180,6 +217,7 @@ class Client extends Component
                         'email'    => $client->email,
                         'adresse'    => $client->adresse,
                         'status'    => $client->status,
+                        'is_default' => (bool) $client->is_default,
                     ],
                     'new' => [
                         'name'    => $this->name,
@@ -188,6 +226,7 @@ class Client extends Component
                         'email'    => $this->email,
                         'adresse'    => $this->adresse,
                         'status'    => $this->status,
+                        'is_default' => (bool) $this->is_default,
                     ]
                 ], $client);
             } else {
@@ -199,9 +238,14 @@ class Client extends Component
                         'email'      => $this->email,
                         'adresse'    => $this->adresse,
                         'status'     => $this->status,
+                        'is_default' => $this->is_default,
                         'created_by' => Auth::id(),
                     ]
                 );
+
+                if ($this->is_default) {
+                    ClientModel::where('id', '!=', $client->id)->update(['is_default' => false]);
+                }
 
                 logActivity('Création d\'un client', [
                     'name'    => $client->name,
@@ -210,6 +254,7 @@ class Client extends Component
                     'email'    => $client->email,
                     'adresse'    => $client->adresse,
                     'status'    => $client->status,
+                    'is_default' => (bool) $client->is_default,
                 ], $client);
             }
 
@@ -234,7 +279,18 @@ class Client extends Component
 
     public function toggleStatus($id)
     {
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('clients', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des clients.');
+            return;
+        }
+
         $client = ClientModel::findOrFail($id);
+
+        if ($client->is_default && $client->status) {
+            session()->flash('error', 'Impossible de désactiver le client par défaut.');
+            return;
+        }
 
         logActivity('Modification du status du client', [
             'name' => $client->name,

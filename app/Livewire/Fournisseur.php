@@ -87,6 +87,13 @@ class Fournisseur extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('fournisseurs', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des fournisseurs.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -117,6 +124,13 @@ class Fournisseur extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('fournisseurs', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des fournisseurs.');
+            return;
+        }
+
         try {
             $fournisseur = FournisseurModel::findOrFail($id);
 
@@ -135,6 +149,20 @@ class Fournisseur extends Component
 
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->fournisseurId) {
+            if (!$currentUser?->canAccess('fournisseurs', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des fournisseurs.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('fournisseurs', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des fournisseurs.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
@@ -202,6 +230,13 @@ class Fournisseur extends Component
 
     public function toggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('fournisseurs', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des fournisseurs.');
+            return;
+        }
+
         $fournisseur = FournisseurModel::findOrFail($id);
 
         logActivity('Modification du status du fournisseur', [

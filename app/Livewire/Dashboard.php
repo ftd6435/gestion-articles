@@ -54,6 +54,9 @@ class Dashboard extends Component
     public $newOrdersToday = 0;
     public $newSalesToday = 0;
     public $newPaymentsToday = 0;
+    public $paymentsTodayAmount = 0;
+    public $paymentsTodayReceivedAmount = 0;
+    public $paymentsTodayPaidAmount = 0;
 
     // Status counts
     public $activeClients = 0;
@@ -149,6 +152,7 @@ class Dashboard extends Component
 
         // Total Revenue (from sales with discount applied) - filtered by currency
         $this->totalRevenue = VenteModel::where('devise_id', $deviseId)
+            ->where('status', '!=', 'ANNULEE')
             ->with('ligneVentes')
             ->get()
             ->sum(function ($vente) {
@@ -161,6 +165,7 @@ class Dashboard extends Component
 
         // Total Purchases (from commandes with discount applied) - filtered by currency
         $this->totalPurchases = CommandeFournisseur::where('devise_id', $deviseId)
+            ->where('status', '!=', 'ANNULEE')
             ->with('ligneCommandes')
             ->get()
             ->sum(function ($commande) {
@@ -173,16 +178,17 @@ class Dashboard extends Component
 
         // Total Payments Received (from client payments) - filter by currency through sales
         $this->totalPaymentsReceived = VentePaiementClient::whereHas('vente', function ($query) use ($deviseId) {
-            $query->where('devise_id', $deviseId);
+            $query->where('devise_id', $deviseId)->where('status', '!=', 'ANNULEE');
         })->sum('montant');
 
         // Total Payments Made (to suppliers) - filter by currency through commandes
         $this->totalPaymentsMade = PaiementFournisseur::whereHas('commande', function ($query) use ($deviseId) {
-            $query->where('devise_id', $deviseId);
+            $query->where('devise_id', $deviseId)->where('status', '!=', 'ANNULEE');
         })->sum('montant');
 
         // Calculate pending receivables (sales not fully paid) - filtered by currency
         $this->pendingReceivables = VenteModel::where('devise_id', $deviseId)
+            ->where('status', '!=', 'ANNULEE')
             ->with('ligneVentes', 'paiements')
             ->get()
             ->sum(function ($vente) {
@@ -193,7 +199,7 @@ class Dashboard extends Component
 
         // Calculate pending payments (receptions not fully paid) - filtered by currency through commandes
         $this->pendingPayments = ReceptionFournisseur::whereHas('commande', function ($query) use ($deviseId) {
-            $query->where('devise_id', $deviseId);
+            $query->where('devise_id', $deviseId)->where('status', '!=', 'ANNULEE');
         })
             ->with('ligneReceptions', 'paiements')
             ->get()
@@ -206,9 +212,23 @@ class Dashboard extends Component
 
     private function calculateStock()
     {
-        // Calculate stock value and alerts - filtered by currency
-        $articles = ArticleModel::where('devise_id', $this->selectedDeviseId)
-            ->with(['ligneReceptions', 'ligneVentes'])
+        $articles = ArticleModel::query()
+            ->where('devise_id', $this->selectedDeviseId)
+            ->select(['article_models.id', 'article_models.prix_achat'])
+            ->selectSub(
+                DB::table('ligne_reception_fournisseurs')
+                    ->selectRaw('COALESCE(SUM(quantity), 0)')
+                    ->whereColumn('article_id', 'article_models.id'),
+                'total_received'
+            )
+            ->selectSub(
+                DB::table('ligne_vente_clients')
+                    ->join('vente_models', 'vente_models.id', '=', 'ligne_vente_clients.vente_id')
+                    ->selectRaw('COALESCE(SUM(ligne_vente_clients.quantity), 0)')
+                    ->whereColumn('ligne_vente_clients.article_id', 'article_models.id')
+                    ->where('vente_models.status', '!=', 'ANNULEE'),
+                'total_sold'
+            )
             ->get();
 
         $this->totalStockValue = 0;
@@ -216,9 +236,9 @@ class Dashboard extends Component
         $this->outOfStockItems = 0;
 
         foreach ($articles as $article) {
-            $totalReceived = $article->ligneReceptions->sum('quantity') ?? 0;
-            $totalSold = $article->ligneVentes->sum('quantity') ?? 0;
-            $stock = $totalReceived - $totalSold;
+            $totalReceived = (int) ($article->total_received ?? 0);
+            $totalSold = (int) ($article->total_sold ?? 0);
+            $stock = max(0, $totalReceived - $totalSold);
 
             // Calculate stock value (using purchase price)
             $this->totalStockValue += $stock * ($article->prix_achat ?? 0);
@@ -243,21 +263,29 @@ class Dashboard extends Component
             ->whereDate('created_at', $today)
             ->count();
         $this->newOrdersToday = CommandeFournisseur::where('devise_id', $deviseId)
+            ->where('status', '!=', 'ANNULEE')
             ->whereDate('created_at', $today)
             ->count();
         $this->newSalesToday = VenteModel::where('devise_id', $deviseId)
+            ->where('status', '!=', 'ANNULEE')
             ->whereDate('created_at', $today)
             ->count();
-        $this->newPaymentsToday = VentePaiementClient::whereHas('vente', function ($query) use ($deviseId) {
-            $query->where('devise_id', $deviseId);
+        $clientPaymentsTodayQuery = VentePaiementClient::whereHas('vente', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId)->where('status', '!=', 'ANNULEE');
         })
             ->whereDate('date_paiement', $today)
-            ->count() +
-            PaiementFournisseur::whereHas('commande', function ($query) use ($deviseId) {
-                $query->where('devise_id', $deviseId);
-            })
+            ;
+
+        $supplierPaymentsTodayQuery = PaiementFournisseur::whereHas('commande', function ($query) use ($deviseId) {
+            $query->where('devise_id', $deviseId)->where('status', '!=', 'ANNULEE');
+        })
             ->whereDate('date_paiement', $today)
-            ->count();
+            ;
+
+        $this->newPaymentsToday = $clientPaymentsTodayQuery->count() + $supplierPaymentsTodayQuery->count();
+        $this->paymentsTodayReceivedAmount = (float) $clientPaymentsTodayQuery->sum('montant');
+        $this->paymentsTodayPaidAmount = (float) $supplierPaymentsTodayQuery->sum('montant');
+        $this->paymentsTodayAmount = $this->paymentsTodayReceivedAmount + $this->paymentsTodayPaidAmount;
     }
 
     private function calculateStatusCounts()
@@ -270,16 +298,16 @@ class Dashboard extends Component
             ->where('status', true)
             ->count();
         $this->pendingOrders = CommandeFournisseur::where('devise_id', $deviseId)
-            ->where('status', 'pending')
+            ->whereIn('status', ['EN_COURS', 'PARTIELLE'])
             ->count();
         $this->completedOrders = CommandeFournisseur::where('devise_id', $deviseId)
-            ->where('status', 'completed')
+            ->where('status', 'TERMINEE')
             ->count();
         $this->pendingSales = VenteModel::where('devise_id', $deviseId)
-            ->where('status', 'pending')
+            ->whereIn('status', ['IMPAYEE', 'PARTIELLE'])
             ->count();
         $this->completedSales = VenteModel::where('devise_id', $deviseId)
-            ->where('status', 'completed')
+            ->where('status', 'PAYEE')
             ->count();
     }
 
@@ -332,19 +360,40 @@ class Dashboard extends Component
         })->sortByDesc('total_supplied')->take(5)->values();
 
         // Top 5 Articles by sales quantity - filtered by currency
-        $this->topArticles = ArticleModel::where('devise_id', $deviseId)
-            ->withCount(['ligneVentes as total_sold'])
-            ->with(['ligneVentes' => function ($query) {
-                $query->select('article_id', DB::raw('SUM(quantity * unit_price) as revenue'))
-                    ->groupBy('article_id');
-            }])
+        $this->topArticles = ArticleModel::query()
+            ->where('devise_id', $deviseId)
+            ->with('category')
+            ->select('article_models.*')
+            ->selectSub(
+                DB::table('ligne_reception_fournisseurs')
+                    ->selectRaw('COALESCE(SUM(quantity), 0)')
+                    ->whereColumn('article_id', 'article_models.id'),
+                'total_received'
+            )
+            ->selectSub(
+                DB::table('ligne_vente_clients')
+                    ->join('vente_models', 'vente_models.id', '=', 'ligne_vente_clients.vente_id')
+                    ->selectRaw('COALESCE(SUM(ligne_vente_clients.quantity), 0)')
+                    ->whereColumn('ligne_vente_clients.article_id', 'article_models.id')
+                    ->where('vente_models.status', '!=', 'ANNULEE'),
+                'total_sold'
+            )
+            ->selectSub(
+                DB::table('ligne_vente_clients')
+                    ->join('vente_models', 'vente_models.id', '=', 'ligne_vente_clients.vente_id')
+                    ->selectRaw('COALESCE(SUM(ligne_vente_clients.quantity * ligne_vente_clients.unit_price), 0)')
+                    ->whereColumn('ligne_vente_clients.article_id', 'article_models.id')
+                    ->where('vente_models.status', '!=', 'ANNULEE'),
+                'revenue'
+            )
             ->orderByDesc('total_sold')
             ->limit(5)
             ->get()
             ->map(function ($article) {
-                $revenue = $article->ligneVentes->sum('revenue') ?? 0;
-                $totalReceived = $article->ligneReceptions->sum('quantity') ?? 0;
-                $totalSold = $article->total_sold;
+                $revenue = (float) ($article->revenue ?? 0);
+                $totalReceived = (int) ($article->total_received ?? 0);
+                $totalSold = (int) ($article->total_sold ?? 0);
+                $stock = max(0, $totalReceived - $totalSold);
 
                 return [
                     'id' => $article->id,
@@ -353,7 +402,7 @@ class Dashboard extends Component
                     'category' => $article->category->name ?? '—',
                     'total_sold' => $totalSold,
                     'revenue' => $revenue,
-                    'stock' => $totalReceived - $totalSold,
+                    'stock' => $stock,
                     'unit' => $article->unite
                 ];
             });
@@ -375,19 +424,29 @@ class Dashboard extends Component
             });
 
         // Low stock alerts (articles with stock <= 10) - filtered by currency
-        $this->lowStockAlerts = ArticleModel::where('devise_id', $deviseId)
-            ->with(['ligneReceptions', 'ligneVentes', 'category'])
+        $this->lowStockAlerts = ArticleModel::query()
+            ->where('devise_id', $deviseId)
+            ->with('category')
+            ->select('article_models.*')
+            ->selectSub(
+                DB::table('ligne_reception_fournisseurs')
+                    ->selectRaw('COALESCE(SUM(quantity), 0)')
+                    ->whereColumn('article_id', 'article_models.id'),
+                'total_received'
+            )
+            ->selectSub(
+                DB::table('ligne_vente_clients')
+                    ->join('vente_models', 'vente_models.id', '=', 'ligne_vente_clients.vente_id')
+                    ->selectRaw('COALESCE(SUM(ligne_vente_clients.quantity), 0)')
+                    ->whereColumn('ligne_vente_clients.article_id', 'article_models.id')
+                    ->where('vente_models.status', '!=', 'ANNULEE'),
+                'total_sold'
+            )
             ->get()
-            ->filter(function ($article) {
-                $totalReceived = $article->ligneReceptions->sum('quantity') ?? 0;
-                $totalSold = $article->ligneVentes->sum('quantity') ?? 0;
-                $stock = $totalReceived - $totalSold;
-                return $stock <= 10 && $stock > 0;
-            })
             ->map(function ($article) {
-                $totalReceived = $article->ligneReceptions->sum('quantity') ?? 0;
-                $totalSold = $article->ligneVentes->sum('quantity') ?? 0;
-                $stock = $totalReceived - $totalSold;
+                $totalReceived = (int) ($article->total_received ?? 0);
+                $totalSold = (int) ($article->total_sold ?? 0);
+                $stock = max(0, $totalReceived - $totalSold);
 
                 return [
                     'id' => $article->id,
@@ -398,6 +457,7 @@ class Dashboard extends Component
                     'unit' => $article->unite
                 ];
             })
+            ->filter(fn($a) => $a['stock'] <= 10 && $a['stock'] > 0)
             ->sortBy('stock')
             ->take(5)
             ->values();

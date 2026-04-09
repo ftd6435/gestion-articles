@@ -14,6 +14,7 @@ class ClientModel extends Model
         'email',
         'adresse',
         'status',
+        'is_default',
         'image',
         'created_by',
         'updated_by'
@@ -21,6 +22,7 @@ class ClientModel extends Model
 
     protected $casts = [
         'status' => 'boolean',
+        'is_default' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -54,5 +56,13 @@ class ClientModel extends Model
     public function ventes()
     {
         return $this->hasMany(VenteModel::class, 'client_id');
+    }
+
+    /**
+     * Get the default active client (used for "client inconnu").
+     */
+    public static function getDefaultClient()
+    {
+        return self::active()->where('is_default', true)->first();
     }
 }

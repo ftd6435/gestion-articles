@@ -83,6 +83,13 @@ class Devise extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.devises', 'create')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de créer des devises.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -95,6 +102,13 @@ class Devise extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.devises', 'update')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier des devises.');
+            return;
+        }
+
         try {
             $devise = DeviseModel::findOrFail($id);
 
@@ -113,6 +127,20 @@ class Devise extends Component
 
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->deviseId) {
+            if (!$currentUser?->canAccess('configuration.devises', 'update')) {
+                $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier des devises.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('configuration.devises', 'create')) {
+                $this->dispatch('error', message: 'Vous n\'avez pas la permission de créer des devises.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
@@ -214,6 +242,13 @@ class Devise extends Component
      */
     public function toggleStatusConfirm($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.devises', 'toggle_status')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier le statut des devises.');
+            return;
+        }
+
         try {
             $devise = DeviseModel::findOrFail($id);
 
@@ -242,6 +277,13 @@ class Devise extends Component
      */
     public function confirmToggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.devises', 'toggle_status')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier le statut des devises.');
+            return;
+        }
+
         try {
             DB::beginTransaction();
 
@@ -307,6 +349,13 @@ class Devise extends Component
      */
     public function toggleDefaultConfirm($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.devises', 'update')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier la devise par défaut.');
+            return;
+        }
+
         try {
             $devise = DeviseModel::findOrFail($id);
 
@@ -335,6 +384,13 @@ class Devise extends Component
      */
     public function confirmToggleDefault($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.devises', 'update')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier la devise par défaut.');
+            return;
+        }
+
         try {
             DB::beginTransaction();
 

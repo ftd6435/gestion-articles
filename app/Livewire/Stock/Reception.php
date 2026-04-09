@@ -16,9 +16,20 @@ class Reception extends Component
 
     protected $paginationTheme = 'bootstrap';
 
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'filterCommande' => ['except' => ''],
+        'paymentStatusFilter' => ['except' => ''],
+        'dateFrom' => ['except' => null],
+        'dateTo' => ['except' => null],
+        'period' => ['except' => ''],
+        'page' => ['except' => 1],
+    ];
+
     // Filters
     public $search = '';
     public $filterCommande = '';
+    public $paymentStatusFilter = '';
     public $dateFrom;
     public $dateTo;
     public $period = '';
@@ -45,7 +56,7 @@ class Reception extends Component
     public function updated($propertyName)
     {
         // Reset pagination when filters change
-        if (in_array($propertyName, ['search', 'filterCommande', 'dateFrom', 'dateTo', 'period'])) {
+        if (in_array($propertyName, ['search', 'filterCommande', 'paymentStatusFilter', 'dateFrom', 'dateTo', 'period'])) {
             $this->resetPage();
         }
     }
@@ -53,7 +64,30 @@ class Reception extends Component
     public function loadReceptions()
     {
         $query = ReceptionFournisseur::query()
-            ->with(['commande.fournisseur', 'ligneReceptions', 'createdBy']);
+            ->with(['commande.fournisseur', 'commande.ligneCommandes', 'ligneReceptions', 'paiements', 'createdBy'])
+            ->select('reception_fournisseurs.*')
+            ->selectSub(
+                DB::table('paiement_fournisseurs')
+                    ->selectRaw('COALESCE(SUM(montant), 0)')
+                    ->whereColumn('reception_id', 'reception_fournisseurs.id'),
+                'total_paid'
+            )
+            ->selectSub(
+                DB::table('ligne_reception_fournisseurs as lr')
+                    ->join('ligne_commande_fournisseurs as lc', function ($join) {
+                        $join->on('lc.article_id', '=', 'lr.article_id');
+                    })
+                    ->selectRaw('COALESCE(SUM(lr.quantity * lc.unit_price), 0)')
+                    ->whereColumn('lr.reception_id', 'reception_fournisseurs.id')
+                    ->whereColumn('lc.commande_id', 'reception_fournisseurs.commande_id'),
+                'total_no_discount'
+            )
+            ->selectSub(
+                DB::table('commande_fournisseurs')
+                    ->selectRaw('COALESCE(remise, 0)')
+                    ->whereColumn('id', 'reception_fournisseurs.commande_id'),
+                'remise_percent'
+            );
 
         // Search by multiple criteria
         if ($this->search) {
@@ -96,12 +130,24 @@ class Reception extends Component
                 ->whereYear('date_reception', now()->year);
         }
 
+        if ($this->paymentStatusFilter) {
+            $totalNetExpr = '(total_no_discount - (total_no_discount * (remise_percent / 100)))';
+
+            if ($this->paymentStatusFilter === 'PAYE') {
+                $query->havingRaw("total_paid >= {$totalNetExpr}");
+            } elseif ($this->paymentStatusFilter === 'PARTIEL') {
+                $query->havingRaw("total_paid > 0 AND total_paid < {$totalNetExpr}");
+            } elseif ($this->paymentStatusFilter === 'NON_PAYE') {
+                $query->havingRaw("total_paid <= 0 AND {$totalNetExpr} > 0");
+            }
+        }
+
         return $query->latest('date_reception')->paginate(10);
     }
 
     public function resetFilters()
     {
-        $this->reset(['search', 'filterCommande', 'dateFrom', 'dateTo', 'period']);
+        $this->reset(['search', 'filterCommande', 'paymentStatusFilter', 'dateFrom', 'dateTo', 'period']);
         $this->resetPage();
     }
 
@@ -128,6 +174,20 @@ class Reception extends Component
 
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->receptionId) {
+            if (!$currentUser?->canAccess('stock.approvisions', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des réceptions.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('stock.approvisions', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des réceptions.');
+                return;
+            }
+        }
+
         // Define validation rules
         $this->validate([
             'commande_id' => 'required|exists:commande_fournisseurs,id',
@@ -196,6 +256,13 @@ class Reception extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('stock.approvisions', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des réceptions.');
+            return;
+        }
+
         $this->redirectRoute('stock.approvisions.create');
     }
 

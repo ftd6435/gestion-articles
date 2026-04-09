@@ -143,6 +143,13 @@ class Commande extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('stock.commandes', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des commandes.');
+            return;
+        }
+
         $this->redirectRoute('stock.commandes.create');
     }
 
@@ -179,6 +186,13 @@ class Commande extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('stock.commandes', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des commandes.');
+            return;
+        }
+
         try {
             $commande = CommandeFournisseur::findOrFail($id);
 
@@ -213,6 +227,13 @@ class Commande extends Component
 
     public function cancelCommande($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('stock.commandes', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des commandes.');
+            return;
+        }
+
         $commande = CommandeFournisseur::findOrFail($id);
 
         if ($commande->receptions()->exists()) {
@@ -233,6 +254,20 @@ class Commande extends Component
 
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->commandeId) {
+            if (!$currentUser?->canAccess('stock.commandes', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des commandes.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('stock.commandes', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des commandes.');
+                return;
+            }
+        }
+
         // Define validation rules
         $this->validate([
             'reference' => ['required', 'string', 'min:3', Rule::unique('commande_fournisseurs', 'reference')->ignore($this->commandeId)],

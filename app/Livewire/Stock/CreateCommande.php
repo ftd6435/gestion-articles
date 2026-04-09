@@ -388,6 +388,14 @@ class CreateCommande extends Component
     public function createArticle()
     {
         $this->resetNewArticle();
+
+        if (!$this->devise_id) {
+            $defaultDevise = DeviseModel::getDefaultDevise();
+            if ($defaultDevise) {
+                $this->devise_id = $defaultDevise->id;
+            }
+        }
+
         $this->showModal = true;
     }
 
@@ -397,10 +405,22 @@ class CreateCommande extends Component
         $this->resetNewArticle();
     }
 
+    protected function generateArticleReference(): string
+    {
+        $nextId = ((int) ArticleModel::max('id')) + 1;
+        $reference = 'AR' . str_pad((string) $nextId, 4, '0', STR_PAD_LEFT);
+
+        if (ArticleModel::where('reference', $reference)->exists()) {
+            $reference = 'AR' . now()->format('ymd') . rand(10, 99);
+        }
+
+        return $reference;
+    }
+
     public function resetNewArticle()
     {
         $this->newArticle = [
-            'reference' => 'AR' . rand(100, 999),
+            'reference' => $this->generateArticleReference(),
             'category_id' => '',
             'designation' => '',
             'description' => '',
@@ -413,6 +433,13 @@ class CreateCommande extends Component
 
     public function storeArticle()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('articles', 'create')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de créer des articles.');
+            return;
+        }
+
         $this->validate($this->articleRules);
 
         $article = ArticleModel::create([

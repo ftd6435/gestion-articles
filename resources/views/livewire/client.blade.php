@@ -23,19 +23,13 @@
                 <!-- Tabs -->
                 <ul class="nav nav-pills supplier-tabs" role="tablist">
                     <li class="nav-item">
-                        <button class="nav-link active"
-                                data-bs-toggle="tab"
-                                data-bs-target="#tab-table"
-                                type="button">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-table" type="button">
                             <i class="fa fa-table me-2"></i> Tableau
                         </button>
                     </li>
 
                     <li class="nav-item">
-                        <button class="nav-link"
-                                data-bs-toggle="tab"
-                                data-bs-target="#tab-cards"
-                                type="button">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cards" type="button">
                             <i class="fa fa-id-card me-2"></i> Cartes
                         </button>
                     </li>
@@ -80,17 +74,22 @@
                                             </div>
                                         </td>
 
-                                        <td class="fw-semibold">{{ $client->name }}</td>
+                                        <td class="fw-semibold">
+                                            {{ $client->name }}
+                                            @if ($client->is_default)
+                                                <span class="badge bg-info ms-2">Par défaut</span>
+                                            @endif
+                                        </td>
 
                                         <td class="text-muted">{{ $client->telephone }}</td>
 
                                         <td>
                                             @php
-                                                $typeClasses = match($client->type) {
-                                                    'GROSSISTE'  => 'bg-primary',
+                                                $typeClasses = match ($client->type) {
+                                                    'GROSSISTE' => 'bg-primary',
                                                     'DETAILLANT' => 'bg-success',
-                                                    'MIXTE'      => 'bg-warning',
-                                                    default      => 'bg-secondary',
+                                                    'MIXTE' => 'bg-warning',
+                                                    default => 'bg-secondary',
                                                 };
                                             @endphp
 
@@ -112,22 +111,22 @@
                                         <td class="text-end">
                                             <div class="btn-group btn-group-sm">
                                                 <button wire:click="showDetails({{ $client->id }})"
-                                                        class="btn btn-outline-info">
+                                                    class="btn btn-outline-info">
                                                     <i class="fa fa-eye"></i>
                                                 </button>
 
                                                 <button wire:click="edit({{ $client->id }})"
-                                                        class="btn btn-outline-primary">
+                                                    class="btn btn-outline-primary">
                                                     <i class="fa fa-pen"></i>
                                                 </button>
 
                                                 <button wire:click="toggleStatus({{ $client->id }})"
-                                                        class="btn btn-outline-{{ $client->status ? 'success' : 'secondary' }}">
+                                                    class="btn btn-outline-{{ $client->status ? 'success' : 'secondary' }}">
                                                     <i class="fa fa-toggle-{{ $client->status ? 'on' : 'off' }}"></i>
                                                 </button>
 
                                                 <button wire:click="deleteConfirm({{ $client->id }})"
-                                                        class="btn btn-outline-danger">
+                                                    class="btn btn-outline-danger">
                                                     <i class="fa fa-trash"></i>
                                                 </button>
                                             </div>
@@ -163,18 +162,23 @@
                                             </div>
 
                                             <div>
-                                                <h6 class="fw-semibold mb-0">{{ $client->name }}</h6>
+                                                <h6 class="fw-semibold mb-0">
+                                                    {{ $client->name }}
+                                                    @if ($client->is_default)
+                                                        <span class="badge bg-info ms-2">Par défaut</span>
+                                                    @endif
+                                                </h6>
                                                 <small class="text-muted">{{ $client->telephone }}</small>
                                             </div>
                                         </div>
 
                                         <p class="text-muted small mb-1">
                                             @php
-                                                $typeClasses = match($client->type) {
-                                                    'GROSSISTE'  => 'bg-primary',
+                                                $typeClasses = match ($client->type) {
+                                                    'GROSSISTE' => 'bg-primary',
                                                     'DETAILLANT' => 'bg-success',
-                                                    'MIXTE'      => 'bg-warning',
-                                                    default      => 'bg-secondary',
+                                                    'MIXTE' => 'bg-warning',
+                                                    default => 'bg-secondary',
                                                 };
                                             @endphp
 
@@ -195,22 +199,22 @@
 
                                     <div class="card-footer bg-white d-flex gap-2">
                                         <button wire:click="showDetails({{ $client->id }})"
-                                                class="btn btn-sm btn-outline-info flex-fill">
+                                            class="btn btn-sm btn-outline-info flex-fill">
                                             <i class="fa fa-eye me-1"></i> Détails
                                         </button>
 
                                         <button wire:click="edit({{ $client->id }})"
-                                                class="btn btn-sm btn-outline-primary">
+                                            class="btn btn-sm btn-outline-primary">
                                             <i class="fa fa-pen"></i>
                                         </button>
 
                                         <button wire:click="toggleStatus({{ $client->id }})"
-                                                class="btn btn-outline-{{ $client->status ? 'success' : 'secondary' }}">
+                                            class="btn btn-outline-{{ $client->status ? 'success' : 'secondary' }}">
                                             <i class="fa fa-toggle-{{ $client->status ? 'on' : 'off' }}"></i>
                                         </button>
 
                                         <button wire:click="deleteConfirm({{ $client->id }})"
-                                                class="btn btn-sm btn-outline-danger">
+                                            class="btn btn-sm btn-outline-danger">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </div>

@@ -248,6 +248,13 @@ class Vente extends Component
 
     public function storePaiement()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('ventes.paiements', 'create')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission d\'enregistrer des paiements clients.');
+            return;
+        }
+
         $this->validate([
             'paiement_date' => 'required|date',
             'paiement_montant' => [
@@ -353,6 +360,13 @@ class Vente extends Component
 
     public function cancelVente()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('ventes.ventes', 'toggle_status')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier le statut des ventes.');
+            return;
+        }
+
         if (!$this->selectedVente) return;
 
         DB::beginTransaction();

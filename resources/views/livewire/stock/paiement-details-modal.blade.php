@@ -16,6 +16,52 @@
             <div class="modal-body bg-white">
                 <div class="p-4">
                     @php
+                        $company = \App\Models\CompanySetting::query()->first();
+                        $companyName = $company?->name ?: config('app.name');
+                        $companyTel = $company?->telephone;
+                        $companyEmail = $company?->email;
+                        $companyLogoUrl = $company?->logo_path ? asset($company->logo_path) : null;
+                        $publicUrl = \Illuminate\Support\Facades\URL::signedRoute('public.paiements.show', ['paiement' => $selectedPaiement->id]);
+                        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode($publicUrl);
+                    @endphp
+
+                    <div class="d-none d-print-block mb-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                @if($companyLogoUrl)
+                                    <img src="{{ $companyLogoUrl }}" alt="Logo" style="max-height: 60px; max-width: 160px;">
+                                @endif
+                                <div>
+                                    <div class="fw-bold fs-5">{{ $companyName }}</div>
+                                    <div class="small text-muted">
+                                        @if($companyTel)
+                                            <span>{{ $companyTel }}</span>
+                                        @endif
+                                        @if($companyTel && $companyEmail)
+                                            <span class="mx-2">|</span>
+                                        @endif
+                                        @if($companyEmail)
+                                            <span>{{ $companyEmail }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <img src="{{ $qrUrl }}" alt="QR" style="height: 90px; width: 90px;">
+                                <div class="small text-muted mt-1">Scanner pour ouvrir</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <h2 class="mb-1">PAIEMENT FOURNISSEUR</h2>
+                            <div class="mb-0">REF: {{ $selectedPaiement->reference }}</div>
+                            <div class="mb-0">{{ \Carbon\Carbon::parse($selectedPaiement->date_paiement)->format('d/m/Y') }}</div>
+                        </div>
+                        <hr class="mt-3 mb-0">
+                    </div>
+
+                    @php
                         // Calculate financial details
                         $reception = $selectedPaiement->reception;
                         $currency = $selectedPaiement->commande?->devise?->symbole ?? $selectedPaiement->commande?->devise?->code ?? 'FG';

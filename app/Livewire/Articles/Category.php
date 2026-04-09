@@ -63,6 +63,13 @@ class Category extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.categories', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des catégories.');
+            return;
+        }
+
         $this->resetForm();
         $this->showCategoryModal = true;
     }
@@ -75,6 +82,13 @@ class Category extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.categories', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des catégories.');
+            return;
+        }
+
         try {
             $category = CategoryModel::findOrFail($id);
 
@@ -91,6 +105,20 @@ class Category extends Component
 
     public function storeCategory()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->categoryId) {
+            if (!$currentUser?->canAccess('configuration.categories', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des catégories.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('configuration.categories', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des catégories.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
@@ -145,6 +173,13 @@ class Category extends Component
 
     public function toggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.categories', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des catégories.');
+            return;
+        }
+
         $category = CategoryModel::findOrFail($id);
         $oldStatus = $category->status;
         $category->update([

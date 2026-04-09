@@ -69,11 +69,20 @@
 
             <div class="modal-footer bg-white px-3 py-2">
                 <button wire:click="closeModal" class="btn btn-light me-2" data-bs-dismiss="modal">Annuler</button>
-                <button wire:click="store" class="btn btn-primary">
-                    Enregistrer
-                </button>
+                @if ($deviseId)
+                    @access('configuration.devises', 'update')
+                        <button wire:click="store" class="btn btn-primary">
+                            Enregistrer
+                        </button>
+                    @endaccess
+                @else
+                    @access('configuration.devises', 'create')
+                        <button wire:click="store" class="btn btn-primary">
+                            Enregistrer
+                        </button>
+                    @endaccess
+                @endif
             </div>
         </div>
     </div>
 </div>
-

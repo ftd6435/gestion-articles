@@ -67,6 +67,13 @@ class Etagere extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('warehouse.etageres', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des étagères.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -81,6 +88,13 @@ class Etagere extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('warehouse.etageres', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des étagères.');
+            return;
+        }
+
         try {
             $etagere = EtagereModel::findOrFail($id);
 
@@ -98,6 +112,20 @@ class Etagere extends Component
 
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->etagereId) {
+            if (!$currentUser?->canAccess('warehouse.etageres', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des étagères.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('warehouse.etageres', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des étagères.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
@@ -154,6 +182,13 @@ class Etagere extends Component
 
     public function toggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('warehouse.etageres', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des étagères.');
+            return;
+        }
+
         $etagere = EtagereModel::findOrFail($id);
         $oldStatus = $etagere->status;
         $etagere->update([

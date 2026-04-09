@@ -62,6 +62,13 @@ class Magasin extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('warehouse.magasins', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des magasins.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -74,6 +81,13 @@ class Magasin extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('warehouse.magasins', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des magasins.');
+            return;
+        }
+
         try {
             $magasin = MagasinModel::findOrFail($id);
 
@@ -91,6 +105,20 @@ class Magasin extends Component
 
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->magasinId) {
+            if (!$currentUser?->canAccess('warehouse.magasins', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des magasins.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('warehouse.magasins', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des magasins.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
@@ -151,6 +179,13 @@ class Magasin extends Component
 
     public function toggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('warehouse.magasins', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des magasins.');
+            return;
+        }
+
         $magasin = MagasinModel::findOrFail($id);
         $oldStatus = $magasin->status;
         $magasin->update([

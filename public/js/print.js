@@ -1,28 +1,42 @@
 // PRINT MODE SALE - Improved version without new tab
 function printModal() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printFrame';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
 
     document.body.appendChild(printFrame);
 
-    // Get the content to print
-    const printableArea = document.getElementById('printableArea');
-    const contentToPrint = printableArea.innerHTML;
+    // Get the content to print - clone it first to avoid modifying original
+    const printableArea = document.getElementById("printableArea");
+    const clonedArea = printableArea.cloneNode(true);
+
+    const elementsToRemove = clonedArea.querySelectorAll(
+        ".d-print-none, .alert.alert-info, .modal-footer, .btn, button, .btn-close",
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    const printOnlyElements = clonedArea.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
+    });
+
+    const contentToPrint = clonedArea.innerHTML;
 
     // Get modal header content
-    const modalHeader = document.querySelector('.modal-header');
+    const modalHeader = document.querySelector(".modal-header");
     const clonedHeader = modalHeader.cloneNode(true);
-    const closeBtn = clonedHeader.querySelector('.btn-close');
+    const closeBtn = clonedHeader.querySelector(".btn-close");
     if (closeBtn) closeBtn.remove();
-    const headerContent = clonedHeader.querySelector('div');
+    const headerContent = clonedHeader.querySelector("div");
 
     // Create HTML structure for printing
     const printContent = `
@@ -206,14 +220,16 @@ function printModal() {
     printFrame.contentWindow.focus();
 
     // Wait for iframe to load, then print
-    printFrame.onload = function() {
+    printFrame.onload = function () {
         try {
             printFrame.contentWindow.print();
         } catch (error) {
-            console.error('Print error:', error);
+            console.error("Print error:", error);
 
             // Fallback: Show print dialog manually
-            alert('Pour imprimer, utilisez Ctrl+P ou Cmd+P dans la fenêtre d\'impression');
+            alert(
+                "Pour imprimer, utilisez Ctrl+P ou Cmd+P dans la fenêtre d'impression",
+            );
         }
 
         // Clean up after printing
@@ -228,42 +244,45 @@ function printModal() {
 // PRINT MODE COMMANDE - Fixed version with better CSS targeting
 function printCommande() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printFrame';
-    printFrame.title = 'Print Document';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
+    printFrame.title = "Print Document";
 
     document.body.appendChild(printFrame);
 
     // Get the content to print - clone it first to avoid modifying original
-    const printableArea = document.getElementById('printableArea');
+    const printableArea = document.getElementById("printableArea");
     const clonedArea = printableArea.cloneNode(true);
 
     // Remove elements that shouldn't be in the print version
-    const elementsToRemove = clonedArea.querySelectorAll('.d-print-none, .alert.alert-info, .modal-footer, .btn, button, .btn-close');
-    elementsToRemove.forEach(el => el.remove());
+    const elementsToRemove = clonedArea.querySelectorAll(
+        ".d-print-none, .alert.alert-info, .modal-footer, .btn, button, .btn-close",
+    );
+    elementsToRemove.forEach((el) => el.remove());
 
-    // Show print-only elements
-    const printOnlyElements = clonedArea.querySelectorAll('.d-print-block');
-    printOnlyElements.forEach(el => {
-        el.style.display = 'block';
-        el.classList.remove('d-print-block');
+    // Show print-only elements (bootstrap's d-none uses !important, so we must remove it)
+    const printOnlyElements = clonedArea.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
     });
 
     const contentToPrint = clonedArea.innerHTML;
 
     // Get modal header content
-    const modalHeader = document.querySelector('.modal-header');
+    const modalHeader = document.querySelector(".modal-header");
     const clonedHeader = modalHeader.cloneNode(true);
-    const closeBtn = clonedHeader.querySelector('.btn-close');
+    const closeBtn = clonedHeader.querySelector(".btn-close");
     if (closeBtn) closeBtn.remove();
-    const headerContent = clonedHeader.querySelector('div');
+    const headerContent = clonedHeader.querySelector("div");
 
     // Create HTML structure for printing
     const printContent = `
@@ -390,17 +409,17 @@ function printCommande() {
                         /* FINANCIAL SUMMARY CARDS - Specific styling */
                         .row.mb-4 .card {
                             height: auto !important;
-                            min-height: 120px;
+                            min-height: 90px;
                         }
 
                         .row.mb-4 .card-body {
-                            padding: 10px !important;
+                            padding: 8px !important;
                             text-align: center;
                         }
 
                         .row.mb-4 .fw-bold.h4 {
                             font-size: 14pt !important;
-                            margin: 10px 0 !important;
+                            margin: 6px 0 !important;
                             display: block !important;
                         }
 
@@ -675,8 +694,10 @@ function printCommande() {
         printFrame.contentWindow.document.write(printContent);
         printFrame.contentWindow.document.close();
     } catch (error) {
-        console.error('Error creating print document:', error);
-        alert('Erreur lors de la préparation de l\'impression. Veuillez réessayer.');
+        console.error("Error creating print document:", error);
+        alert(
+            "Erreur lors de la préparation de l'impression. Veuillez réessayer.",
+        );
 
         // Clean up iframe
         if (printFrame.parentNode) {
@@ -686,14 +707,16 @@ function printCommande() {
     }
 
     // Wait for iframe to load, then print
-    printFrame.onload = function() {
-        setTimeout(function() {
+    printFrame.onload = function () {
+        setTimeout(function () {
             try {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             } catch (error) {
-                console.error('Print error:', error);
-                alert('Pour imprimer, utilisez Ctrl+P dans la fenêtre d\'impression qui s\'est ouverte.');
+                console.error("Print error:", error);
+                alert(
+                    "Pour imprimer, utilisez Ctrl+P dans la fenêtre d'impression qui s'est ouverte.",
+                );
             }
 
             // Clean up iframe
@@ -709,33 +732,42 @@ function printCommande() {
 // PRINT MODE RECEPTION - Fixed version with better CSS targeting
 function printReceptionDetails() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printFrame';
-    printFrame.title = 'Print Document';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
+    printFrame.title = "Print Document";
 
     document.body.appendChild(printFrame);
 
     // Get the content to print - clone it first to avoid modifying original
-    const printableArea = document.getElementById('receptionDetailsContent');
+    const printableArea = document.getElementById("receptionDetailsContent");
     const clonedArea = printableArea.cloneNode(true);
 
     // Remove elements that shouldn't be in the print version
-    const elementsToRemove = clonedArea.querySelectorAll('.modal-footer, .btn, button, .btn-close, .alert.alert-info');
-    elementsToRemove.forEach(el => el.remove());
+    const elementsToRemove = clonedArea.querySelectorAll(
+        ".modal-footer, .btn, button, .btn-close, .alert.alert-info",
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    const printOnlyElements = clonedArea.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
+    });
 
     // Get modal header content
-    const modalHeader = document.querySelector('.modal-header');
+    const modalHeader = document.querySelector(".modal-header");
     const clonedHeader = modalHeader.cloneNode(true);
-    const closeBtn = clonedHeader.querySelector('.btn-close');
+    const closeBtn = clonedHeader.querySelector(".btn-close");
     if (closeBtn) closeBtn.remove();
-    const headerContent = clonedHeader.querySelector('div');
+    const headerContent = clonedHeader.querySelector("div");
 
     const contentToPrint = clonedArea.innerHTML;
 
@@ -845,17 +877,17 @@ function printReceptionDetails() {
                         /* FINANCIAL SUMMARY CARDS - Specific styling */
                         .row.text-center.mb-4 .card {
                             height: auto !important;
-                            min-height: 120px;
+                            min-height: 90px;
                         }
 
                         .row.text-center.mb-4 .card-body {
-                            padding: 10px !important;
+                            padding: 8px !important;
                             text-align: center;
                         }
 
                         .row.text-center.mb-4 .fw-bold.h4 {
                             font-size: 14pt !important;
-                            margin: 10px 0 !important;
+                            margin: 6px 0 !important;
                             display: block !important;
                         }
 
@@ -1133,8 +1165,10 @@ function printReceptionDetails() {
         printFrame.contentWindow.document.write(printContent);
         printFrame.contentWindow.document.close();
     } catch (error) {
-        console.error('Error creating print document:', error);
-        alert('Erreur lors de la préparation de l\'impression. Veuillez réessayer.');
+        console.error("Error creating print document:", error);
+        alert(
+            "Erreur lors de la préparation de l'impression. Veuillez réessayer.",
+        );
 
         // Clean up iframe
         if (printFrame.parentNode) {
@@ -1144,14 +1178,16 @@ function printReceptionDetails() {
     }
 
     // Wait for iframe to load, then print
-    printFrame.onload = function() {
-        setTimeout(function() {
+    printFrame.onload = function () {
+        setTimeout(function () {
             try {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             } catch (error) {
-                console.error('Print error:', error);
-                alert('Pour imprimer, utilisez Ctrl+P dans la fenêtre d\'impression qui s\'est ouverte.');
+                console.error("Print error:", error);
+                alert(
+                    "Pour imprimer, utilisez Ctrl+P dans la fenêtre d'impression qui s'est ouverte.",
+                );
             }
 
             // Clean up iframe
@@ -1167,40 +1203,49 @@ function printReceptionDetails() {
 // PRINT MODE PAIEMENT - Fixed version without duplicate header
 function printPaiement() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printFrame';
-    printFrame.title = 'Print Document';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
+    printFrame.title = "Print Document";
 
     document.body.appendChild(printFrame);
 
     // Get the content to print - clone it first to avoid modifying original
-    const printableArea = document.getElementById('paiementDetailsContent');
+    const printableArea = document.getElementById("paiementDetailsContent");
     const clonedArea = printableArea.cloneNode(true);
 
     // REMOVE THE MODAL HEADER FROM THE CLONED CONTENT
     // This prevents the duplicate header issue
-    const modalHeaderInCloned = clonedArea.querySelector('.modal-header');
+    const modalHeaderInCloned = clonedArea.querySelector(".modal-header");
     if (modalHeaderInCloned) {
         modalHeaderInCloned.remove();
     }
 
     // Remove elements that shouldn't be in the print version
-    const elementsToRemove = clonedArea.querySelectorAll('.modal-footer, .btn, button, .btn-close, .alert.alert-info');
-    elementsToRemove.forEach(el => el.remove());
+    const elementsToRemove = clonedArea.querySelectorAll(
+        ".modal-footer, .btn, button, .btn-close, .alert.alert-info",
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    const printOnlyElements = clonedArea.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
+    });
 
     // Get modal header content from the ORIGINAL modal (not the cloned one)
-    const modalHeader = document.querySelector('.modal-header');
+    const modalHeader = document.querySelector(".modal-header");
     const clonedHeader = modalHeader.cloneNode(true);
-    const closeBtn = clonedHeader.querySelector('.btn-close');
+    const closeBtn = clonedHeader.querySelector(".btn-close");
     if (closeBtn) closeBtn.remove();
-    const headerContent = clonedHeader.querySelector('div');
+    const headerContent = clonedHeader.querySelector("div");
 
     const contentToPrint = clonedArea.innerHTML;
 
@@ -1315,17 +1360,17 @@ function printPaiement() {
                         /* FINANCIAL SUMMARY CARDS - Specific styling */
                         .row.text-center.mb-4 .card {
                             height: auto !important;
-                            min-height: 120px;
+                            min-height: 90px;
                         }
 
                         .row.text-center.mb-4 .card-body {
-                            padding: 10px !important;
+                            padding: 8px !important;
                             text-align: center;
                         }
 
                         .row.text-center.mb-4 .fw-bold.h4 {
                             font-size: 14pt !important;
-                            margin: 10px 0 !important;
+                            margin: 6px 0 !important;
                             display: block !important;
                         }
 
@@ -1652,8 +1697,10 @@ function printPaiement() {
         printFrame.contentWindow.document.write(printContent);
         printFrame.contentWindow.document.close();
     } catch (error) {
-        console.error('Error creating print document:', error);
-        alert('Erreur lors de la préparation de l\'impression. Veuillez réessayer.');
+        console.error("Error creating print document:", error);
+        alert(
+            "Erreur lors de la préparation de l'impression. Veuillez réessayer.",
+        );
 
         // Clean up iframe
         if (printFrame.parentNode) {
@@ -1663,14 +1710,16 @@ function printPaiement() {
     }
 
     // Wait for iframe to load, then print
-    printFrame.onload = function() {
-        setTimeout(function() {
+    printFrame.onload = function () {
+        setTimeout(function () {
             try {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             } catch (error) {
-                console.error('Print error:', error);
-                alert('Pour imprimer, utilisez Ctrl+P dans la fenêtre d\'impression qui s\'est ouverte.');
+                console.error("Print error:", error);
+                alert(
+                    "Pour imprimer, utilisez Ctrl+P dans la fenêtre d'impression qui s'est ouverte.",
+                );
             }
 
             // Clean up iframe
@@ -1686,40 +1735,49 @@ function printPaiement() {
 // PRINT MODE CLIENT - Fixed version without duplicate header
 function printClientDetails() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printFrame';
-    printFrame.title = 'Print Document';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
+    printFrame.title = "Print Document";
 
     document.body.appendChild(printFrame);
 
     // Get the content to print - clone it first to avoid modifying original
-    const printableArea = document.getElementById('clientDetails');
+    const printableArea = document.getElementById("clientDetails");
     const clonedArea = printableArea.cloneNode(true);
 
     // REMOVE THE MODAL HEADER FROM THE CLONED CONTENT
     // This prevents the duplicate header issue
-    const modalHeaderInCloned = clonedArea.querySelector('.modal-header');
+    const modalHeaderInCloned = clonedArea.querySelector(".modal-header");
     if (modalHeaderInCloned) {
         modalHeaderInCloned.remove();
     }
 
     // Remove elements that shouldn't be in the print version
-    const elementsToRemove = clonedArea.querySelectorAll('.modal-footer, .btn, button, .btn-close, .alert.alert-info');
-    elementsToRemove.forEach(el => el.remove());
+    const elementsToRemove = clonedArea.querySelectorAll(
+        ".modal-footer, .btn, button, .btn-close, .alert.alert-info",
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    const printOnlyElements = clonedArea.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
+    });
 
     // Get modal header content from the ORIGINAL modal (not the cloned one)
-    const modalHeader = document.querySelector('.modal-header');
+    const modalHeader = document.querySelector(".modal-header");
     const clonedHeader = modalHeader.cloneNode(true);
-    const closeBtn = clonedHeader.querySelector('.btn-close');
+    const closeBtn = clonedHeader.querySelector(".btn-close");
     if (closeBtn) closeBtn.remove();
-    const headerContent = clonedHeader.querySelector('div');
+    const headerContent = clonedHeader.querySelector("div");
 
     const contentToPrint = clonedArea.innerHTML;
 
@@ -2210,8 +2268,10 @@ function printClientDetails() {
         printFrame.contentWindow.document.write(printContent);
         printFrame.contentWindow.document.close();
     } catch (error) {
-        console.error('Error creating print document:', error);
-        alert('Erreur lors de la préparation de l\'impression. Veuillez réessayer.');
+        console.error("Error creating print document:", error);
+        alert(
+            "Erreur lors de la préparation de l'impression. Veuillez réessayer.",
+        );
 
         // Clean up iframe
         if (printFrame.parentNode) {
@@ -2221,14 +2281,16 @@ function printClientDetails() {
     }
 
     // Wait for iframe to load, then print
-    printFrame.onload = function() {
-        setTimeout(function() {
+    printFrame.onload = function () {
+        setTimeout(function () {
             try {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             } catch (error) {
-                console.error('Print error:', error);
-                alert('Pour imprimer, utilisez Ctrl+P dans la fenêtre d\'impression qui s\'est ouverte.');
+                console.error("Print error:", error);
+                alert(
+                    "Pour imprimer, utilisez Ctrl+P dans la fenêtre d'impression qui s'est ouverte.",
+                );
             }
 
             // Clean up iframe
@@ -2244,40 +2306,49 @@ function printClientDetails() {
 // PRINT MODE FOURNISSEUR - Fixed version without duplicate header
 function printFournisseurDetails() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printFrame';
-    printFrame.title = 'Print Document';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
+    printFrame.title = "Print Document";
 
     document.body.appendChild(printFrame);
 
     // Get the content to print - clone it first to avoid modifying original
-    const printableArea = document.getElementById('fournisseurDetails');
+    const printableArea = document.getElementById("fournisseurDetails");
     const clonedArea = printableArea.cloneNode(true);
 
     // REMOVE THE MODAL HEADER FROM THE CLONED CONTENT
     // This prevents the duplicate header issue
-    const modalHeaderInCloned = clonedArea.querySelector('.modal-header');
+    const modalHeaderInCloned = clonedArea.querySelector(".modal-header");
     if (modalHeaderInCloned) {
         modalHeaderInCloned.remove();
     }
 
     // Remove elements that shouldn't be in the print version
-    const elementsToRemove = clonedArea.querySelectorAll('.modal-footer, .btn, button, .btn-close, .alert.alert-info');
-    elementsToRemove.forEach(el => el.remove());
+    const elementsToRemove = clonedArea.querySelectorAll(
+        ".modal-footer, .btn, button, .btn-close, .alert.alert-info",
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    const printOnlyElements = clonedArea.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
+    });
 
     // Get modal header content from the ORIGINAL modal (not the cloned one)
-    const modalHeader = document.querySelector('.modal-header');
+    const modalHeader = document.querySelector(".modal-header");
     const clonedHeader = modalHeader.cloneNode(true);
-    const closeBtn = clonedHeader.querySelector('.btn-close');
+    const closeBtn = clonedHeader.querySelector(".btn-close");
     if (closeBtn) closeBtn.remove();
-    const headerContent = clonedHeader.querySelector('div');
+    const headerContent = clonedHeader.querySelector("div");
 
     const contentToPrint = clonedArea.innerHTML;
 
@@ -2768,8 +2839,10 @@ function printFournisseurDetails() {
         printFrame.contentWindow.document.write(printContent);
         printFrame.contentWindow.document.close();
     } catch (error) {
-        console.error('Error creating print document:', error);
-        alert('Erreur lors de la préparation de l\'impression. Veuillez réessayer.');
+        console.error("Error creating print document:", error);
+        alert(
+            "Erreur lors de la préparation de l'impression. Veuillez réessayer.",
+        );
 
         // Clean up iframe
         if (printFrame.parentNode) {
@@ -2779,14 +2852,16 @@ function printFournisseurDetails() {
     }
 
     // Wait for iframe to load, then print
-    printFrame.onload = function() {
-        setTimeout(function() {
+    printFrame.onload = function () {
+        setTimeout(function () {
             try {
                 printFrame.contentWindow.focus();
                 printFrame.contentWindow.print();
             } catch (error) {
-                console.error('Print error:', error);
-                alert('Pour imprimer, utilisez Ctrl+P dans la fenêtre d\'impression qui s\'est ouverte.');
+                console.error("Print error:", error);
+                alert(
+                    "Pour imprimer, utilisez Ctrl+P dans la fenêtre d'impression qui s'est ouverte.",
+                );
             }
 
             // Clean up iframe
@@ -2852,99 +2927,105 @@ function printFournisseurDetails() {
 function getPeriodInfo(period) {
     const now = new Date();
 
-    switch(period) {
-        case 'aujourdhui': // Today
-            const today = now.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+    switch (period) {
+        case "aujourdhui": // Today
+            const today = now.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
             return {
                 label: "Aujourd'hui",
-                dateRange: `(${today})`
+                dateRange: `(${today})`,
             };
 
-        case 'hier': // Yesterday
+        case "hier": // Yesterday
             const yesterday = new Date(now);
             yesterday.setDate(now.getDate() - 1);
-            const yesterdayStr = yesterday.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const yesterdayStr = yesterday.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
             return {
-                label: 'Hier',
-                dateRange: `(${yesterdayStr})`
+                label: "Hier",
+                dateRange: `(${yesterdayStr})`,
             };
 
-        case 'semaine': // This week
+        case "semaine": // This week
             const startOfWeek = new Date(now);
-            startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Monday
+            startOfWeek.setDate(
+                now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+            ); // Monday
             const endOfWeek = new Date(startOfWeek);
             endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
 
-            const startWeekStr = startOfWeek.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const startWeekStr = startOfWeek.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
-            const endWeekStr = endOfWeek.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const endWeekStr = endOfWeek.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
             return {
-                label: 'Cette semaine',
-                dateRange: `(${startWeekStr} au ${endWeekStr})`
+                label: "Cette semaine",
+                dateRange: `(${startWeekStr} au ${endWeekStr})`,
             };
 
-        case 'mois': // This month
+        case "mois": // This month
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const endOfMonth = new Date(
+                now.getFullYear(),
+                now.getMonth() + 1,
+                0,
+            );
 
-            const startMonthStr = startOfMonth.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const startMonthStr = startOfMonth.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
-            const endMonthStr = endOfMonth.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const endMonthStr = endOfMonth.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
             return {
-                label: 'Ce mois',
-                dateRange: `(${startMonthStr} au ${endMonthStr})`
+                label: "Ce mois",
+                dateRange: `(${startMonthStr} au ${endMonthStr})`,
             };
 
-        case 'annee': // This year (if you need it)
+        case "annee": // This year (if you need it)
             const startOfYear = new Date(now.getFullYear(), 0, 1);
             const endOfYear = new Date(now.getFullYear(), 11, 31);
 
-            const startYearStr = startOfYear.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const startYearStr = startOfYear.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
-            const endYearStr = endOfYear.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const endYearStr = endOfYear.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
             return {
-                label: 'Cette année',
-                dateRange: `(${startYearStr} au ${endYearStr})`
+                label: "Cette année",
+                dateRange: `(${startYearStr} au ${endYearStr})`,
             };
 
         default:
-            const defaultDate = now.toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const defaultDate = now.toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
             });
             return {
                 label: period,
-                dateRange: `(${defaultDate})`
+                dateRange: `(${defaultDate})`,
             };
     }
 }
@@ -2956,23 +3037,23 @@ function getPeriodInfo(period) {
 
 function printSalesReport() {
     // Create a hidden iframe for printing
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    printFrame.style.opacity = '0';
-    printFrame.name = 'printSalesFrame';
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printSalesFrame";
 
     document.body.appendChild(printFrame);
 
     // Get the entire report section including stats cards
-    const reportSection = document.getElementById('ventes-jour-report');
+    const reportSection = document.getElementById("ventes-jour-report");
     if (!reportSection) {
-        console.error('Element #ventes-jour-report not found');
-        alert('Erreur: Section rapport non trouvée');
+        console.error("Element #ventes-jour-report not found");
+        alert("Erreur: Section rapport non trouvée");
         return;
     }
 
@@ -2980,36 +3061,41 @@ function printSalesReport() {
     const contentToPrint = reportSection.cloneNode(true);
 
     // Show print-only elements
-    const printHeaders = contentToPrint.querySelectorAll('.print-header, .print-footer');
-    printHeaders.forEach(el => {
-        el.classList.remove('d-none');
-        el.style.display = 'block';
+    const printHeaders = contentToPrint.querySelectorAll(
+        ".print-header, .print-footer",
+    );
+    printHeaders.forEach((el) => {
+        el.classList.remove("d-none");
+        el.style.display = "block";
     });
 
     // Remove interactive elements but keep styling
     const noPrintElements = contentToPrint.querySelectorAll(
-        '.btn, .dropdown, [wire\\:click], .no-print, .dropdown-toggle'
+        ".btn, .dropdown, [wire\\:click], .no-print, .dropdown-toggle",
     );
-    noPrintElements.forEach(el => {
-        if (!el.classList.contains('card') && !el.classList.contains('table')) {
+    noPrintElements.forEach((el) => {
+        if (!el.classList.contains("card") && !el.classList.contains("table")) {
             el.remove();
         }
     });
 
     // Get the current period from Livewire component
-    const currentPeriod = document.querySelector('#periodLabels')?.getAttribute('data-selectedPeriode') || 'aujourdhui';
+    const currentPeriod =
+        document
+            .querySelector("#periodLabels")
+            ?.getAttribute("data-selectedPeriode") || "aujourdhui";
 
     // Get period info
     const periodInfo = getPeriodInfo(currentPeriod);
 
     // Format current date
     const now = new Date();
-    const formattedDate = now.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+    const formattedDate = now.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
     });
 
     // Create HTML structure for printing
@@ -3435,10 +3521,10 @@ function printSalesReport() {
                     </div>
 
                     <!-- Statistics Cards -->
-                    ${contentToPrint.querySelector('.row.g-3.mb-4')?.outerHTML || ''}
+                    ${contentToPrint.querySelector(".row.g-3.mb-4")?.outerHTML || ""}
 
                     <!-- Sales Table -->
-                    ${contentToPrint.querySelector('.card.shadow-sm.border-0 .table-responsive')?.outerHTML || ''}
+                    ${contentToPrint.querySelector(".card.shadow-sm.border-0 .table-responsive")?.outerHTML || ""}
 
                     <!-- Print Footer -->
                     <div class="print-footer">
@@ -3503,18 +3589,18 @@ function printSalesReport() {
     printFrame.contentWindow.focus();
 
     // Wait for iframe to load, then handle printing
-    printFrame.onload = function() {
+    printFrame.onload = function () {
         try {
             printFrame.contentWindow.print();
         } catch (error) {
-            console.error('Print error:', error);
+            console.error("Print error:", error);
 
             // Fallback: Provide instructions
             alert(
-                'L\'impression a été lancée. Si la fenêtre d\'impression ne s\'ouvre pas automatiquement:\n\n' +
-                '1. Utilisez Ctrl+P (Windows/Linux) ou Cmd+P (Mac)\n' +
-                '2. Assurez-vous que les popups ne sont pas bloqués\n' +
-                '3. Vérifiez vos paramètres d\'impression'
+                "L'impression a été lancée. Si la fenêtre d'impression ne s'ouvre pas automatiquement:\n\n" +
+                    "1. Utilisez Ctrl+P (Windows/Linux) ou Cmd+P (Mac)\n" +
+                    "2. Assurez-vous que les popups ne sont pas bloqués\n" +
+                    "3. Vérifiez vos paramètres d'impression",
             );
         }
 
@@ -3535,9 +3621,9 @@ function printSalesReportSimple() {
     const originalBody = document.body.innerHTML;
 
     // Get printable content
-    const printableSection = document.getElementById('printable-section');
+    const printableSection = document.getElementById("printable-section");
     if (!printableSection) {
-        console.error('Element #printable-section not found');
+        console.error("Element #printable-section not found");
         return;
     }
 
@@ -3545,10 +3631,12 @@ function printSalesReportSimple() {
     const printContent = printableSection.cloneNode(true);
 
     // Show print-only elements
-    printContent.querySelectorAll('.print-header, .print-footer').forEach(el => {
-        el.classList.remove('d-none');
-        el.style.display = 'block';
-    });
+    printContent
+        .querySelectorAll(".print-header, .print-footer")
+        .forEach((el) => {
+            el.classList.remove("d-none");
+            el.style.display = "block";
+        });
 
     // Replace body with printable content
     document.body.innerHTML = printContent.outerHTML;
@@ -3561,7 +3649,6 @@ function printSalesReportSimple() {
 
     // Dispatch event to let Livewire know we restored the page
     setTimeout(() => {
-        window.dispatchEvent(new Event('livewire:init'));
+        window.dispatchEvent(new Event("livewire:init"));
     }, 100);
 }
-

@@ -5,9 +5,11 @@
             <h1 class="h3 fw-bold mb-1">Devise</h1>
             <p class="text-muted mb-0">Gérez vos devises</p>
         </div>
-        <button wire:click="create" class="btn btn-primary">
-            <i class="fa fa-plus me-2"></i> Nouvelle devise
-        </button>
+        @access('configuration.devises', 'create')
+            <button wire:click="create" class="btn btn-primary">
+                <i class="fa fa-plus me-2"></i> Nouvelle devise
+            </button>
+        @endaccess
     </div>
 
     <!-- devises Card -->
@@ -44,12 +46,18 @@
                                     {{ $devise->symbole ? Str::limit($devise->symbole, 50) : 'N/D' }}
                                 </td>
                                 <td>
-                                    <button wire:click="toggleStatusConfirm({{ $devise->id }})"
-                                            class="btn btn-sm {{ $devise->status ? 'btn-success' : 'btn-secondary' }}"
-                                            data-bs-toggle="tooltip"
-                                            title="{{ $devise->status ? 'Désactiver' : 'Activer' }}">
-                                        {{ $devise->status ? 'Actif' : 'Inactif' }}
-                                    </button>
+                                    @access('configuration.devises', 'toggle_status')
+                                        <button wire:click="toggleStatusConfirm({{ $devise->id }})"
+                                                class="btn btn-sm {{ $devise->status ? 'btn-success' : 'btn-secondary' }}"
+                                                data-bs-toggle="tooltip"
+                                                title="{{ $devise->status ? 'Désactiver' : 'Activer' }}">
+                                            {{ $devise->status ? 'Actif' : 'Inactif' }}
+                                        </button>
+                                    @else
+                                        <span class="badge {{ $devise->status ? 'bg-success' : 'bg-secondary' }}">
+                                            {{ $devise->status ? 'Actif' : 'Inactif' }}
+                                        </span>
+                                    @endaccess
                                 </td>
                                 <td>
                                     @if($devise->is_default)
@@ -57,26 +65,34 @@
                                             <i class="fas fa-check-circle me-1"></i> Défaut
                                         </span>
                                     @else
-                                        <button wire:click="toggleDefaultConfirm({{ $devise->id }})"
-                                                class="btn btn-sm {{ $devise->status ? 'btn-outline-secondary' : 'btn-secondary' }}"
-                                                title="{{ $devise->status ? 'Définir comme devise par défaut' : 'Devise inactive' }}"
-                                                {{ !$devise->status ? 'disabled' : '' }}>
-                                            @if($devise->status)
-                                                <i class="fas fa-star me-1"></i> Définir
-                                            @else
-                                                <i class="fas fa-ban me-1"></i> Inactive
-                                            @endif
-                                        </button>
+                                        @access('configuration.devises', 'update')
+                                            <button wire:click="toggleDefaultConfirm({{ $devise->id }})"
+                                                    class="btn btn-sm {{ $devise->status ? 'btn-outline-secondary' : 'btn-secondary' }}"
+                                                    title="{{ $devise->status ? 'Définir comme devise par défaut' : 'Devise inactive' }}"
+                                                    {{ !$devise->status ? 'disabled' : '' }}>
+                                                @if($devise->status)
+                                                    <i class="fas fa-star me-1"></i> Définir
+                                                @else
+                                                    <i class="fas fa-ban me-1"></i> Inactive
+                                                @endif
+                                            </button>
+                                        @else
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fas fa-lock me-1"></i> —
+                                            </span>
+                                        @endaccess
                                     @endif
                                 </td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button wire:click="edit({{ $devise->id }})"
-                                                class="btn btn-outline-primary"
-                                                data-bs-toggle="tooltip"
-                                                title="Modifier">
-                                            <i class="fa fa-pen"></i>
-                                        </button>
+                                        @access('configuration.devises', 'update')
+                                            <button wire:click="edit({{ $devise->id }})"
+                                                    class="btn btn-outline-primary"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Modifier">
+                                                <i class="fa fa-pen"></i>
+                                            </button>
+                                        @endaccess
 
                                         @if(!$devise->is_default)
                                         <button wire:click="deleteConfirm({{ $devise->id }})"
@@ -113,35 +129,49 @@
                                 </p>
 
                                 <div class="d-flex gap-2 mb-2">
-                                    <button wire:click="toggleStatusConfirm({{ $devise->id }})"
-                                            class="btn btn-sm {{ $devise->status ? 'btn-success' : 'btn-secondary' }}">
-                                        {{ $devise->status ? 'Actif' : 'Inactif' }}
-                                    </button>
+                                    @access('configuration.devises', 'toggle_status')
+                                        <button wire:click="toggleStatusConfirm({{ $devise->id }})"
+                                                class="btn btn-sm {{ $devise->status ? 'btn-success' : 'btn-secondary' }}">
+                                            {{ $devise->status ? 'Actif' : 'Inactif' }}
+                                        </button>
+                                    @else
+                                        <span class="badge {{ $devise->status ? 'bg-success' : 'bg-secondary' }}">
+                                            {{ $devise->status ? 'Actif' : 'Inactif' }}
+                                        </span>
+                                    @endaccess
 
                                     @if($devise->is_default)
                                         <span class="badge bg-success">
                                             <i class="fas fa-check-circle me-1"></i> Défaut
                                         </span>
                                     @else
-                                        <button wire:click="toggleDefaultConfirm({{ $devise->id }})"
-                                                class="btn btn-sm {{ $devise->status ? 'btn-outline-secondary' : 'btn-secondary' }}"
-                                                {{ !$devise->status ? 'disabled' : '' }}>
-                                            @if($devise->status)
-                                                <i class="fas fa-star me-1"></i> Définir
-                                            @else
-                                                <i class="fas fa-ban me-1"></i> Inactive
-                                            @endif
-                                        </button>
+                                        @access('configuration.devises', 'update')
+                                            <button wire:click="toggleDefaultConfirm({{ $devise->id }})"
+                                                    class="btn btn-sm {{ $devise->status ? 'btn-outline-secondary' : 'btn-secondary' }}"
+                                                    {{ !$devise->status ? 'disabled' : '' }}>
+                                                @if($devise->status)
+                                                    <i class="fas fa-star me-1"></i> Définir
+                                                @else
+                                                    <i class="fas fa-ban me-1"></i> Inactive
+                                                @endif
+                                            </button>
+                                        @else
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fas fa-lock me-1"></i> —
+                                            </span>
+                                        @endaccess
                                     @endif
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex gap-2 mt-3">
-                            <button wire:click="edit({{ $devise->id }})"
-                                    class="btn btn-sm btn-outline-primary flex-fill">
-                                <i class="fa fa-pen me-1"></i> Modifier
-                            </button>
+                            @access('configuration.devises', 'update')
+                                <button wire:click="edit({{ $devise->id }})"
+                                        class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fa fa-pen me-1"></i> Modifier
+                                </button>
+                            @endaccess
 
                             @if(!$devise->is_default)
                             <button wire:click="deleteConfirm({{ $devise->id }})"

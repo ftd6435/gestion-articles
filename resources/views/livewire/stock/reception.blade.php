@@ -96,10 +96,8 @@
                     {{-- Search --}}
                     <div class="mb-3">
                         <label class="form-label">Recherche</label>
-                        <input type="text"
-                               wire:model.live.debounce.300ms="search"
-                               class="form-control"
-                               placeholder="Référence ou fournisseur">
+                        <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
+                            placeholder="Référence ou fournisseur">
                     </div>
 
                     {{-- Commande --}}
@@ -107,7 +105,7 @@
                         <label class="form-label">Commande</label>
                         <select wire:model.live="filterCommande" class="form-select">
                             <option value="">Toutes</option>
-                            @foreach($commandes as $commande)
+                            @foreach ($commandes as $commande)
                                 <option value="{{ $commande->id }}">
                                     {{ $commande->reference }}
                                 </option>
@@ -137,8 +135,17 @@
                         </select>
                     </div>
 
-                    <button wire:click="resetFilters"
-                            class="btn btn-outline-secondary w-100">
+                    <div class="mb-3">
+                        <label class="form-label">Statut paiement</label>
+                        <select wire:model.live="paymentStatusFilter" class="form-select">
+                            <option value="">Tous</option>
+                            <option value="PAYE">Payé</option>
+                            <option value="PARTIEL">Partiellement payé</option>
+                            <option value="NON_PAYE">Non payé</option>
+                        </select>
+                    </div>
+
+                    <button wire:click="resetFilters" class="btn btn-outline-secondary w-100">
                         <i class="fa fa-rotate-left me-1"></i>
                         Réinitialiser
                     </button>
@@ -166,6 +173,7 @@
                                 <th>Commande</th>
                                 <th>Fournisseur</th>
                                 <th>Qté</th>
+                                <th>Statut</th>
                                 <th>Date</th>
                                 <th>Créé</th>
                                 <th class="text-end">Actions</th>
@@ -176,40 +184,65 @@
                             @forelse($receptions as $reception)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td class="fw-semibold">
+                                    <td class="fw-semibold text-dark">
                                         {{ $reception->reference }}
                                     </td>
-                                    <td class="text-muted">
-                                        {{ $reception->commande->reference }}
+                                    <td class="text-dark">
+                                        {{ $reception->commande?->reference ?? '—' }}
                                     </td>
 
-                                    <td class="text-muted">
-                                        {{ $reception->commande->fournisseur->name }}
+                                    <td class="text-dark">
+                                        {{ $reception->commande?->fournisseur?->name ?? '—' }}
                                     </td>
 
-                                    <td class="text-muted fw-semibold">
-                                        {{ $reception->ligneReceptions()->sum('quantity') }}
+                                    <td class="fw-semibold text-dark">
+                                        {{ $reception->ligneReceptions->sum('quantity') }}
+                                    </td>
+
+                                    <td>
+                                        @php
+                                            $totalNoDiscount = (float) ($reception->total_no_discount ?? 0);
+                                            $remise = (float) ($reception->remise_percent ?? 0);
+                                            $totalNet = $totalNoDiscount - $totalNoDiscount * ($remise / 100);
+                                            $totalPaid = (float) ($reception->total_paid ?? 0);
+                                            $remaining = $totalNet - $totalPaid;
+
+                                            $paymentStatus = 'NON_PAYE';
+                                            if ($remaining <= 0) {
+                                                $paymentStatus = 'PAYE';
+                                            } elseif ($totalPaid > 0) {
+                                                $paymentStatus = 'PARTIEL';
+                                            }
+
+                                            $paymentBadge = match ($paymentStatus) {
+                                                'PAYE' => ['success', 'Payé'],
+                                                'PARTIEL' => ['warning', 'Partiellement payé'],
+                                                default => ['danger', 'Non payé'],
+                                            };
+                                        @endphp
+                                        <span
+                                            class="badge bg-{{ $paymentBadge[0] }} bg-opacity-10 text-{{ $paymentBadge[0] }} border border-{{ $paymentBadge[0] }} border-opacity-25">
+                                            {{ $paymentBadge[1] }}
+                                        </span>
                                     </td>
 
                                     <td>
                                         {{ \Carbon\Carbon::parse($reception->date_reception)->format('d/m/Y') }}
                                     </td>
 
-                                    <td class="text-muted">
+                                    <td class="text-dark">
                                         {{ $reception->createdBy->name ?? '—' }}
                                     </td>
 
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
                                             <button wire:click="showDetails({{ $reception->id }})"
-                                                    class="btn btn-outline-info"
-                                                    title="Détails">
+                                                class="btn btn-outline-info" title="Détails">
                                                 <i class="fa fa-eye"></i>
                                             </button>
 
                                             <button wire:click="deleteConfirm({{ $reception->id }})"
-                                                    class="btn btn-outline-danger"
-                                                    title="Supprimer">
+                                                class="btn btn-outline-danger" title="Supprimer">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </div>
@@ -217,7 +250,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-5">
+                                    <td colspan="9" class="text-center text-muted py-5">
                                         <i class="fa fa-truck-loading fa-2x mb-2 opacity-50"></i>
                                         <div>Aucune réception trouvée</div>
                                     </td>
@@ -238,11 +271,11 @@
     </div>
 
     {{-- ================= MODALS ================= --}}
-    @if($showModal)
+    @if ($showModal)
         @include('livewire.stock.reception-modal')
     @endif
 
-    @if($showDetailsModal)
+    @if ($showDetailsModal)
         @include('livewire.stock.reception-details-modal')
     @endif
 

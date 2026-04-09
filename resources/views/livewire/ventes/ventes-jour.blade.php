@@ -156,6 +156,47 @@
     <div class="card shadow-sm border-0" id="printable-section">
         {{-- Report Header (Visible only when printing) --}}
         <div class="print-header d-none">
+            @php
+                $company = \App\Models\CompanySetting::query()->first();
+                $companyName = $company?->name ?: config('app.name');
+                $companyTel = $company?->telephone;
+                $companyEmail = $company?->email;
+                $companyLogoUrl = $company?->logo_path ? asset($company->logo_path) : null;
+                $publicUrl = \Illuminate\Support\Facades\URL::signedRoute('public.ventesjour.show', [
+                    'periode' => $selectedPeriode,
+                    'dateFrom' => $dateFrom,
+                    'dateTo' => $dateTo,
+                    'devise_id' => $devise_id,
+                ]);
+                $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode($publicUrl);
+            @endphp
+
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    @if($companyLogoUrl)
+                        <img src="{{ $companyLogoUrl }}" alt="Logo" style="max-height: 60px; max-width: 160px;">
+                    @endif
+                    <div>
+                        <div class="fw-bold fs-5">{{ $companyName }}</div>
+                        <div class="small text-muted">
+                            @if($companyTel)
+                                <span>{{ $companyTel }}</span>
+                            @endif
+                            @if($companyTel && $companyEmail)
+                                <span class="mx-2">|</span>
+                            @endif
+                            @if($companyEmail)
+                                <span>{{ $companyEmail }}</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <img src="{{ $qrUrl }}" alt="QR" style="height: 90px; width: 90px;">
+                    <div class="small text-muted mt-1">Scanner pour ouvrir</div>
+                </div>
+            </div>
+
             <div class="text-center mb-4">
                 <h2 class="fw-bold">Rapport des Ventes</h2>
                 <h4 class="text-muted">

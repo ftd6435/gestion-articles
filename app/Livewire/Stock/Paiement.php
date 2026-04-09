@@ -165,6 +165,20 @@ class Paiement extends Component
     /** ================= STORE ================= */
     public function store()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->paiementId) {
+            if (!$currentUser?->canAccess('stock.paiements', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des paiements fournisseurs.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('stock.paiements', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des paiements fournisseurs.');
+                return;
+            }
+        }
+
         $this->validate([
             'commande_id'   => 'required',
             'reception_id'  => 'required',
@@ -259,6 +273,13 @@ class Paiement extends Component
     /** ================= UI ================= */
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('stock.paiements', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des paiements fournisseurs.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -310,6 +331,13 @@ class Paiement extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('stock.paiements', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des paiements fournisseurs.');
+            return;
+        }
+
         try {
             $paiement = PaiementFournisseur::findOrFail($id);
 

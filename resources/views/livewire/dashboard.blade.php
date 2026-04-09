@@ -7,14 +7,13 @@
         </div>
         <div class="d-flex gap-2">
             <!-- Currency Filter -->
-            @if(!empty($availableDevises) && count($availableDevises) > 0)
+            @if (!empty($availableDevises) && count($availableDevises) > 0)
                 <div class="me-2">
                     <select wire:model.live="selectedDeviseId" class="form-select form-select-sm">
-                        @foreach($availableDevises as $devise)
-                            <option value="{{ $devise->id }}"
-                                {{ $devise->is_default ? 'selected' : '' }}>
+                        @foreach ($availableDevises as $devise)
+                            <option value="{{ $devise->id }}" {{ $devise->is_default ? 'selected' : '' }}>
                                 {{ $devise->code }} ({{ $devise->symbole ?? $devise->code }})
-                                @if($devise->is_default)
+                                @if ($devise->is_default)
                                     - Par défaut
                                 @endif
                             </option>
@@ -43,7 +42,8 @@
                             <p class="text-muted small mb-1">Clients</p>
                             <h3 class="fw-bold mb-0">{{ number_format($totalClients) }}</h3>
                         </div>
-                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
                             <i class="fas fa-users text-primary"></i>
                         </div>
                     </div>
@@ -66,7 +66,8 @@
                             <p class="text-muted small mb-1">Fournisseurs</p>
                             <h3 class="fw-bold mb-0">{{ number_format($totalSuppliers) }}</h3>
                         </div>
-                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
                             <i class="fas fa-truck text-info"></i>
                         </div>
                     </div>
@@ -89,7 +90,8 @@
                             <p class="text-muted small mb-1">Articles</p>
                             <h3 class="fw-bold mb-0">{{ number_format($totalArticles) }}</h3>
                         </div>
-                        <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
                             <i class="fas fa-boxes text-success"></i>
                         </div>
                     </div>
@@ -112,7 +114,8 @@
                             <p class="text-muted small mb-1">Commandes</p>
                             <h3 class="fw-bold mb-0">{{ number_format($totalOrders) }}</h3>
                         </div>
-                        <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
                             <i class="fas fa-shopping-cart text-warning"></i>
                         </div>
                     </div>
@@ -135,7 +138,8 @@
                             <p class="text-muted small mb-1">Ventes</p>
                             <h3 class="fw-bold mb-0">{{ number_format($totalSales) }}</h3>
                         </div>
-                        <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
                             <i class="fas fa-cash-register text-danger"></i>
                         </div>
                     </div>
@@ -156,15 +160,19 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted small mb-1">Chiffre d'affaires</p>
-                            <h3 class="fw-bold mb-0">{{ number_format($totalRevenue, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</h3>
+                            <h3 class="fw-bold mb-0">{{ number_format($totalRevenue, 0, ',', ' ') }}
+                                {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}</h3>
                         </div>
-                        <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <div class="rounded-circle bg-dark bg-opacity-10 d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
                             <i class="fas fa-money-bill-wave text-dark"></i>
                         </div>
                     </div>
                     <div class="mt-2">
                         <span class="badge bg-success bg-opacity-10 text-success small">
-                            <i class="fas fa-arrow-up me-1"></i>{{ number_format($totalPaymentsReceived, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }} reçus
+                            <i
+                                class="fas fa-arrow-up me-1"></i>{{ number_format($totalPaymentsReceived, 0, ',', ' ') }}
+                            {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }} reçus
                         </span>
                     </div>
                 </div>
@@ -189,20 +197,29 @@
                             <div class="row g-2">
                                 <div class="col-6">
                                     <div class="text-center p-3 bg-light rounded">
-                                        <div class="h4 fw-bold text-warning mb-1">{{ number_format($totalPurchases, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
+                                        <div class="h4 fw-bold text-warning mb-1">
+                                            {{ number_format($totalPurchases, 0, ',', ' ') }}
+                                            {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                        </div>
                                         <small class="text-muted">Total Achats</small>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="text-center p-3 bg-light rounded">
-                                        <div class="h4 fw-bold text-info mb-1">{{ number_format($totalPaymentsMade, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
+                                        <div class="h4 fw-bold text-info mb-1">
+                                            {{ number_format($totalPaymentsMade, 0, ',', ' ') }}
+                                            {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                        </div>
                                         <small class="text-muted">Paiements Effectués</small>
                                     </div>
                                 </div>
                                 <div class="col-12 mt-2">
-                                    <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                    <div
+                                        class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
                                         <small class="text-muted">En attente de paiement</small>
-                                        <span class="fw-bold text-danger">{{ number_format($pendingPayments, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</span>
+                                        <span
+                                            class="fw-bold text-danger">{{ number_format($pendingPayments, 0, ',', ' ') }}
+                                            {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -222,7 +239,10 @@
                             <div class="row g-2">
                                 <div class="col-6">
                                     <div class="text-center p-3 bg-light rounded">
-                                        <div class="h4 fw-bold text-success mb-1">{{ number_format($totalStockValue, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
+                                        <div class="h4 fw-bold text-success mb-1">
+                                            {{ number_format($totalStockValue, 0, ',', ' ') }}
+                                            {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                        </div>
                                         <small class="text-muted">Valeur Stock</small>
                                     </div>
                                 </div>
@@ -274,9 +294,10 @@
                                 </div>
                                 <div class="col-12 mt-2">
                                     <div class="d-flex flex-wrap gap-1">
-                                        @foreach($topCategories as $category)
+                                        @foreach ($topCategories as $category)
                                             <span class="badge bg-light text-dark">
-                                                {{ Str::limit($category['name'], 15) }} ({{ $category['article_count'] }})
+                                                {{ Str::limit($category['name'], 15) }}
+                                                ({{ $category['article_count'] }})
                                             </span>
                                         @endforeach
                                     </div>
@@ -296,12 +317,17 @@
                         </div>
                         <div class="card-body">
                             <div class="text-center p-3">
-                                <div class="h2 fw-bold text-danger mb-2">{{ number_format($pendingReceivables, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
+                                <div class="h2 fw-bold text-danger mb-2">
+                                    {{ number_format($pendingReceivables, 0, ',', ' ') }}
+                                    {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                </div>
                                 <small class="text-muted">Montant total en attente</small>
                                 <div class="mt-3">
                                     <span class="badge bg-light text-dark">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        {{ number_format($totalPaymentsReceived, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }} déjà reçus
+                                        {{ number_format($totalPaymentsReceived, 0, ',', ' ') }}
+                                        {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                        déjà reçus
                                     </span>
                                 </div>
                             </div>
@@ -400,8 +426,18 @@
                                 <span class="badge bg-info bg-opacity-10 text-info">{{ $newPaymentsToday }}</span>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <small class="text-muted">Total reçu/payé</small>
-                                <small class="fw-semibold">{{ number_format($newPaymentsToday * 1000, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</small>
+                                <small class="text-muted">Total reçu</small>
+                                <small class="fw-semibold text-success">
+                                    {{ number_format($paymentsTodayReceivedAmount, 0, ',', ' ') }}
+                                    {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                </small>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Total payé</small>
+                                <small class="fw-semibold text-info">
+                                    {{ number_format($paymentsTodayPaidAmount, 0, ',', ' ') }}
+                                    {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -430,23 +466,31 @@
                             <div class="list-group list-group-flush">
                                 @forelse($topClients as $client)
                                     <a href="{{ route('clients') }}"
-                                       class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
+                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
-                                                <div class="avatar-sm bg-{{ $client['avatar']['color'] }} bg-opacity-10 text-{{ $client['avatar']['color'] }} rounded-circle d-flex align-items-center justify-content-center">
-                                                    <span class="fw-bold small">{{ $client['avatar']['initials'] }}</span>
+                                                <div
+                                                    class="avatar-sm bg-{{ $client['avatar']['color'] }} bg-opacity-10 text-{{ $client['avatar']['color'] }} rounded-circle d-flex align-items-center justify-content-center">
+                                                    <span
+                                                        class="fw-bold small">{{ $client['avatar']['initials'] }}</span>
                                                 </div>
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($client['name'], 20) }}</h6>
+                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($client['name'], 20) }}
+                                                </h6>
                                                 <small class="text-muted">{{ $client['email'] }}</small>
                                                 <div class="mt-1">
-                                                    <span class="badge bg-light text-dark small">{{ $client['phone'] }}</span>
+                                                    <span
+                                                        class="badge bg-light text-dark small">{{ $client['phone'] }}</span>
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-success">{{ number_format($client['total_spent'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
-                                                <small class="text-muted">{{ $client['total_purchases'] }} achats</small>
+                                                <div class="fw-bold text-success">
+                                                    {{ number_format($client['total_spent'], 0, ',', ' ') }}
+                                                    {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                                </div>
+                                                <small class="text-muted">{{ $client['total_purchases'] }}
+                                                    achats</small>
                                             </div>
                                         </div>
                                     </a>
@@ -468,7 +512,8 @@
                             <h6 class="fw-semibold mb-0">
                                 <i class="fas fa-medal text-info me-2"></i>Top 5 Fournisseurs
                             </h6>
-                            <a href="{{ route('fournisseurs') }}" class="btn btn-sm btn-link text-decoration-none p-0">
+                            <a href="{{ route('fournisseurs') }}"
+                                class="btn btn-sm btn-link text-decoration-none p-0">
                                 <small>Voir tous</small>
                             </a>
                         </div>
@@ -476,23 +521,31 @@
                             <div class="list-group list-group-flush">
                                 @forelse($topSuppliers as $supplier)
                                     <a href="{{ route('fournisseurs') }}"
-                                       class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
+                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
-                                                <div class="avatar-sm bg-{{ $supplier['avatar']['color'] }} bg-opacity-10 text-{{ $supplier['avatar']['color'] }} rounded-circle d-flex align-items-center justify-content-center">
-                                                    <span class="fw-bold small">{{ $supplier['avatar']['initials'] }}</span>
+                                                <div
+                                                    class="avatar-sm bg-{{ $supplier['avatar']['color'] }} bg-opacity-10 text-{{ $supplier['avatar']['color'] }} rounded-circle d-flex align-items-center justify-content-center">
+                                                    <span
+                                                        class="fw-bold small">{{ $supplier['avatar']['initials'] }}</span>
                                                 </div>
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($supplier['name'], 20) }}</h6>
+                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($supplier['name'], 20) }}
+                                                </h6>
                                                 <small class="text-muted">{{ $supplier['email'] }}</small>
                                                 <div class="mt-1">
-                                                    <span class="badge bg-light text-dark small">{{ $supplier['phone'] }}</span>
+                                                    <span
+                                                        class="badge bg-light text-dark small">{{ $supplier['phone'] }}</span>
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-primary">{{ number_format($supplier['total_supplied'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
-                                                <small class="text-muted">{{ $supplier['total_orders'] }} commandes</small>
+                                                <div class="fw-bold text-primary">
+                                                    {{ number_format($supplier['total_supplied'], 0, ',', ' ') }}
+                                                    {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                                </div>
+                                                <small class="text-muted">{{ $supplier['total_orders'] }}
+                                                    commandes</small>
                                             </div>
                                         </div>
                                     </a>
@@ -522,24 +575,30 @@
                             <div class="list-group list-group-flush">
                                 @forelse($topArticles as $article)
                                     <a href="{{ route('articles') }}"
-                                       class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
+                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                                     style="width: 40px; height: 40px;">
+                                                    style="width: 40px; height: 40px;">
                                                     <i class="fas fa-box text-success"></i>
                                                 </div>
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($article['designation'], 25) }}</h6>
+                                                <h6 class="mb-0 fw-semibold">
+                                                    {{ Str::limit($article['designation'], 25) }}</h6>
                                                 <small class="text-muted">Réf: {{ $article['reference'] }}</small>
                                                 <div class="mt-1 d-flex gap-1">
-                                                    <span class="badge bg-light text-dark small">{{ $article['category'] }}</span>
-                                                    <span class="badge bg-success small">{{ $article['total_sold'] }} vendus</span>
+                                                    <span
+                                                        class="badge bg-light text-dark small">{{ $article['category'] }}</span>
+                                                    <span class="badge bg-success small">{{ $article['total_sold'] }}
+                                                        vendus</span>
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-success">{{ number_format($article['revenue'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}</div>
+                                                <div class="fw-bold text-success">
+                                                    {{ number_format($article['revenue'], 0, ',', ' ') }}
+                                                    {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
+                                                </div>
                                                 <small class="text-muted">{{ $article['stock'] }} en stock</small>
                                             </div>
                                         </div>
@@ -568,19 +627,21 @@
                             <div class="list-group list-group-flush">
                                 @forelse($lowStockAlerts as $alert)
                                     <a href="{{ route('articles') }}"
-                                       class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
+                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
                                                 <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center"
-                                                     style="width: 40px; height: 40px;">
+                                                    style="width: 40px; height: 40px;">
                                                     <i class="fas fa-exclamation text-danger"></i>
                                                 </div>
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($alert['designation'], 25) }}</h6>
+                                                <h6 class="mb-0 fw-semibold">
+                                                    {{ Str::limit($alert['designation'], 25) }}</h6>
                                                 <small class="text-muted">Réf: {{ $alert['reference'] }}</small>
                                                 <div class="mt-1">
-                                                    <span class="badge bg-light text-dark">{{ $alert['category'] }}</span>
+                                                    <span
+                                                        class="badge bg-light text-dark">{{ $alert['category'] }}</span>
                                                 </div>
                                             </div>
                                             <div class="text-end">
@@ -609,17 +670,20 @@
                 <div class="card-header bg-white">
                     <ul class="nav nav-tabs card-header-tabs border-0" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#orders-tab" type="button">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#orders-tab"
+                                type="button">
                                 <i class="fas fa-shopping-cart me-1"></i> Commandes
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sales-tab" type="button">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sales-tab"
+                                type="button">
                                 <i class="fas fa-cash-register me-1"></i> Ventes
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments-tab" type="button">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments-tab"
+                                type="button">
                                 <i class="fas fa-money-bill-wave me-1"></i> Paiements
                             </button>
                         </li>
@@ -632,13 +696,14 @@
                             <div class="list-group list-group-flush">
                                 @forelse($latestOrders as $order)
                                     <a href="{{ route('stock.commandes') }}"
-                                       class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
+                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <div>
                                                 <h6 class="mb-0 fw-semibold">{{ $order['reference'] }}</h6>
                                                 <small class="text-muted">{{ $order['supplier'] }}</small>
                                             </div>
-                                            <span class="badge {{ $order['status'] === 'completed' ? 'bg-success' : 'bg-warning' }}">
+                                            <span
+                                                class="badge {{ $order['status'] === 'completed' ? 'bg-success' : 'bg-warning' }}">
                                                 {{ $order['status'] === 'completed' ? 'Terminé' : 'En cours' }}
                                             </span>
                                         </div>
@@ -649,7 +714,8 @@
                                                 </small>
                                             </div>
                                             <div class="fw-bold text-primary">
-                                                {{ number_format($order['amount'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
+                                                {{ number_format($order['amount'], 0, ',', ' ') }}
+                                                {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
                                             </div>
                                         </div>
                                     </a>
@@ -667,13 +733,14 @@
                             <div class="list-group list-group-flush">
                                 @forelse($latestSales as $sale)
                                     <a href="{{ route('ventes.ventes') }}"
-                                       class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
+                                        class="list-group-item border-0 py-3 px-4 hover-bg-light text-decoration-none">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <div>
                                                 <h6 class="mb-0 fw-semibold">{{ $sale['reference'] }}</h6>
                                                 <small class="text-muted">{{ $sale['client'] }}</small>
                                             </div>
-                                            <span class="badge {{ $sale['payment_status'] === 'payé' ? 'bg-success' : ($sale['payment_status'] === 'partiel' ? 'bg-warning' : 'bg-secondary') }}">
+                                            <span
+                                                class="badge {{ $sale['payment_status'] === 'payé' ? 'bg-success' : ($sale['payment_status'] === 'partiel' ? 'bg-warning' : 'bg-secondary') }}">
                                                 {{ $sale['payment_status'] }}
                                             </span>
                                         </div>
@@ -684,7 +751,8 @@
                                                 </small>
                                             </div>
                                             <div class="fw-bold text-success">
-                                                {{ number_format($sale['amount'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
+                                                {{ number_format($sale['amount'], 0, ',', ' ') }}
+                                                {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
                                             </div>
                                         </div>
                                     </a>
@@ -707,7 +775,8 @@
                                                 <h6 class="mb-0 fw-semibold">{{ $payment['reference'] }}</h6>
                                                 <small class="text-muted">{{ $payment['from_to'] }}</small>
                                             </div>
-                                            <span class="badge {{ $payment['type'] === 'client' ? 'bg-success' : 'bg-info' }}">
+                                            <span
+                                                class="badge {{ $payment['type'] === 'client' ? 'bg-success' : 'bg-info' }}">
                                                 {{ $payment['type'] === 'client' ? 'Reçu' : 'Payé' }}
                                             </span>
                                         </div>
@@ -717,8 +786,10 @@
                                                     <i class="far fa-clock me-1"></i>{{ $payment['date'] }}
                                                 </small>
                                             </div>
-                                            <div class="fw-bold {{ $payment['type'] === 'client' ? 'text-success' : 'text-info' }}">
-                                                {{ number_format($payment['amount'], 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
+                                            <div
+                                                class="fw-bold {{ $payment['type'] === 'client' ? 'text-success' : 'text-info' }}">
+                                                {{ number_format($payment['amount'], 0, ',', ' ') }}
+                                                {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
                                             </div>
                                         </div>
                                     </div>

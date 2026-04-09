@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -18,6 +19,11 @@ class UserManagement extends Component
     public $confirmingRoleChange = null;
     public $newRole = '';
     public $showCreateModal = false;
+
+    public $showAccessModal = false;
+    public $accessUserId;
+    public $accessMatrix = [];
+    public $accessGroup = '';
 
     // New user properties
     public $name = '';
@@ -82,8 +88,19 @@ class UserManagement extends Component
     {
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
-        if (!$currentUser->isSuperAdmin() && !$currentUser->isAdmin()) {
+        if (!$currentUser->canAccess('settings.users', 'view')) {
             abort(403, 'Unauthorized access.');
+        }
+    }
+
+    private function ensurePermissionCatalog(): void
+    {
+        $items = config('access.permissions', []);
+        foreach ($items as $item) {
+            Permission::firstOrCreate(
+                ['key' => $item['key']],
+                ['label' => $item['label'] ?? $item['key'], 'group' => $item['group'] ?? null]
+            );
         }
     }
 
@@ -111,6 +128,109 @@ class UserManagement extends Component
         ]);
     }
 
+    public function openAccessModal($userId): void
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $this->ensurePermissionCatalog();
+
+        $this->accessUserId = (int) $userId;
+        $user = User::findOrFail($this->accessUserId);
+
+        $permissions = Permission::query()->orderBy('group')->orderBy('label')->get();
+        $existing = $user->permissions()
+            ->withPivot(['can_view', 'can_create', 'can_update', 'can_delete', 'can_toggle_status'])
+            ->get()
+            ->keyBy('key');
+
+        $matrix = [];
+        foreach ($permissions as $perm) {
+            $pivot = $existing->get($perm->key)?->pivot;
+            $safeKey = 'perm_' . md5((string) $perm->key);
+            $matrix[$safeKey] = [
+                'key' => $perm->key,
+                'label' => $perm->label,
+                'group' => $perm->group ?: 'Autre',
+                'view' => (bool) ($pivot?->can_view ?? false),
+                'create' => (bool) ($pivot?->can_create ?? false),
+                'update' => (bool) ($pivot?->can_update ?? false),
+                'delete' => (bool) ($pivot?->can_delete ?? false),
+                'toggle_status' => (bool) ($pivot?->can_toggle_status ?? false),
+            ];
+        }
+
+        $this->accessMatrix = $matrix;
+        $this->accessGroup = collect($matrix)->pluck('group')->filter()->unique()->sort()->values()->first() ?? '';
+        $this->showAccessModal = true;
+    }
+
+    public function closeAccessModal(): void
+    {
+        $this->showAccessModal = false;
+        $this->accessUserId = null;
+        $this->accessMatrix = [];
+        $this->accessGroup = '';
+    }
+
+    public function saveAccess(): void
+    {
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser->isSuperAdmin()) {
+            abort(403);
+        }
+
+        if (!$this->accessUserId) {
+            return;
+        }
+
+        $user = User::findOrFail($this->accessUserId);
+
+        $permissionModelsByKey = Permission::query()
+            ->whereIn('key', collect($this->accessMatrix)->pluck('key')->filter()->unique()->values()->all())
+            ->get()
+            ->keyBy('key');
+
+        $attach = [];
+        foreach ($this->accessMatrix as $row) {
+            $permissionKey = (string) ($row['key'] ?? '');
+            if ($permissionKey === '') {
+                continue;
+            }
+
+            $perm = $permissionModelsByKey->get($permissionKey);
+            if (!$perm) {
+                continue;
+            }
+
+            $canCreate = (bool) ($row['create'] ?? false);
+            $canUpdate = (bool) ($row['update'] ?? false);
+            $canDelete = (bool) ($row['delete'] ?? false);
+            $canToggle = (bool) ($row['toggle_status'] ?? false);
+            $canView = (bool) ($row['view'] ?? false) || $canCreate || $canUpdate || $canDelete || $canToggle;
+
+            if (!$canView && !$canCreate && !$canUpdate && !$canDelete && !$canToggle) {
+                continue;
+            }
+
+            $attach[$perm->id] = [
+                'can_view' => $canView,
+                'can_create' => $canCreate,
+                'can_update' => $canUpdate,
+                'can_delete' => $canDelete,
+                'can_toggle_status' => $canToggle,
+            ];
+        }
+
+        $user->permissions()->sync($attach);
+        $this->dispatch('success', message: 'Accès mis à jour avec succès.');
+        $this->closeAccessModal();
+    }
+
     public function openCreateModal()
     {
         $this->resetForm();
@@ -133,6 +253,10 @@ class UserManagement extends Component
     {
         /** @var \App\Models\User $currentUser */
         $currentUser = Auth::user();
+        if (!$currentUser->canAccess('settings.users', 'create')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de créer des utilisateurs.');
+            return;
+        }
 
         // Only super_admin can create super_admin or admin users
         if ($this->role !== 'user' && !$currentUser->isSuperAdmin()) {
@@ -184,8 +308,7 @@ class UserManagement extends Component
         $currentUser = Auth::user();
         $userToUpdate = User::findOrFail($userId);
 
-        // Check permissions: Only super_admin or admin can enable/disable users
-        if (!$currentUser->isSuperAdmin() && !$currentUser->isAdmin()) {
+        if (!$currentUser->canAccess('settings.users', 'toggle_status')) {
             $this->dispatch('error', message: 'Vous n\'avez pas la permission de modifier le statut des utilisateurs.');
             return;
         }

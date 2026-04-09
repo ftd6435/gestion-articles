@@ -31,6 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
             input.parentElement.classList.remove('is-focused');
         });
     });
-});
 
+    document.querySelectorAll('form.auth-form').forEach(form => {
+        form.addEventListener('submit', () => {
+            const submitButton = form.querySelector('button[type="submit"][data-loading-text]');
+            if (!submitButton) {
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = submitButton.getAttribute('data-loading-text') || 'Connexion...';
+        });
+    });
+});
 

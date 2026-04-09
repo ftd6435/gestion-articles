@@ -49,6 +49,20 @@ class ReceptionFournisseur extends Model
      */
     public function getTotalAmountNoDiscount()
     {
+        if ($this->relationLoaded('ligneReceptions') && $this->commande && $this->commande->relationLoaded('ligneCommandes')) {
+            $prices = $this->commande->ligneCommandes->keyBy('article_id');
+            $total = 0;
+
+            foreach ($this->ligneReceptions as $ligneReception) {
+                $ligneCommande = $prices->get($ligneReception->article_id);
+                if ($ligneCommande) {
+                    $total += ($ligneReception->quantity ?? 0) * ($ligneCommande->unit_price ?? 0);
+                }
+            }
+
+            return $total;
+        }
+
         $total = 0;
 
         foreach ($this->ligneReceptions as $ligneReception) {
@@ -100,6 +114,10 @@ class ReceptionFournisseur extends Model
      */
     public function getTotalPaid()
     {
+        if ($this->relationLoaded('paiements')) {
+            return (float) $this->paiements->sum('montant');
+        }
+
         return $this->paiements()->sum('montant');
     }
 

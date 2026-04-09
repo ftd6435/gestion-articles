@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - AdminPro</title>
+    @php
+        $company = \App\Models\CompanySetting::query()->first();
+        $brandName = $company?->short_name ?: ($company?->name ?: config('app.name'));
+        $brandName = \Illuminate\Support\Str::limit($brandName, 22);
+        $companyFullName = $company?->name ?: config('app.name');
+        $companyLogoUrl = $company?->logo_path ? asset($company->logo_path) : null;
+    @endphp
+    <title>Mot de passe oublié - {{ $brandName }}</title>
     <link rel="icon" href="/images/pk-app.jpg" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,11 +23,15 @@
             <div class="branding-content">
                 <div class="logo-wrapper">
                     <div class="logo-icon">
-                        <i class="fas fa-bolt"></i>
+                        @if ($companyLogoUrl)
+                            <img src="{{ $companyLogoUrl }}" alt="Logo" class="brand-logo-img">
+                        @else
+                            <i class="fas fa-bolt"></i>
+                        @endif
                     </div>
-                    <h1 class="brand-name">GestionStock</h1>
+                    <h1 class="brand-name">{{ $brandName }}</h1>
                 </div>
-                <p class="brand-tagline">Gérez votre entreprise avec efficacité</p>
+                <p class="brand-tagline">{{ $companyFullName }}</p>
 
                 <div class="features-list">
                     <div class="feature-item">
@@ -45,15 +56,19 @@
                 <!-- Mobile Logo -->
                 <div class="mobile-logo">
                     <div class="logo-icon-mobile">
-                        <i class="fas fa-bolt"></i>
+                        @if ($companyLogoUrl)
+                            <img src="{{ $companyLogoUrl }}" alt="Logo" class="brand-logo-img-mobile">
+                        @else
+                            <i class="fas fa-bolt"></i>
+                        @endif
                     </div>
-                    <h2>AdminPro</h2>
+                    <h2>{{ $brandName }}</h2>
                 </div>
 
                 <div class="auth-card">
                     <div class="form-header text-center">
-                        <h2 class="form-title">Bon retour 👋</h2>
-                        <p class="form-subtitle">Connectez-vous à votre compte</p>
+                        <h2 class="form-title">Mot de passe oublié</h2>
+                        <p class="form-subtitle">Recevez un lien de réinitialisation par email</p>
                     </div>
 
                     <form method="POST" action="{{ route('password.email') }}" class="auth-form">

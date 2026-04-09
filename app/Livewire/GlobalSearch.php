@@ -102,6 +102,46 @@ class GlobalSearch extends Component
             'category' => 'Configuration'
         ],
         [
+            'name' => 'Paramètres entreprise',
+            'route' => 'configuration.settings',
+            'url' => '/configuration/settings',
+            'icon' => 'fas fa-building',
+            'description' => 'Configurer le nom, logo et coordonnées de l\'entreprise',
+            'category' => 'Configuration'
+        ],
+        [
+            'name' => 'Types d\'opérations',
+            'route' => 'comptabilite.types-operations',
+            'url' => '/comptabilite/types-operations',
+            'icon' => 'fas fa-list',
+            'description' => 'Configurer les types (entrée/sortie) des opérations',
+            'category' => 'Comptabilité'
+        ],
+        [
+            'name' => 'Opérations',
+            'route' => 'comptabilite.operations',
+            'url' => '/comptabilite/operations',
+            'icon' => 'fas fa-receipt',
+            'description' => 'Suivi des dépenses et revenus divers',
+            'category' => 'Comptabilité'
+        ],
+        [
+            'name' => 'Audit - Stock article',
+            'route' => 'audit.stock-article',
+            'url' => '/audit/stock-article',
+            'icon' => 'fas fa-boxes',
+            'description' => 'Articles en stock avec date d\'expiration proche',
+            'category' => 'Audit'
+        ],
+        [
+            'name' => 'Audit - Activity',
+            'route' => 'audit.activity',
+            'url' => '/audit/activity',
+            'icon' => 'fas fa-clipboard-list',
+            'description' => 'Historique des actions utilisateurs',
+            'category' => 'Audit'
+        ],
+        [
             'name' => 'Magasins',
             'route' => 'warehouse.magasins',
             'url' => '/warehouse/magasins',

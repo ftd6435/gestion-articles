@@ -306,6 +306,18 @@ class Articles extends Component
         $this->devises = DeviseModel::with('createdBy', 'updatedBy', 'articles')->active()->latest()->get();
     }
 
+    private function generateArticleReference(): string
+    {
+        $nextId = ((int) ArticleModel::max('id')) + 1;
+        $reference = 'AR' . str_pad((string) $nextId, 4, '0', STR_PAD_LEFT);
+
+        if (ArticleModel::where('reference', $reference)->exists()) {
+            $reference = 'AR' . now()->format('ymd') . rand(10, 99);
+        }
+
+        return $reference;
+    }
+
     public function resetForm()
     {
         $this->reset([
@@ -320,6 +332,16 @@ class Articles extends Component
             'unite'
         ]);
         $this->status = true;
+
+        $this->reference = $this->generateArticleReference();
+
+        $defaultDevise = DeviseModel::getDefaultDevise();
+        if ($defaultDevise) {
+            $this->devise_id = $defaultDevise->id;
+        } elseif ($this->devises && $this->devises->count() > 0) {
+            $this->devise_id = $this->devises->first()->id;
+        }
+
         $this->resetValidation();
     }
 
@@ -327,6 +349,13 @@ class Articles extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('articles', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des articles.');
+            return;
+        }
+
         $this->resetForm();
         $this->showModal = true;
     }
@@ -347,6 +376,13 @@ class Articles extends Component
 
     public function createCategory()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.categories', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des catégories.');
+            return;
+        }
+
         $this->reset(['name', 'description']);
         $this->status = true;
 
@@ -355,6 +391,13 @@ class Articles extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('articles', 'update')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier des articles.');
+            return;
+        }
+
         try {
             $article = ArticleModel::findOrFail($id);
 
@@ -377,6 +420,20 @@ class Articles extends Component
 
     public function storeArticle()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if ($this->articleId) {
+            if (!$currentUser?->canAccess('articles', 'update')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de modifier des articles.');
+                return;
+            }
+        } else {
+            if (!$currentUser?->canAccess('articles', 'create')) {
+                session()->flash('error', 'Vous n\'avez pas la permission de créer des articles.');
+                return;
+            }
+        }
+
         $this->validate();
 
         try {
@@ -463,6 +520,13 @@ class Articles extends Component
 
     public function storeCategory()
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('configuration.categories', 'create')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de créer des catégories.');
+            return;
+        }
+
         // Validate the category data
         $this->validate($this->categoryRules, $this->categoryMessages);
 
@@ -497,6 +561,13 @@ class Articles extends Component
 
     public function toggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('articles', 'toggle_status')) {
+            session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des articles.');
+            return;
+        }
+
         $article = ArticleModel::findOrFail($id);
         $article->update([
             'status' => !$article->status,

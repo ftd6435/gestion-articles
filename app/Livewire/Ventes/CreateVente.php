@@ -115,6 +115,11 @@ class CreateVente extends Component
         $this->loadArticles();
         $this->loadDevises();
 
+        $defaultClient = $this->clients->firstWhere('is_default', true);
+        if ($defaultClient) {
+            $this->selectClient($defaultClient->id);
+        }
+
         $defaultDevise = DeviseModel::getDefaultDevise();
         if ($defaultDevise) {
             $this->devise_id = $defaultDevise->id;
@@ -278,6 +283,13 @@ class CreateVente extends Component
 
     public function openClientModal(): void
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('clients', 'create')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de créer des clients.');
+            return;
+        }
+
         $this->selectedClient = null;
         $this->showModal = true;
     }
@@ -296,6 +308,13 @@ class CreateVente extends Component
 
     public function storeClient(): void
     {
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = Auth::user();
+        if (!$currentUser?->canAccess('clients', 'create')) {
+            $this->dispatch('error', message: 'Vous n\'avez pas la permission de créer des clients.');
+            return;
+        }
+
         $this->validate([
             'name' => 'required|string|min:3|max:100',
             'telephone' => [
