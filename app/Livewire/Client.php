@@ -107,6 +107,7 @@ class Client extends Component
 
     public function create()
     {
+        /** @var \App\Models\User|null $currentUser */
         $currentUser = Auth::user();
         if (!$currentUser?->canAccess('clients', 'create')) {
             session()->flash('error', 'Vous n\'avez pas la permission de créer des clients.');
@@ -143,6 +144,7 @@ class Client extends Component
 
     public function edit($id)
     {
+        /** @var \App\Models\User|null $currentUser */
         $currentUser = Auth::user();
         if (!$currentUser?->canAccess('clients', 'update')) {
             session()->flash('error', 'Vous n\'avez pas la permission de modifier des clients.');
@@ -171,6 +173,7 @@ class Client extends Component
 
     public function storeClient()
     {
+        /** @var \App\Models\User|null $currentUser */
         $currentUser = Auth::user();
         if ($this->clientId) {
             if (!$currentUser?->canAccess('clients', 'update')) {
@@ -279,6 +282,7 @@ class Client extends Component
 
     public function toggleStatus($id)
     {
+        /** @var \App\Models\User|null $currentUser */
         $currentUser = Auth::user();
         if (!$currentUser?->canAccess('clients', 'toggle_status')) {
             session()->flash('error', 'Vous n\'avez pas la permission de modifier le statut des clients.');

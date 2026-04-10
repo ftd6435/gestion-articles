@@ -111,7 +111,7 @@
                     @endphp
                     @if($showStockMenu)
                         <li class="nav-item">
-                            <a class="nav-link mb-2 {{ request()->is('stock*') ? 'active' : '' }}" data-bs-toggle="collapse"
+                            <a class="nav-link {{ request()->is('stock*') ? 'active' : '' }}" data-bs-toggle="collapse"
                                 href="#stockMenu" role="button" aria-expanded="false">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span>Stock</span>
@@ -185,7 +185,7 @@
                     @endphp
                     @if($showWarehouseMenu)
                         <li class="nav-item">
-                            <a class="nav-link mb-2 {{ request()->is('warehouse*') ? 'active' : '' }}" data-bs-toggle="collapse"
+                            <a class="nav-link {{ request()->is('warehouse*') ? 'active' : '' }}" data-bs-toggle="collapse"
                                 href="#warehouse" role="button" aria-expanded="false">
                                 <i class="fa-solid fa-warehouse"></i>
                                 <span>Ges. Entrépôts</span>
@@ -227,7 +227,7 @@
                     @endphp
                     @if($showConfigurationMenu)
                         <li class="nav-item">
-                            <a class="nav-link mb-2 {{ request()->is('configuration*') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->is('configuration*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" href="#configuration" role="button" aria-expanded="false">
                                 <i class="fa-solid fa-gears"></i>
                                 <span>Configuration</span>
@@ -277,7 +277,7 @@
                     @endphp
                     @if($showComptabiliteMenu)
                         <li class="nav-item">
-                            <a class="nav-link mb-2 {{ request()->is('comptabilite*') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->is('comptabilite*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" href="#comptabilite" role="button" aria-expanded="false">
                                 <i class="fa-solid fa-calculator"></i>
                                 <span>Comptabilité</span>
@@ -318,7 +318,7 @@
                     @endphp
                     @if($showAuditMenu)
                         <li class="nav-item">
-                            <a class="nav-link mb-2 {{ request()->is('audit*') ? 'active' : '' }}" data-bs-toggle="collapse"
+                            <a class="nav-link {{ request()->is('audit*') ? 'active' : '' }}" data-bs-toggle="collapse"
                                 href="#audit" role="button" aria-expanded="false">
                                 <i class="fas fa-shield-alt"></i>
                                 <span>Audit</span>
@@ -362,7 +362,7 @@
                         <ul class="nav flex-column dropdown-menu-custom">
                             @if($userHasAccess)
                                 @access('settings.users')
-                                    <li class="nav-item mt-2">
+                                    <li class="nav-item">
                                         <a href="{{ route('settings.users') }}"
                                             class="nav-link {{ request()->is('settings/users') ? 'active' : '' }}">
                                             <i class="fas fa-user-plus"></i>
