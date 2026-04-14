@@ -29,6 +29,10 @@ return [
         ['key' => 'audit.stock-article', 'label' => 'Audit stock (expiration)', 'group' => 'Audit'],
         ['key' => 'audit.activity', 'label' => 'Audit activité', 'group' => 'Audit'],
 
+        ['key' => 'legacy.clients', 'label' => 'Anciens - Dettes clients', 'group' => 'Anciens'],
+        ['key' => 'legacy.fournisseurs', 'label' => 'Anciens - Dettes fournisseurs', 'group' => 'Anciens'],
+        ['key' => 'legacy.reports', 'label' => 'Anciens - Rapports', 'group' => 'Anciens'],
+
         ['key' => 'settings.users', 'label' => 'Gestion des utilisateurs', 'group' => 'Paramètres'],
     ],
 
@@ -63,6 +67,10 @@ return [
 
         'audit.stock-article' => 'audit.stock-article',
         'audit.activity' => 'audit.activity',
+
+        'legacy.clients' => 'legacy.clients',
+        'legacy.fournisseurs' => 'legacy.fournisseurs',
+        'legacy.reports' => 'legacy.reports',
 
         'settings.users' => 'settings.users',
         'settings.profile' => null,

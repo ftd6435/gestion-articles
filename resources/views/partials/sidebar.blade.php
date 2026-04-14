@@ -350,6 +350,57 @@
                     @endif
                 @endif
 
+                <!-- Anciens (Dropdown) -->
+                @if($userHasAccess)
+                    @php
+                        $showLegacyMenu =
+                            auth()->user()->canAccess('legacy.clients') ||
+                            auth()->user()->canAccess('legacy.fournisseurs') ||
+                            auth()->user()->canAccess('legacy.reports');
+                    @endphp
+                    @if($showLegacyMenu)
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is('anciens*') ? 'active' : '' }}" data-bs-toggle="collapse"
+                                href="#legacy" role="button" aria-expanded="false">
+                                <i class="fas fa-book"></i>
+                                <span>Anciens</span>
+                                <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
+                            </a>
+                            <div class="collapse {{ request()->is('anciens*') ? 'show' : '' }}" id="legacy">
+                                <ul class="nav flex-column dropdown-menu-custom">
+                                    @access('legacy.clients')
+                                        <li class="nav-item mt-2">
+                                            <a href="{{ route('legacy.clients') }}"
+                                                class="nav-link {{ request()->is('anciens/clients') ? 'active' : '' }}">
+                                                <i class="fas fa-user-clock"></i>
+                                                <span>Dettes clients</span>
+                                            </a>
+                                        </li>
+                                    @endaccess
+                                    @access('legacy.fournisseurs')
+                                        <li class="nav-item">
+                                            <a href="{{ route('legacy.fournisseurs') }}"
+                                                class="nav-link {{ request()->is('anciens/fournisseurs') ? 'active' : '' }}">
+                                                <i class="fas fa-truck-loading"></i>
+                                                <span>Dettes fournisseurs</span>
+                                            </a>
+                                        </li>
+                                    @endaccess
+                                    @access('legacy.reports')
+                                        <li class="nav-item">
+                                            <a href="{{ route('legacy.reports') }}"
+                                                class="nav-link {{ request()->is('anciens/rapports') ? 'active' : '' }}">
+                                                <i class="fas fa-chart-line"></i>
+                                                <span>Rapports</span>
+                                            </a>
+                                        </li>
+                                    @endaccess
+                                </ul>
+                            </div>
+                        </li>
+                    @endif
+                @endif
+
                 <!-- Configuration (Dropdown) -->
                 <li class="nav-item">
                     <a class="nav-link mb-2 {{ request()->is('settings*') ? 'active' : '' }}" data-bs-toggle="collapse"

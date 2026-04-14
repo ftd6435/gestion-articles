@@ -29,6 +29,9 @@ use App\Livewire\Ventes\Vente;
 use App\Livewire\Ventes\VentesJour;
 use App\Livewire\Warehouse\Magasin;
 use App\Livewire\Warehouse\Etagere;
+use App\Livewire\Legacy\ClientDebts as LegacyClientDebts;
+use App\Livewire\Legacy\FournisseurDebts as LegacyFournisseurDebts;
+use App\Livewire\Legacy\Reports as LegacyReports;
 
 Route::get('/public/commandes/{commande}', function (\App\Models\Stock\CommandeFournisseur $commande) {
     $commande->load([
@@ -238,6 +241,10 @@ Route::middleware(['auth', 'access'])->group(function () {
 
     Route::get('/audit/stock-article', StockArticle::class)->name('audit.stock-article');
     Route::get('/audit/activity', Activity::class)->name('audit.activity');
+
+    Route::get('/anciens/clients', LegacyClientDebts::class)->name('legacy.clients');
+    Route::get('/anciens/fournisseurs', LegacyFournisseurDebts::class)->name('legacy.fournisseurs');
+    Route::get('/anciens/rapports', LegacyReports::class)->name('legacy.reports');
 
     // WAREHOUSE ROUTES
     Route::get('/warehouse/magasins', Magasin::class)->name('warehouse.magasins');

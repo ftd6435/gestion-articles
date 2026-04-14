@@ -3652,3 +3652,100 @@ function printSalesReportSimple() {
         window.dispatchEvent(new Event("livewire:init"));
     }, 100);
 }
+
+function printElementById(elementId) {
+    const sourceEl = document.getElementById(elementId);
+    if (!sourceEl) {
+        return;
+    }
+
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+    printFrame.name = "printFrame";
+    printFrame.title = "Print Document";
+    document.body.appendChild(printFrame);
+
+    const cloned = sourceEl.cloneNode(true);
+    cloned.querySelectorAll("button, .btn, .btn-close, .d-print-none, .no-print").forEach((el) => el.remove());
+
+    const printOnlyElements = cloned.querySelectorAll(".d-print-block");
+    printOnlyElements.forEach((el) => {
+        el.classList.remove("d-none");
+        el.classList.remove("d-print-block");
+        el.style.setProperty("display", "block", "important");
+    });
+
+    const contentToPrint = cloned.innerHTML;
+    const printContent = `
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                <style>
+                    @page { margin: 5mm; }
+                    @media print {
+                        body { margin: 0 !important; padding: 0 !important; }
+                        .badge { border: 1px solid #ddd !important; }
+                        .bg-success { background-color: #d1e7dd !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+                        .bg-secondary { background-color: #e2e3e5 !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+                        .bg-light { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+                    }
+                    @media screen {
+                        body { padding: 30px; background: #f8f9fa; }
+                        .print-container { max-width: 210mm; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-container">
+                    ${contentToPrint}
+                </div>
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            try { window.print(); } catch (e) {}
+                            window.onafterprint = function() {
+                                setTimeout(function() { try { window.close(); } catch (e) {} }, 300);
+                            };
+                        }, 400);
+                    };
+                <\/script>
+            </body>
+        </html>
+    `;
+
+    try {
+        printFrame.contentWindow.document.open();
+        printFrame.contentWindow.document.write(printContent);
+        printFrame.contentWindow.document.close();
+    } catch (e) {
+        if (printFrame.parentNode) {
+            document.body.removeChild(printFrame);
+        }
+        return;
+    }
+
+    printFrame.onload = function () {
+        setTimeout(function () {
+            try {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            } catch (e) {
+            }
+            setTimeout(() => {
+                if (printFrame && printFrame.parentNode) {
+                    document.body.removeChild(printFrame);
+                }
+            }, 2000);
+        }, 500);
+    };
+}
