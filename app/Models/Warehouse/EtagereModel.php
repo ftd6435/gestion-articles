@@ -13,12 +13,14 @@ class EtagereModel extends Model
         'magasin_id',
         'code_etagere',
         'status',
+        'is_default',
         'created_by',
         'updated_by'
     ];
 
     protected $casts = [
         'status' => 'boolean',
+        'is_default' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

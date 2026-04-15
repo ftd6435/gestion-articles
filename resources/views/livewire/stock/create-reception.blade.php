@@ -150,7 +150,7 @@
                                     Article <span class="text-danger">*</span>
                                 </label>
                                 <div class="select-wrapper">
-                                    <select wire:model.defer="article_id"
+                                    <select wire:model.live="article_id"
                                             class="form-select-modern @error('article_id') is-invalid @enderror">
                                         <option value="">Choisir un article</option>
                                         @forelse($articles as $article)
@@ -191,7 +191,7 @@
                                             class="form-select-modern @error('magasin_id') is-invalid @enderror">
                                         <option value="">Choisir</option>
                                         @foreach($magasins as $magasin)
-                                            <option value="{{ $magasin->id }}">
+                                            <option value="{{ (string) $magasin->id }}">
                                                 {{ $magasin->nom }}
                                             </option>
                                         @endforeach
@@ -239,13 +239,15 @@
                                     <i class="fas fa-layer-group me-2"></i>
                                     Étagère <span class="text-danger">*</span>
                                 </label>
-                                <div class="select-wrapper">
-                                    <select wire:model.defer="etagere_id"
+                                <div class="select-wrapper" wire:key="etagere-select-{{ $magasin_id ?: 'none' }}">
+                                    <select wire:model.live="etagere_id"
                                             class="form-select-modern @error('etagere_id') is-invalid @enderror"
-                                            @disabled(empty($etageres))>
-                                        <option value="">{{ empty($etageres) ? 'Choisir un magasin d\'abord' : 'Choisir une étagère' }}</option>
+                                            @disabled(count($etageres) === 0)>
+                                        <option value="" @if(count($etageres) > 0) disabled @endif>
+                                            {{ count($etageres) === 0 ? 'Choisir un magasin d\'abord' : 'Choisir une étagère' }}
+                                        </option>
                                         @foreach($etageres as $etagere)
-                                            <option value="{{ $etagere->id }}">
+                                            <option value="{{ (string) $etagere->id }}">
                                                 {{ $etagere->code_etagere }}
                                             </option>
                                         @endforeach

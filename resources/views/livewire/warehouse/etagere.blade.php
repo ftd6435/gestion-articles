@@ -28,6 +28,7 @@
                             <th>#</th>
                             <th>Code Etagère</th>
                             <th>Magasin</th>
+                            <th>Défaut</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -38,6 +39,15 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td class="fw-semibold">{{ $etagere->code_etagere }}</td>
                                 <td class="small"><span class="text-info fw-semibold">{{ $etagere->magasin->code_magasin }}</span> : {{ $etagere->magasin->nom }}</td>
+                                <td>
+                                    @if($etagere->is_default)
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-star me-1"></i> Défaut
+                                        </span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge {{ $etagere->status ? 'bg-success' : 'bg-secondary' }}">
                                         {{ $etagere->status ? 'Actif' : 'Inactif' }}
@@ -85,7 +95,14 @@
                     <div class="border-bottom p-3">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="flex-grow-1">
-                                <h6 class="fw-bold">{{ $etagere->code_etagere }}</h6>
+                                <h6 class="fw-bold">
+                                    {{ $etagere->code_etagere }}
+                                    @if($etagere->is_default)
+                                        <span class="badge bg-warning text-dark ms-1">
+                                            <i class="fas fa-star"></i>
+                                        </span>
+                                    @endif
+                                </h6>
                                 <p class="text-muted small mb-1">{{ $etagere->magasin->code_magasin }}: {{ $etagere->magasin->nom }}</p>
                                 <span class="badge {{ $etagere->status ? 'bg-success' : 'bg-secondary' }}">
                                     {{ $etagere->status ? 'Actif' : 'Inactif' }}

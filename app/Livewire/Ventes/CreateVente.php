@@ -254,6 +254,11 @@ class CreateVente extends Component
             $this->lignes[$index]['article_designation'] = $article->designation;
             $this->lignes[$index]['article_reference'] = $article->reference;
             $this->lignes[$index]['unit_price'] = $article->prix_vente ?? 0;
+
+            // Auto-select the linked shelf with the highest available stock.
+            $bestEtagereId = $this->getBestEtagereForArticle((int) $article->id, (int) $index);
+            $this->lignes[$index]['etagere_id'] = $bestEtagereId ? (string) $bestEtagereId : null;
+
             $this->articleSearches[$index] = $article->designation . ' (' . $article->reference . ')';
             $this->showArticleDropdowns[$index] = false;
 
@@ -529,12 +534,38 @@ class CreateVente extends Component
                             $index
                         ),
                     ];
-                });
+                })
+                ->sortByDesc('available')
+                ->values();
 
             $etageresByLine[$index] = $etageres;
         }
 
         return $etageresByLine;
+    }
+
+    private function getBestEtagereForArticle(int $articleId, int $lineIndex): ?int
+    {
+        $bestEtagereId = null;
+        $bestAvailable = 0;
+
+        $etageres = EtagereModel::query()
+            ->whereHas('ligneReceptions', function ($query) use ($articleId) {
+                $query->where('article_id', $articleId);
+            })
+            ->orderBy('code_etagere')
+            ->get(['id']);
+
+        foreach ($etageres as $etagere) {
+            $available = $this->availableQuantity($articleId, $etagere->id, $lineIndex);
+
+            if ($available > $bestAvailable) {
+                $bestAvailable = $available;
+                $bestEtagereId = (int) $etagere->id;
+            }
+        }
+
+        return $bestEtagereId;
     }
 
     /* ===================== SAVE ===================== */

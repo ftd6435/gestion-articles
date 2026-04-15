@@ -17,6 +17,7 @@ class Magasin extends Component
     public $nom;
     public $localisation;
     public $status = true;
+    public $is_default = false;
     public $showModal = false;
 
     protected function rules()
@@ -26,6 +27,7 @@ class Magasin extends Component
             'nom' => 'required|string|min:3',
             'localisation' => 'nullable|string',
             'status' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 
@@ -50,12 +52,15 @@ class Magasin extends Component
 
     public function loadMagasins()
     {
-        $this->magasins = MagasinModel::with('createdBy', 'updatedBy', 'etageres')->latest()->get();
+        $this->magasins = MagasinModel::with('createdBy', 'updatedBy', 'etageres')
+            ->orderByDesc('is_default')
+            ->latest()
+            ->get();
     }
 
     public function resetForm()
     {
-        $this->reset(['magasinId', 'code_magasin', 'nom', 'localisation']);
+        $this->reset(['magasinId', 'code_magasin', 'nom', 'localisation', 'is_default']);
         $this->status = true;
         $this->resetValidation();
     }
@@ -96,6 +101,7 @@ class Magasin extends Component
             $this->nom = $magasin->nom;
             $this->localisation = $magasin->localisation;
             $this->status = (bool) $magasin->status;
+            $this->is_default = (bool) $magasin->is_default;
 
             $this->showModal = true;
         } catch (\Exception $e) {
@@ -122,16 +128,35 @@ class Magasin extends Component
         $this->validate();
 
         try {
+            if ($this->is_default) {
+                $this->status = true;
+            }
+
             if ($this->magasinId) {
                 // Update existing
                 $magasin = MagasinModel::findOrFail($this->magasinId);
+                $wasDefault = (bool) $magasin->is_default;
                 $magasin->update([
                     'code_magasin' => $this->code_magasin,
                     'nom' => $this->nom,
                     'localisation' => $this->localisation,
                     'status' => $this->status,
+                    'is_default' => $this->is_default,
                     'updated_by' => Auth::id(),
                 ]);
+                if ($this->is_default) {
+                    MagasinModel::where('id', '!=', $magasin->id)->update(['is_default' => false]);
+                }
+                if (!$this->is_default && $wasDefault) {
+                    $replacementId = MagasinModel::where('id', '!=', $magasin->id)
+                        ->where('status', true)
+                        ->orderByDesc('is_default')
+                        ->orderBy('id')
+                        ->value('id');
+                    if ($replacementId) {
+                        MagasinModel::where('id', $replacementId)->update(['is_default' => true]);
+                    }
+                }
                 $message = 'Magasin modifié avec succès';
 
                 logActivity('Modification d\'un magasin', [
@@ -140,12 +165,14 @@ class Magasin extends Component
                         'nom' => $magasin->nom,
                         'localisation' => $magasin->localisation,
                         'status' => $magasin->status,
+                        'is_default' => $magasin->is_default,
                     ],
                     'new' => [
                         'code_magasin' => $this->code_magasin,
                         'nom' => $this->nom,
                         'localisation' => $this->localisation,
                         'status' => $this->status,
+                        'is_default' => $this->is_default,
                     ]
                 ], $magasin);
             } else {
@@ -155,9 +182,19 @@ class Magasin extends Component
                     'nom' => $this->nom,
                     'localisation' => $this->localisation,
                     'status' => $this->status,
+                    'is_default' => $this->is_default,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
+                if ($this->is_default) {
+                    MagasinModel::where('id', '!=', $magasin->id)->update(['is_default' => false]);
+                }
+                if (!$this->is_default) {
+                    $hasAnyDefault = MagasinModel::where('is_default', true)->exists();
+                    if (!$hasAnyDefault) {
+                        $magasin->update(['is_default' => true]);
+                    }
+                }
                 $message = 'Magasin créé avec succès';
 
                 logActivity('Création d\'un magasin', [
@@ -165,6 +202,7 @@ class Magasin extends Component
                     'nom' => $this->nom,
                     'localisation' => $this->localisation,
                     'status' => $this->status,
+                    'is_default' => $this->is_default,
                 ], $magasin);
             }
 
@@ -188,10 +226,20 @@ class Magasin extends Component
 
         $magasin = MagasinModel::findOrFail($id);
         $oldStatus = $magasin->status;
+        $wasDefault = (bool) $magasin->is_default;
+        $newStatus = !$magasin->status;
         $magasin->update([
-            'status' => !$magasin->status,
+            'status' => $newStatus,
+            'is_default' => $newStatus ? $magasin->is_default : false,
             'updated_by' => Auth::id(),
         ]);
+
+        if (!$newStatus && $wasDefault) {
+            $replacementId = MagasinModel::where('status', true)->orderByDesc('is_default')->orderBy('id')->value('id');
+            if ($replacementId) {
+                MagasinModel::where('id', $replacementId)->update(['is_default' => true]);
+            }
+        }
 
         logActivity('Modification du statut d\'un magasin', [
             'old_status' => $oldStatus,

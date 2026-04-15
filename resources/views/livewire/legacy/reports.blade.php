@@ -68,7 +68,7 @@
                     <div class="fw-semibold">Dettes clients ouvertes (reste à payer)</div>
                 </div>
                 <div class="card-body">
-                    @if ($openClientTotals->count())
+                    @if($openClientTotals->count())
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle mb-0">
                                 <thead class="table-light">
@@ -79,15 +79,14 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($openClientTotals as $row)
+                                    @foreach($openClientTotals as $row)
                                         @php
                                             $devise = $row['devise'];
-                                            $currency = $devise?->symbole ?? ($devise?->code ?? '—');
+                                            $currency = $devise?->symbole ?? $devise?->code ?? '—';
                                         @endphp
                                         <tr>
                                             <td>{{ $currency }}</td>
-                                            <td class="text-end fw-semibold">
-                                                {{ number_format((float) $row['total_remaining'], 2, ',', ' ') }}</td>
+                                            <td class="text-end fw-semibold">{{ number_format((float) $row['total_remaining'], 2, ',', ' ') }}</td>
                                             <td class="text-end text-muted">{{ (int) $row['count'] }}</td>
                                         </tr>
                                     @endforeach
@@ -107,7 +106,7 @@
                     <div class="fw-semibold">Dettes fournisseurs ouvertes (reste à payer)</div>
                 </div>
                 <div class="card-body">
-                    @if ($openFournisseurTotals->count())
+                    @if($openFournisseurTotals->count())
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle mb-0">
                                 <thead class="table-light">
@@ -118,15 +117,14 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($openFournisseurTotals as $row)
+                                    @foreach($openFournisseurTotals as $row)
                                         @php
                                             $devise = $row['devise'];
-                                            $currency = $devise?->symbole ?? ($devise?->code ?? '—');
+                                            $currency = $devise?->symbole ?? $devise?->code ?? '—';
                                         @endphp
                                         <tr>
                                             <td>{{ $currency }}</td>
-                                            <td class="text-end fw-semibold">
-                                                {{ number_format((float) $row['total_remaining'], 2, ',', ' ') }}</td>
+                                            <td class="text-end fw-semibold">{{ number_format((float) $row['total_remaining'], 2, ',', ' ') }}</td>
                                             <td class="text-end text-muted">{{ (int) $row['count'] }}</td>
                                         </tr>
                                     @endforeach
@@ -146,7 +144,7 @@
                     <div class="fw-semibold">Paiements clients (période)</div>
                 </div>
                 <div class="card-body">
-                    @if ($clientPaidTotals->count())
+                    @if($clientPaidTotals->count())
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle mb-0">
                                 <thead class="table-light">
@@ -156,15 +154,14 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($clientPaidTotals as $row)
+                                    @foreach($clientPaidTotals as $row)
                                         @php
                                             $devise = $row['devise'];
-                                            $currency = $devise?->symbole ?? ($devise?->code ?? '—');
+                                            $currency = $devise?->symbole ?? $devise?->code ?? '—';
                                         @endphp
                                         <tr>
                                             <td>{{ $currency }}</td>
-                                            <td class="text-end fw-semibold">
-                                                {{ number_format((float) $row['total_paid'], 2, ',', ' ') }}</td>
+                                            <td class="text-end fw-semibold">{{ number_format((float) $row['total_paid'], 2, ',', ' ') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -183,7 +180,7 @@
                     <div class="fw-semibold">Paiements fournisseurs (période)</div>
                 </div>
                 <div class="card-body">
-                    @if ($fournisseurPaidTotals->count())
+                    @if($fournisseurPaidTotals->count())
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle mb-0">
                                 <thead class="table-light">
@@ -193,15 +190,14 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($fournisseurPaidTotals as $row)
+                                    @foreach($fournisseurPaidTotals as $row)
                                         @php
                                             $devise = $row['devise'];
-                                            $currency = $devise?->symbole ?? ($devise?->code ?? '—');
+                                            $currency = $devise?->symbole ?? $devise?->code ?? '—';
                                         @endphp
                                         <tr>
                                             <td>{{ $currency }}</td>
-                                            <td class="text-end fw-semibold">
-                                                {{ number_format((float) $row['total_paid'], 2, ',', ' ') }}</td>
+                                            <td class="text-end fw-semibold">{{ number_format((float) $row['total_paid'], 2, ',', ' ') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

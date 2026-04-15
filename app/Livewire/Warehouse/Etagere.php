@@ -18,6 +18,7 @@ class Etagere extends Component
     public $magasin_id;
     public $magasins;
     public $status = true;
+    public $is_default = false;
     public $showModal = false;
 
     protected function rules()
@@ -26,6 +27,7 @@ class Etagere extends Component
             'code_etagere' => ['required', 'string', 'min:3', Rule::unique('etagere_models', 'code_etagere')->ignore($this->etagereId)],
             'magasin_id' => ['required', 'exists:magasin_models,id'],
             'status' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 
@@ -50,7 +52,10 @@ class Etagere extends Component
 
     public function loadEtageres()
     {
-        $this->etageres = EtagereModel::with('createdBy', 'updatedBy', 'magasin')->latest()->get();
+        $this->etageres = EtagereModel::with('createdBy', 'updatedBy', 'magasin')
+            ->orderByDesc('is_default')
+            ->latest()
+            ->get();
     }
 
     public function loadMagasins()
@@ -60,7 +65,7 @@ class Etagere extends Component
 
     public function resetForm()
     {
-        $this->reset(['etagereId', 'code_etagere', 'magasin_id']);
+        $this->reset(['etagereId', 'code_etagere', 'magasin_id', 'is_default']);
         $this->status = true;
         $this->resetValidation();
     }
@@ -102,6 +107,7 @@ class Etagere extends Component
             $this->code_etagere = $etagere->code_etagere;
             $this->magasin_id = $etagere->magasin_id;
             $this->status = (bool) $etagere->status;
+            $this->is_default = (bool) $etagere->is_default;
 
             $this->loadMagasins();
             $this->showModal = true;
@@ -129,15 +135,38 @@ class Etagere extends Component
         $this->validate();
 
         try {
+            if ($this->is_default) {
+                $this->status = true;
+            }
+
             if ($this->etagereId) {
                 // Update existing
                 $etagere = EtagereModel::findOrFail($this->etagereId);
+                $wasDefault = (bool) $etagere->is_default;
+                $oldMagasinId = (int) $etagere->magasin_id;
                 $etagere->update([
                     'code_etagere' => $this->code_etagere,
                     'magasin_id' => $this->magasin_id,
                     'status' => $this->status,
+                    'is_default' => $this->is_default,
                     'updated_by' => Auth::id(),
                 ]);
+                if ($this->is_default) {
+                    EtagereModel::where('magasin_id', $this->magasin_id)
+                        ->where('id', '!=', $etagere->id)
+                        ->update(['is_default' => false]);
+                }
+                if ($wasDefault && (!$this->is_default || $oldMagasinId !== (int) $this->magasin_id)) {
+                    $replacementId = EtagereModel::where('magasin_id', $oldMagasinId)
+                        ->where('id', '!=', $etagere->id)
+                        ->where('status', true)
+                        ->orderByDesc('is_default')
+                        ->orderBy('id')
+                        ->value('id');
+                    if ($replacementId) {
+                        EtagereModel::where('id', $replacementId)->update(['is_default' => true]);
+                    }
+                }
 
                 $message = 'Etagère modifiée avec succès';
 
@@ -159,9 +188,21 @@ class Etagere extends Component
                     'code_etagere' => $this->code_etagere,
                     'magasin_id' => $this->magasin_id,
                     'status' => $this->status,
+                    'is_default' => $this->is_default,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
+                if ($this->is_default) {
+                    EtagereModel::where('magasin_id', $this->magasin_id)
+                        ->where('id', '!=', $etagere->id)
+                        ->update(['is_default' => false]);
+                }
+                if (!$this->is_default) {
+                    $hasAnyDefault = EtagereModel::where('magasin_id', $this->magasin_id)->where('is_default', true)->exists();
+                    if (!$hasAnyDefault) {
+                        $etagere->update(['is_default' => true]);
+                    }
+                }
                 $message = 'Etagère créée avec succès';
 
                 logActivity('Création d\'une étagère', [
@@ -191,10 +232,24 @@ class Etagere extends Component
 
         $etagere = EtagereModel::findOrFail($id);
         $oldStatus = $etagere->status;
+        $wasDefault = (bool) $etagere->is_default;
+        $newStatus = !$etagere->status;
         $etagere->update([
-            'status' => !$etagere->status,
+            'status' => $newStatus,
+            'is_default' => $newStatus ? $etagere->is_default : false,
             'updated_by' => Auth::id(),
         ]);
+
+        if (!$newStatus && $wasDefault) {
+            $replacementId = EtagereModel::where('magasin_id', $etagere->magasin_id)
+                ->where('status', true)
+                ->orderByDesc('is_default')
+                ->orderBy('id')
+                ->value('id');
+            if ($replacementId) {
+                EtagereModel::where('id', $replacementId)->update(['is_default' => true]);
+            }
+        }
 
         logActivity('Modification du statut d\'une étagère', [
             'old_status' => $oldStatus,

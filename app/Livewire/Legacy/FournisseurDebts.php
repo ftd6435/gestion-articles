@@ -308,11 +308,11 @@ class FournisseurDebts extends Component
                     $fq->where('name', 'like', $term)->orWhere('telephone', 'like', $term);
                 });
             })
-            ->when($this->dateFrom && $this->dateTo, fn($q) => $q->whereBetween('debt_date', [$this->dateFrom, $this->dateTo]));
+            ->when($this->dateFrom && $this->dateTo, fn ($q) => $q->whereBetween('debt_date', [$this->dateFrom, $this->dateTo]));
 
         $filteredQuery = (clone $baseQuery)
-            ->when($this->statusFilter === 'open', fn($q) => $q->where('is_closed', false))
-            ->when($this->statusFilter === 'closed', fn($q) => $q->where('is_closed', true));
+            ->when($this->statusFilter === 'open', fn ($q) => $q->where('is_closed', false))
+            ->when($this->statusFilter === 'closed', fn ($q) => $q->where('is_closed', true));
 
         $debts = $filteredQuery
             ->orderByDesc('debt_date')

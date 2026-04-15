@@ -68,7 +68,7 @@
                 <div class="mb-2">
                     <label class="form-label">Description</label>
                     <textarea wire:model.defer="description"
-                            rows="3"
+                            rows="1"
                             class="form-control @error('description') is-invalid @enderror" placeholder="Descripion de l'article..."></textarea>
 
                     @error('description')

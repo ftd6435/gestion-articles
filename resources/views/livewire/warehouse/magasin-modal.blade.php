@@ -32,6 +32,11 @@
                     <input class="form-check-input" type="checkbox" wire:model="status">
                     <label class="form-check-label">Magasin actif</label>
                 </div>
+
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" wire:model="is_default">
+                    <label class="form-check-label">Magasin par défaut</label>
+                </div>
             </div>
 
             <div class="modal-footer">

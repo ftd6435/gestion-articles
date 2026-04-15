@@ -96,14 +96,14 @@ class Reports extends Component
         $clientPaidQuery = DB::table('legacy_client_debt_payments as p')
             ->join('legacy_client_debts as d', 'd.id', '=', 'p.legacy_client_debt_id')
             ->select('d.devise_id', DB::raw('SUM(p.montant) as total_paid'))
-            ->when($this->dateFrom && $this->dateTo, fn($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
+            ->when($this->dateFrom && $this->dateTo, fn ($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
             ->groupBy('d.devise_id')
             ->get();
 
         $fournisseurPaidQuery = DB::table('legacy_fournisseur_debt_payments as p')
             ->join('legacy_fournisseur_debts as d', 'd.id', '=', 'p.legacy_fournisseur_debt_id')
             ->select('d.devise_id', DB::raw('SUM(p.montant) as total_paid'))
-            ->when($this->dateFrom && $this->dateTo, fn($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
+            ->when($this->dateFrom && $this->dateTo, fn ($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
             ->groupBy('d.devise_id')
             ->get();
 
@@ -135,11 +135,11 @@ class Reports extends Component
         $openFournisseurCount = $openFournisseurDebts->count();
 
         $clientPaymentCount = DB::table('legacy_client_debt_payments as p')
-            ->when($this->dateFrom && $this->dateTo, fn($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
+            ->when($this->dateFrom && $this->dateTo, fn ($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
             ->count();
 
         $fournisseurPaymentCount = DB::table('legacy_fournisseur_debt_payments as p')
-            ->when($this->dateFrom && $this->dateTo, fn($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
+            ->when($this->dateFrom && $this->dateTo, fn ($q) => $q->whereBetween('p.date_paiement', [$this->dateFrom, $this->dateTo]))
             ->count();
 
         return view('livewire.legacy.reports', [

@@ -24,45 +24,52 @@
             </p>
         </div>
 
-        <div class="btn-group col-12 col-md-4" role="group">
-            <button type="button" class="btn btn-outline-info dropdown-toggle me-2" data-bs-toggle="dropdown">
-                <i class="fas fa-calendar-alt me-2"></i>
-                {{ $periodeLabels[$selectedPeriode] ?? 'Période' }}
-            </button>
-            <ul class="dropdown-menu">
-                <li>
-                    <button class="dropdown-item" wire:click="changePeriode('aujourdhui')">
-                        <i class="fas fa-sun me-2"></i>Aujourd'hui
+        <div class="col-12 col-md-4">
+            <div
+                class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-md-end gap-2">
+                <div class="dropdown w-100 w-md-auto">
+                    <button type="button" class="btn btn-outline-info dropdown-toggle w-100 w-md-auto"
+                        data-bs-toggle="dropdown">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        {{ $periodeLabels[$selectedPeriode] ?? 'Période' }}
                     </button>
-                </li>
-                <li>
-                    <button class="dropdown-item" wire:click="changePeriode('hier')">
-                        <i class="fas fa-arrow-left me-2"></i>Hier
-                    </button>
-                </li>
-                <li>
-                    <button class="dropdown-item" wire:click="changePeriode('semaine')">
-                        <i class="fas fa-calendar-week me-2"></i>Cette semaine
-                    </button>
-                </li>
-                <li>
-                    <button class="dropdown-item" wire:click="changePeriode('mois')">
-                        <i class="fas fa-calendar me-2"></i>Ce mois
-                    </button>
-                </li>
-            </ul>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item" wire:click="changePeriode('aujourdhui')">
+                                <i class="fas fa-sun me-2"></i>Aujourd'hui
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" wire:click="changePeriode('hier')">
+                                <i class="fas fa-arrow-left me-2"></i>Hier
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" wire:click="changePeriode('semaine')">
+                                <i class="fas fa-calendar-week me-2"></i>Cette semaine
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" wire:click="changePeriode('mois')">
+                                <i class="fas fa-calendar me-2"></i>Ce mois
+                            </button>
+                        </li>
+                    </ul>
+                </div>
 
-            <select class="form-select me-2" wire:model.live="devise_id" style="width: auto; min-width: 120px;">
-                @foreach ($devises as $devise)
-                    <option value="{{ $devise->id }}">
-                        {{ $devise->code }} - ({{ $devise->symbole ?? $devise->code }})
-                    </option>
-                @endforeach
-            </select>
+                <select class="form-select w-100 w-md-auto" wire:model.live="devise_id">
+                    @foreach ($devises as $devise)
+                        <option value="{{ $devise->id }}">
+                            {{ $devise->code }} - ({{ $devise->symbole ?? $devise->code }})
+                        </option>
+                    @endforeach
+                </select>
 
-            <button class="btn btn-primary me-2" onclick="printSalesReport()" title="Imprimer" id="print-btn">
-                <i class="fas fa-print me-2"></i>Imprimer
-            </button>
+                <button class="btn btn-primary w-100 w-md-auto" onclick="printSalesReport()" title="Imprimer"
+                    id="print-btn">
+                    Imprimer
+                </button>
+            </div>
         </div>
     </div>
 
@@ -173,19 +180,19 @@
 
             <div class="d-flex justify-content-between align-items-start mb-4">
                 <div class="d-flex align-items-center gap-3">
-                    @if($companyLogoUrl)
+                    @if ($companyLogoUrl)
                         <img src="{{ $companyLogoUrl }}" alt="Logo" style="max-height: 60px; max-width: 160px;">
                     @endif
                     <div>
                         <div class="fw-bold fs-5">{{ $companyName }}</div>
                         <div class="small text-muted">
-                            @if($companyTel)
+                            @if ($companyTel)
                                 <span>{{ $companyTel }}</span>
                             @endif
-                            @if($companyTel && $companyEmail)
+                            @if ($companyTel && $companyEmail)
                                 <span class="mx-2">|</span>
                             @endif
-                            @if($companyEmail)
+                            @if ($companyEmail)
                                 <span>{{ $companyEmail }}</span>
                             @endif
                         </div>

@@ -179,7 +179,7 @@
                                 min="0"
                                 max="100"
                                 step="1"
-                                wire:model.live.debounce.300ms="remise">
+                                wire:model.live.debounce.500ms="remise">
                             @error('remise')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -287,14 +287,15 @@
                                             {{-- Etagere --}}
                                             <td>
                                                 <select class="form-select form-select-sm @error('lignes.' . $index . '.etagere_id') is-invalid @enderror"
-                                                        wire:model.live.debounce.300ms="lignes.{{ $index }}.etagere_id">
+                                                        wire:model="lignes.{{ $index }}.etagere_id"
+                                                        wire:key="desktop-etagere-{{ $index }}-{{ $article_id ?: 'none' }}">
                                                     <option value="">---</option>
                                                     @php
                                                         $lineEtageres = $this->etageres[$index] ?? collect();
                                                     @endphp
                                                     @foreach($lineEtageres as $etagere)
                                                         @if ($etagere->available > 0)
-                                                            <option value="{{ $etagere->id }}">
+                                                            <option value="{{ (string) $etagere->id }}">
                                                                 {{ $etagere->code }}
                                                                 ({{ $etagere->magasin }})
                                                                 - Dis: {{ $etagere->available }}
@@ -470,14 +471,15 @@
                                         <div class="col-6">
                                             <label class="form-label small">Étagère *</label>
                                             <select class="form-select form-select-sm @error('lignes.' . $index . '.etagere_id') is-invalid @enderror"
-                                                    wire:model.live.debounce.300ms="lignes.{{ $index }}.etagere_id">
+                                                    wire:model="lignes.{{ $index }}.etagere_id"
+                                                    wire:key="mobile-etagere-{{ $index }}-{{ $article_id ?: 'none' }}">
                                                 <option value="">---</option>
                                                 @php
                                                     $lineEtageres = $this->etageres[$index] ?? collect();
                                                 @endphp
                                                 @foreach($lineEtageres as $etagere)
                                                     @if ($etagere->available > 0)
-                                                            <option value="{{ $etagere->id }}">
+                                                            <option value="{{ (string) $etagere->id }}">
                                                                 {{ $etagere->code }}
                                                                 - Dis: {{ $etagere->available }}
                                                             </option>

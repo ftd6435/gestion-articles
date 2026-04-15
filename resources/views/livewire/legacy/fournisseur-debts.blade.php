@@ -12,8 +12,7 @@
             <p class="text-muted mb-0">Suivi des dettes envers les fournisseurs (avant système)</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary" type="button"
-                onclick="printElementById('legacy-fournisseur-debts-print')">
+            <button class="btn btn-outline-secondary" type="button" onclick="printElementById('legacy-fournisseur-debts-print')">
                 <i class="fas fa-print me-2"></i> Imprimer
             </button>
             @access('legacy.fournisseurs', 'create')
@@ -72,8 +71,7 @@
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control"
-                            placeholder="Rechercher fournisseur (nom/téléphone)..."
+                        <input type="text" class="form-control" placeholder="Rechercher fournisseur (nom/téléphone)..."
                             wire:model.live.debounce.300ms="search">
                     </div>
                 </div>
@@ -98,10 +96,10 @@
                     </select>
                 </div>
             </div>
-            @if ($openRemainingByDevise->count())
+            @if($openRemainingByDevise->count())
                 <div class="mt-3 small text-muted">
                     <span class="fw-semibold">Reste à payer (ouvert):</span>
-                    @foreach ($openRemainingByDevise as $row)
+                    @foreach($openRemainingByDevise as $row)
                         @php $currency = $row['devise']?->symbole ?? $row['devise']?->code ?? '—'; @endphp
                         <span class="ms-2">
                             {{ number_format((float) $row['total_remaining'], 2, ',', ' ') }} {{ $currency }}
@@ -134,7 +132,7 @@
                                 $paid = (float) ($debt->paid_sum ?? 0);
                                 $due = (float) ($debt->due_amount ?? 0);
                                 $remaining = max(0, $due - $paid);
-                                $currency = $debt->devise?->symbole ?? ($debt->devise?->code ?? '—');
+                                $currency = $debt->devise?->symbole ?? $debt->devise?->code ?? '—';
                             @endphp
                             <tr>
                                 <td>
@@ -147,7 +145,7 @@
                                 <td class="text-end text-muted">{{ number_format($paid, 2, ',', ' ') }}</td>
                                 <td class="text-end fw-semibold">{{ number_format($remaining, 2, ',', ' ') }}</td>
                                 <td class="text-center">
-                                    @if ($debt->is_closed)
+                                    @if($debt->is_closed)
                                         <span class="badge bg-secondary">Clôturée</span>
                                     @else
                                         <span class="badge bg-success">Ouverte</span>
@@ -155,20 +153,17 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button class="btn btn-outline-secondary"
-                                            wire:click="openViewModal({{ $debt->id }})">
+                                        <button class="btn btn-outline-secondary" wire:click="openViewModal({{ $debt->id }})">
                                             <i class="fa fa-eye"></i>
                                         </button>
                                         @access('legacy.fournisseurs', 'update')
-                                            <button class="btn btn-outline-primary"
-                                                wire:click="openDebtModal({{ $debt->id }})"
+                                            <button class="btn btn-outline-primary" wire:click="openDebtModal({{ $debt->id }})"
                                                 {{ $debt->is_closed ? 'disabled' : '' }}>
                                                 <i class="fa fa-pen"></i>
                                             </button>
                                         @endaccess
                                         @access('legacy.fournisseurs', 'create')
-                                            <button class="btn btn-outline-success"
-                                                wire:click="openPaymentModal({{ $debt->id }})"
+                                            <button class="btn btn-outline-success" wire:click="openPaymentModal({{ $debt->id }})"
                                                 {{ $debt->is_closed ? 'disabled' : '' }}>
                                                 <i class="fa fa-money-bill"></i>
                                             </button>
@@ -188,14 +183,14 @@
                 </table>
             </div>
         </div>
-        @if ($debts->hasPages())
+        @if($debts->hasPages())
             <div class="card-footer">
                 {{ $debts->links(data: ['scrollTo' => false]) }}
             </div>
         @endif
     </div>
 
-    @if ($showDebtModal)
+    @if($showDebtModal)
         <div class="modal-backdrop-custom">
             <div class="modal-dialog modal-dialog-centered bg-white" style="max-width: 760px;">
                 <div class="modal-content shadow-lg bg-white rounded">
@@ -203,68 +198,51 @@
                         <h5 class="modal-title text-white">
                             {{ $debtId ? 'Modifier une dette fournisseur' : 'Nouvelle dette fournisseur' }}
                         </h5>
-                        <button type="button" class="btn-close btn-close-white"
-                            wire:click="closeDebtModal"></button>
+                        <button type="button" class="btn-close btn-close-white" wire:click="closeDebtModal"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Fournisseur <span class="text-danger">*</span></label>
-                                <select class="form-select @error('fournisseur_id') is-invalid @enderror"
-                                    wire:model.defer="fournisseur_id">
+                                <select class="form-select @error('fournisseur_id') is-invalid @enderror" wire:model.defer="fournisseur_id">
                                     <option value="">Sélectionner</option>
-                                    @foreach ($fournisseurs as $f)
-                                        <option value="{{ $f->id }}">{{ $f->name }}
-                                            ({{ $f->telephone }})</option>
+                                    @foreach($fournisseurs as $f)
+                                        <option value="{{ $f->id }}">{{ $f->name }} ({{ $f->telephone }})</option>
                                     @endforeach
                                 </select>
-                                @error('fournisseur_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('fournisseur_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Devise <span class="text-danger">*</span></label>
-                                <select class="form-select @error('devise_id') is-invalid @enderror"
-                                    wire:model.defer="devise_id">
+                                <select class="form-select @error('devise_id') is-invalid @enderror" wire:model.defer="devise_id">
                                     <option value="">Sélectionner</option>
-                                    @foreach ($devises as $devise)
-                                        <option value="{{ $devise->id }}">{{ $devise->code }}
-                                            {{ $devise->symbole ? '(' . $devise->symbole . ')' : '' }}</option>
+                                    @foreach($devises as $devise)
+                                        <option value="{{ $devise->id }}">{{ $devise->code }} {{ $devise->symbole ? '(' . $devise->symbole . ')' : '' }}</option>
                                     @endforeach
                                 </select>
-                                @error('devise_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('devise_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Montant dû <span class="text-danger">*</span></label>
-                                <input type="number" step="0.01"
-                                    class="form-control @error('due_amount') is-invalid @enderror"
+                                <input type="number" step="0.01" class="form-control @error('due_amount') is-invalid @enderror"
                                     wire:model.defer="due_amount">
-                                @error('due_amount')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('due_amount') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Date</label>
                                 <input type="date" class="form-control @error('debt_date') is-invalid @enderror"
                                     wire:model.defer="debt_date">
-                                @error('debt_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('debt_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Notes</label>
                                 <textarea class="form-control @error('notes') is-invalid @enderror" rows="3" wire:model.defer="notes"></textarea>
-                                @error('notes')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer p-4">
-                        <button class="btn btn-light me-2" type="button"
-                            wire:click="closeDebtModal">Annuler</button>
+                        <button class="btn btn-light me-2" type="button" wire:click="closeDebtModal">Annuler</button>
                         <button class="btn btn-primary" type="button" wire:click="saveDebt">Enregistrer</button>
                     </div>
                 </div>
@@ -272,9 +250,9 @@
         </div>
     @endif
 
-    @if ($showPaymentModal)
+    @if($showPaymentModal)
         @php
-            $currency = $paymentDebt?->devise?->symbole ?? ($paymentDebt?->devise?->code ?? '—');
+            $currency = $paymentDebt?->devise?->symbole ?? $paymentDebt?->devise?->code ?? '—';
             $remaining = $paymentDebt ? $paymentDebt->remainingAmount() : 0;
         @endphp
         <div class="modal-backdrop-custom">
@@ -282,17 +260,14 @@
                 <div class="modal-content shadow-lg bg-white rounded">
                     <div class="modal-header p-4 bg-success">
                         <h5 class="modal-title text-white">Paiements - Dette fournisseur</h5>
-                        <button type="button" class="btn-close btn-close-white"
-                            wire:click="closePaymentModal"></button>
+                        <button type="button" class="btn-close btn-close-white" wire:click="closePaymentModal"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
                             <div>
                                 <div class="fw-semibold">{{ $paymentDebt?->fournisseur?->name ?? '—' }}</div>
                                 <div class="text-muted small">
-                                    Montant dû:
-                                    {{ number_format((float) ($paymentDebt?->due_amount ?? 0), 2, ',', ' ') }}
-                                    {{ $currency }}
+                                    Montant dû: {{ number_format((float) ($paymentDebt?->due_amount ?? 0), 2, ',', ' ') }} {{ $currency }}
                                     · Reste: {{ number_format((float) $remaining, 2, ',', ' ') }} {{ $currency }}
                                 </div>
                             </div>
@@ -303,23 +278,17 @@
                                 <label class="form-label">Date</label>
                                 <input type="date" class="form-control @error('payment_date') is-invalid @enderror"
                                     wire:model.defer="payment_date">
-                                @error('payment_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('payment_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Montant ({{ $currency }})</label>
-                                <input type="number" step="0.01"
-                                    class="form-control @error('payment_amount') is-invalid @enderror"
+                                <input type="number" step="0.01" class="form-control @error('payment_amount') is-invalid @enderror"
                                     wire:model.defer="payment_amount">
-                                @error('payment_amount')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('payment_amount') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Mode</label>
-                                <select class="form-select @error('payment_mode') is-invalid @enderror"
-                                    wire:model.defer="payment_mode">
+                                <select class="form-select @error('payment_mode') is-invalid @enderror" wire:model.defer="payment_mode">
                                     <option value="cash">Cash</option>
                                     <option value="ESPECES">Espèces</option>
                                     <option value="CHEQUE">Chèque</option>
@@ -327,9 +296,7 @@
                                     <option value="MOBILE">Mobile Money</option>
                                     <option value="CARTE">Carte bancaire</option>
                                 </select>
-                                @error('payment_mode')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('payment_mode') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-3">
                                 <button class="btn btn-success w-100" type="button" wire:click="savePayment">
@@ -338,12 +305,9 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Notes</label>
-                                <input type="text"
-                                    class="form-control @error('payment_notes') is-invalid @enderror"
+                                <input type="text" class="form-control @error('payment_notes') is-invalid @enderror"
                                     wire:model.defer="payment_notes">
-                                @error('payment_notes')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @error('payment_notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
 
@@ -364,9 +328,7 @@
                                             <td>{{ $p->date_paiement?->format('d/m/Y') ?? '—' }}</td>
                                             <td class="text-muted">{{ $p->reference }}</td>
                                             <td class="text-muted">{{ $p->mode_paiement }}</td>
-                                            <td class="text-end fw-semibold">
-                                                {{ number_format((float) $p->montant, 2, ',', ' ') }}
-                                                {{ $currency }}</td>
+                                            <td class="text-end fw-semibold">{{ number_format((float) $p->montant, 2, ',', ' ') }} {{ $currency }}</td>
                                             <td class="text-muted">{{ $p->notes ?? '—' }}</td>
                                         </tr>
                                     @empty
@@ -386,9 +348,9 @@
         </div>
     @endif
 
-    @if ($showViewModal)
+    @if($showViewModal)
         @php
-            $currency = $viewDebt?->devise?->symbole ?? ($viewDebt?->devise?->code ?? '—');
+            $currency = $viewDebt?->devise?->symbole ?? $viewDebt?->devise?->code ?? '—';
             $paid = (float) ($viewDebt?->paid_sum ?? 0);
             $due = (float) ($viewDebt?->due_amount ?? 0);
             $remaining = max(0, $due - $paid);
@@ -399,19 +361,17 @@
                     <div class="modal-header p-4 bg-dark">
                         <h5 class="modal-title text-white">Détails - Dette fournisseur</h5>
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-light btn-sm"
-                                onclick="printElementById('legacy-fournisseur-debt-detail-print')">
+                            <button type="button" class="btn btn-light btn-sm" onclick="printElementById('legacy-fournisseur-debt-detail-print')">
                                 <i class="fas fa-print me-1"></i> Imprimer
                             </button>
-                            <button type="button" class="btn-close btn-close-white"
-                                wire:click="closeViewModal"></button>
+                            <button type="button" class="btn-close btn-close-white" wire:click="closeViewModal"></button>
                         </div>
                     </div>
                     <div class="modal-body p-4">
                         <div id="legacy-fournisseur-debt-detail-print">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    @if ($companyLogoUrl)
+                                    @if($companyLogoUrl)
                                         <img src="{{ $companyLogoUrl }}" alt="Logo" style="height: 36px;">
                                     @endif
                                     <div class="fw-bold">{{ $companyName }}</div>
@@ -424,17 +384,14 @@
                                     <div class="border rounded p-3">
                                         <div class="text-muted small mb-1">Fournisseur</div>
                                         <div class="fw-semibold">{{ $viewDebt?->fournisseur?->name ?? '—' }}</div>
-                                        <div class="text-muted small">{{ $viewDebt?->fournisseur?->telephone ?? '' }}
-                                        </div>
+                                        <div class="text-muted small">{{ $viewDebt?->fournisseur?->telephone ?? '' }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="border rounded p-3">
                                         <div class="text-muted small mb-1">Dette</div>
-                                        <div class="text-muted small">Date:
-                                            {{ $viewDebt?->debt_date?->format('d/m/Y') ?? '—' }}</div>
-                                        <div class="text-muted small">Statut:
-                                            {{ $viewDebt?->is_closed ? 'Clôturée' : 'Ouverte' }}</div>
+                                        <div class="text-muted small">Date: {{ $viewDebt?->debt_date?->format('d/m/Y') ?? '—' }}</div>
+                                        <div class="text-muted small">Statut: {{ $viewDebt?->is_closed ? 'Clôturée' : 'Ouverte' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -443,22 +400,19 @@
                                 <div class="col-md-4">
                                     <div class="border rounded p-3">
                                         <div class="text-muted small">Montant dû</div>
-                                        <div class="fw-bold">{{ number_format($due, 2, ',', ' ') }}
-                                            {{ $currency }}</div>
+                                        <div class="fw-bold">{{ number_format($due, 2, ',', ' ') }} {{ $currency }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="border rounded p-3">
                                         <div class="text-muted small">Payé</div>
-                                        <div class="fw-bold">{{ number_format($paid, 2, ',', ' ') }}
-                                            {{ $currency }}</div>
+                                        <div class="fw-bold">{{ number_format($paid, 2, ',', ' ') }} {{ $currency }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="border rounded p-3">
                                         <div class="text-muted small">Reste</div>
-                                        <div class="fw-bold">{{ number_format($remaining, 2, ',', ' ') }}
-                                            {{ $currency }}</div>
+                                        <div class="fw-bold">{{ number_format($remaining, 2, ',', ' ') }} {{ $currency }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -481,15 +435,12 @@
                                                 <td>{{ $p->date_paiement?->format('d/m/Y') ?? '—' }}</td>
                                                 <td class="text-muted">{{ $p->reference }}</td>
                                                 <td class="text-muted">{{ $p->mode_paiement }}</td>
-                                                <td class="text-end fw-semibold">
-                                                    {{ number_format((float) $p->montant, 2, ',', ' ') }}
-                                                    {{ $currency }}</td>
+                                                <td class="text-end fw-semibold">{{ number_format((float) $p->montant, 2, ',', ' ') }} {{ $currency }}</td>
                                                 <td class="text-muted">{{ $p->notes ?? '—' }}</td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted py-4">Aucun paiement
-                                                </td>
+                                                <td colspan="5" class="text-center text-muted py-4">Aucun paiement</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -509,7 +460,7 @@
         <div id="legacy-fournisseur-debts-print">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex align-items-center gap-2">
-                    @if ($companyLogoUrl)
+                    @if($companyLogoUrl)
                         <img src="{{ $companyLogoUrl }}" alt="Logo" style="height: 36px;">
                     @endif
                     <div class="fw-bold">{{ $companyName }}</div>
@@ -521,9 +472,8 @@
                 <div class="fw-bold">Liste - Dettes fournisseurs</div>
                 <div class="text-muted small">
                     Statut: {{ $statusLabel }}
-                    @if ($dateFrom && $dateTo)
-                        · Période: {{ \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') }} →
-                        {{ \Carbon\Carbon::parse($dateTo)->format('d/m/Y') }}
+                    @if($dateFrom && $dateTo)
+                        · Période: {{ \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') }} → {{ \Carbon\Carbon::parse($dateTo)->format('d/m/Y') }}
                     @endif
                 </div>
             </div>
@@ -542,12 +492,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($printDebts as $debt)
+                        @foreach($printDebts as $debt)
                             @php
                                 $paid = (float) ($debt->paid_sum ?? 0);
                                 $due = (float) ($debt->due_amount ?? 0);
                                 $remaining = max(0, $due - $paid);
-                                $currency = $debt->devise?->symbole ?? ($debt->devise?->code ?? '—');
+                                $currency = $debt->devise?->symbole ?? $debt->devise?->code ?? '—';
                             @endphp
                             <tr>
                                 <td>{{ $debt->fournisseur?->name ?? '—' }}</td>
@@ -557,7 +507,7 @@
                                 <td class="text-end text-muted">{{ number_format($paid, 2, ',', ' ') }}</td>
                                 <td class="text-end fw-semibold">{{ number_format($remaining, 2, ',', ' ') }}</td>
                                 <td class="text-center">
-                                    @if ($debt->is_closed)
+                                    @if($debt->is_closed)
                                         <span class="badge bg-secondary">Clôturée</span>
                                     @else
                                         <span class="badge bg-success">Ouverte</span>

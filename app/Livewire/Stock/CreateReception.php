@@ -39,6 +39,7 @@ class CreateReception extends Component
         $this->loadCommandes();
         $this->magasins = MagasinModel::active()
             ->with('etageres')
+            ->orderByDesc('is_default')
             ->orderBy('nom')
             ->get();
 
@@ -100,12 +101,43 @@ class CreateReception extends Component
 
     public function updatedMagasinId()
     {
-        $this->etagere_id = null;
+        if (!$this->magasin_id) {
+            $this->etageres = [];
+            $this->etagere_id = null;
+            return;
+        }
 
         $this->etageres = EtagereModel::active()
             ->where('magasin_id', $this->magasin_id)
+            ->orderByDesc('is_default')
             ->orderBy('code_etagere')
             ->get();
+
+        $etagereId = EtagereModel::active()
+            ->where('magasin_id', $this->magasin_id)
+            ->orderByDesc('is_default')
+            ->orderBy('code_etagere')
+            ->value('id');
+        $this->etagere_id = $etagereId ? (string) $etagereId : null;
+    }
+
+    public function updatedArticleId(): void
+    {
+        if (!$this->article_id) {
+            return;
+        }
+
+        $defaultMagasinId = MagasinModel::active()
+            ->orderByDesc('is_default')
+            ->orderBy('nom')
+            ->value('id');
+
+        if (!$defaultMagasinId) {
+            return;
+        }
+
+        $this->magasin_id = (string) $defaultMagasinId;
+        $this->updatedMagasinId();
     }
 
     private function pendingQtyInCurrentReception($articleId): int
@@ -128,6 +160,15 @@ class CreateReception extends Component
         if (!$this->selectedCommande) {
             $this->dispatch('error', message: 'Veuillez sélectionner une commande avant d\'ajouter des articles.');
             return;
+        }
+
+        if ($this->magasin_id && !$this->etagere_id) {
+            $etagereId = EtagereModel::active()
+                ->where('magasin_id', $this->magasin_id)
+                ->orderByDesc('is_default')
+                ->orderBy('code_etagere')
+                ->value('id');
+            $this->etagere_id = $etagereId ? (string) $etagereId : null;
         }
 
         $this->validate([
