@@ -1,59 +1,309 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Gestion - Système de Gestion de Stock, Ventes et Comptabilité
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 1. Introduction Générale
 
-## About Laravel
+`Gestion` est une application web complète destinée aux commerces qui veulent piloter leurs activités quotidiennes depuis une interface unique.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Le projet couvre l’ensemble du cycle opérationnel:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- gestion des référentiels (articles, catégories, clients, fournisseurs)
+- achats fournisseurs (commandes, réceptions, paiements)
+- ventes clients (facturation, encaissements, historique, rapports)
+- organisation des emplacements physiques (magasins, étagères)
+- comptabilité opérationnelle
+- audit et traçabilité des actions
+- gestion des dettes historiques ("Anciens") pour les soldes hors système
+- sécurité fine par permissions utilisateur
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+L’objectif est de fournir un outil pragmatique, orienté terrain, pour suivre les flux de stock et d’argent avec une expérience fluide sur desktop et mobile.
 
-## Learning Laravel
+## 2. Stack Technique
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Backend: `Laravel 12` (`PHP ^8.2`)
+- Frontend applicatif: `Livewire 3`
+- Build frontend: `Vite`
+- UI: `Blade + Bootstrap + Tailwind (build tooling)`
+- Base de données: MySQL/MariaDB (ou compatible Laravel)
+- Journalisation: helper d’activité (`app/Helpers/LogActivityHelper.php`)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 3. Architecture du Projet
 
-## Laravel Sponsors
+Le code est organisé autour des responsabilités suivantes:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- `app/Livewire`: composants métier (chaque écran principal)
+- `app/Models`: modèles Eloquent par domaine (Stock, Ventes, Legacy, etc.)
+- `resources/views/livewire`: vues associées aux composants
+- `routes/web.php`: routes web, routes publiques signées et routes protégées
+- `config/access.php`: matrice des permissions, mapping routes -> permissions
+- `database/migrations`: schéma applicatif et évolutions
+- `public/js/print.js`: utilitaires d’impression
 
-### Premium Partners
+## 4. Fonctionnalités Détaillées
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 4.1 Tableau de Bord
 
-## Contributing
+- Vue d’entrée de l’application après authentification.
+- Donne un aperçu synthétique de l’activité.
+- Visible selon permission `dashboard`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4.2 Gestion des Ventes
 
-## Code of Conduct
+#### Ventes
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Création de vente avec sélection client, devise, remise, date.
+- Ajout multi-lignes d’articles avec choix d’étagère et contrôle de stock disponible.
+- Calcul automatique du sous-total, remise, total net.
+- Gestion du statut de vente selon paiements (`IMPAYEE`, `PARTIELLE`, `PAYEE`).
+- Modales de détails, suppression et annulation selon droits.
 
-## Security Vulnerabilities
+#### Encaissement client
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Enregistrement de paiements partiels ou totaux.
+- Contrôle du montant maximal payé (pas de dépassement du dû).
+- Calcul du reste à payer en temps réel.
 
-## License
+#### Historique
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Consultation des ventes passées avec filtres.
+- Traçabilité des opérations commerciales.
+
+#### Rapports de ventes
+
+- Rapport des ventes par période (`aujourd’hui`, `hier`, `semaine`, `mois`) et plage personnalisée.
+- Exposition en vue interne et en lien public signé imprimable.
+- Totaux agrégés (montant, payé, reste, nombre d’articles).
+
+### 4.3 Gestion des Articles
+
+- CRUD des articles avec informations commerciales.
+- Association à des catégories.
+- Sélection et recherche rapide dans les écrans de vente/réception.
+
+### 4.4 Gestion des Clients
+
+- CRUD clients avec informations de contact.
+- Support client par défaut (`is_default`) pour accélérer la saisie.
+- Création rapide d’un client depuis l’écran de vente.
+
+### 4.5 Gestion des Fournisseurs
+
+- CRUD fournisseurs.
+- Utilisés dans le cycle d’achat (commandes, réceptions, paiements).
+
+### 4.6 Stock - Commandes Fournisseurs
+
+- Création de commandes fournisseurs multi-lignes.
+- Suivi des quantités commandées et réceptionnées.
+- Consultation des détails et documents imprimables.
+
+### 4.7 Stock - Approvisionnements (Réceptions)
+
+- Création de réceptions liées aux commandes.
+- Affectation des articles reçus à un `magasin` et une `étagère`.
+- Contrôle des quantités reçues et cohérence stock.
+- Intégration des defaults de stockage (`is_default` sur magasin/étagère).
+
+### 4.8 Stock - Paiements Fournisseurs
+
+- Enregistrement des paiements fournisseurs.
+- Suivi des soldes par commande/réception.
+- Historique et impressions de justificatifs.
+
+### 4.9 Gestion des Entrepôts
+
+#### Magasins
+
+- CRUD des magasins physiques.
+- Activation/désactivation.
+- Possibilité de marquer un magasin par défaut (`is_default`).
+
+#### Étagères
+
+- CRUD des étagères rattachées à un magasin.
+- Activation/désactivation.
+- Possibilité de définir une étagère par défaut par magasin (`is_default`).
+
+### 4.10 Configuration
+
+#### Catégories d’articles
+
+- Gestion des catégories servant à classifier les produits.
+
+#### Devises
+
+- Gestion multi-devises.
+- Définition d’une devise par défaut (`is_default`).
+
+#### Paramètres Entreprise
+
+- Nom complet, nom court, logo, informations branding.
+- Ces paramètres alimentent l’UI (sidebar, pages d’authentification, etc.).
+
+### 4.11 Comptabilité
+
+#### Types d’opérations
+
+- Paramétrage des classes d’opérations comptables.
+
+#### Opérations
+
+- Saisie et suivi des opérations.
+- Lien avec devise et type d’opération.
+- Soft delete et restrictions de suppression selon dépendances.
+
+### 4.12 Audit
+
+#### Audit Stock Article
+
+- Suivi orienté stock (dont usages d’expiration selon les règles métier).
+
+#### Audit Activité
+
+- Journal des actions utilisateur via `logActivity`.
+- Permet de retracer créations, modifications, paiements, changements de statut.
+
+### 4.13 Module "Anciens" (Dettes Historiques)
+
+Ce module répond au besoin de migrer le passif "hors système" (carnets papier) vers l’application, sans polluer le calcul principal des ventes courantes.
+
+#### Dettes clients historiques
+
+- Enregistrement d’une dette initiale (date, montant dû, notes).
+- Paiements partiels successifs.
+- Clôture automatique lorsque la dette est totalement réglée.
+
+#### Dettes fournisseurs historiques
+
+- Même logique que clients, orientée dette envers fournisseur.
+
+#### Rapports "Anciens"
+
+- Vue statistique dédiée.
+- Impression des listes filtrées (payé/non payé/tous) avec plage de dates.
+- Détails ligne par ligne (visualisation + impression).
+
+### 4.14 Gestion des Utilisateurs & Accès
+
+- Gestion des utilisateurs (`settings/users`).
+- Permissions granulaires par module avec capacités:
+    - voir (`can_view`)
+    - créer (`can_create`)
+    - modifier (`can_update`)
+    - supprimer (`can_delete`)
+    - activer/désactiver (`can_toggle_status`)
+- Middleware `access` appliqué aux routes protégées.
+- Directive Blade `@access(...)` pour afficher/masquer les actions en interface.
+
+### 4.15 Profil Utilisateur
+
+- Mise à jour des informations personnelles.
+- Gestion de l’image/avatar utilisateur.
+
+### 4.16 Recherche Globale et Notifications
+
+- Composants transverses pour accélérer la navigation et les alertes contextuelles.
+
+### 4.17 Impression & Partage Public Signé
+
+Le projet fournit des pages publiques en lecture seule, protégées par signature (`signed`) pour partager/imprimer:
+
+- commandes
+- ventes
+- réceptions
+- paiements
+- rapport ventes du jour/période
+
+## 5. Sécurité et Contrôle d’Accès
+
+- Authentification par formulaires dédiés (`login`, etc.).
+- Contrôle d’accès centralisé via `CheckAccess` + `config/access.php`.
+- Vérification à deux niveaux:
+    - niveau route (middleware)
+    - niveau composant/UI (conditions d’affichage + checks serveur)
+- Rôle super administrateur pris en charge.
+
+## 6. Installation et Lancement
+
+## Prérequis
+
+- `PHP >= 8.2`
+- `Composer`
+- `Node.js` + `npm`
+- Une base de données configurée
+
+## Installation rapide
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm install
+npm run build
+```
+
+Ou via le script Composer prévu:
+
+```bash
+composer run setup
+```
+
+## Démarrage en développement
+
+```bash
+composer run dev
+```
+
+Ce script lance en parallèle:
+
+- serveur Laravel
+- écoute de queue
+- logs Laravel Pail
+- serveur Vite
+
+## Tests
+
+```bash
+composer run test
+```
+
+## 7. Routes Principales (Aperçu)
+
+- `/dashboard`
+- `/articles`
+- `/clients`
+- `/fournisseurs`
+- `/stock/commandes`
+- `/stock/approvisions`
+- `/stock/approvisions/paiements`
+- `/ventes/ventes`
+- `/ventes/create`
+- `/ventes/rapports`
+- `/ventes/historique`
+- `/warehouse/magasins`
+- `/warehouse/etageres`
+- `/configuration/categories`
+- `/configuration/devises`
+- `/configuration/settings`
+- `/comptabilite/types-operations`
+- `/comptabilite/operations`
+- `/audit/stock-article`
+- `/audit/activity`
+- `/anciens/clients`
+- `/anciens/fournisseurs`
+- `/anciens/rapports`
+- `/settings/users`
+- `/settings/profile`
+
+## 8. Points Métier Importants
+
+- Le stock est calculé à partir des entrées (réceptions) moins sorties (ventes non annulées).
+- Les contrôles évitent les ventes au-delà du stock disponible.
+- Les paiements recalculent automatiquement l’état des documents.
+- Le module "Anciens" est séparé pour préserver la logique de pilotage opérationnel courant.
+- Les permissions sont pensées pour déléguer finement les actions selon le poste utilisateur.
+
+## 9. État du README
+
+Ce README a été réécrit pour documenter l’application métier réelle (et non le template Laravel par défaut).  
+Pour maintenir sa qualité, toute nouvelle fonctionnalité devrait ajouter sa section dans ce document.
