@@ -21,6 +21,7 @@ class Reports extends Component
 
     public function mount(): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if (!$user?->canAccess('legacy.reports', 'view')) {
             abort(403);

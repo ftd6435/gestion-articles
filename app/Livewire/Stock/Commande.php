@@ -57,7 +57,7 @@ class Commande extends Component
             $query->where(function ($q) {
                 $q->where('reference', 'like', '%' . $this->search . '%')
                     ->orWhereHas('fournisseur', function ($fq) {
-                        $fq->where('nom', 'like', '%' . $this->search . '%');
+                        $fq->where('name', 'like', '%' . $this->search . '%');
                     });
             });
         }

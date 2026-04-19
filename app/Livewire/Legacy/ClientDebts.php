@@ -49,6 +49,7 @@ class ClientDebts extends Component
 
     public function mount(): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if (!$user?->canAccess('legacy.clients', 'view')) {
             abort(403);
@@ -86,6 +87,7 @@ class ClientDebts extends Component
 
     public function openDebtModal(?int $id = null): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if ($id) {
             if (!$user?->canAccess('legacy.clients', 'update')) {
@@ -130,6 +132,7 @@ class ClientDebts extends Component
 
     public function saveDebt(): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if ($this->debtId) {
             if (!$user?->canAccess('legacy.clients', 'update')) {
@@ -184,6 +187,7 @@ class ClientDebts extends Component
 
     public function openPaymentModal(int $debtId): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if (!$user?->canAccess('legacy.clients', 'create')) {
             session()->flash('error', 'Vous n\'avez pas la permission d\'enregistrer des paiements.');
@@ -214,6 +218,7 @@ class ClientDebts extends Component
 
     public function openViewModal(int $debtId): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if (!$user?->canAccess('legacy.clients', 'view')) {
             abort(403);
@@ -236,6 +241,7 @@ class ClientDebts extends Component
 
     public function savePayment(): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if (!$user?->canAccess('legacy.clients', 'create')) {
             session()->flash('error', 'Vous n\'avez pas la permission d\'enregistrer des paiements.');
