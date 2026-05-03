@@ -84,6 +84,11 @@ class ArticleModel extends Model
         return $this->hasMany(LigneVenteClient::class, 'article_id');
     }
 
+    public function stockInitials()
+    {
+        return $this->hasMany(\App\Models\Stock\StockInitialArticle::class, 'article_id');
+    }
+
     public function etageres()
     {
         return $this->hasManyThrough(

@@ -22,6 +22,7 @@ use App\Livewire\Stock\CreateCommande;
 use App\Livewire\Stock\CreateReception;
 use App\Livewire\Stock\Paiement;
 use App\Livewire\Stock\Reception;
+use App\Livewire\Stock\StockInitial;
 use App\Livewire\UserManagement;
 use App\Livewire\Ventes\CreateVente;
 use App\Livewire\Ventes\Historique;
@@ -188,6 +189,62 @@ Route::get('/public/rapports/ventes-jour', function (\Illuminate\Http\Request $r
     ]);
 })->middleware('signed')->name('public.ventesjour.show');
 
+Route::get('/public/stock-initial', function (\Illuminate\Http\Request $request) {
+    $search = $request->query('search', '');
+    $magasinId = $request->query('magasin_id');
+    $etagereId = $request->query('etagere_id');
+    $expirable = $request->query('expirable');
+
+    $query = \App\Models\Stock\StockInitialArticle::query()
+        ->with(['article', 'magasin', 'etagere'])
+        ->orderBy('date_inventaire', 'desc')
+        ->orderBy('created_at', 'desc');
+
+    if ($search) {
+        $query->whereHas('article', function ($q) use ($search) {
+            $q->where('reference', 'like', "%{$search}%")
+                ->orWhere('designation', 'like', "%{$search}%");
+        });
+    }
+
+    if ($magasinId) {
+        $query->where('magasin_id', $magasinId);
+    }
+
+    if ($etagereId) {
+        $query->where('etagere_id', $etagereId);
+    }
+
+    if ($expirable !== null && $expirable !== '') {
+        if ($expirable === '1') {
+            $query->whereNotNull('date_expiration');
+        } elseif ($expirable === '0') {
+            $query->whereNull('date_expiration');
+        }
+    }
+
+    $stocks = $query->get();
+
+    // Build filters array for display
+    $filters = [];
+    if ($search) {
+        $filters['search'] = $search;
+    }
+    if ($magasinId) {
+        $magasin = \App\Models\Warehouse\MagasinModel::find($magasinId);
+        $filters['magasin'] = $magasin?->nom ?? 'ID: ' . $magasinId;
+    }
+    if ($etagereId) {
+        $etagere = \App\Models\Warehouse\EtagereModel::find($etagereId);
+        $filters['etagere'] = $etagere?->code_etagere ?? 'ID: ' . $etagereId;
+    }
+
+    return view('public.stock-initial', [
+        'stocks' => $stocks,
+        'filters' => $filters,
+    ]);
+})->middleware('signed')->name('public.stock-initial.show');
+
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -221,6 +278,7 @@ Route::middleware(['auth', 'access'])->group(function () {
 
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
+    Route::get('/articles/stock-initial', StockInitial::class)->name('articles.stock-initial');
     Route::get('/articles', Articles::class)->name('articles');
     Route::get('/clients', Client::class)->name('clients');
     Route::get('/fournisseurs', Fournisseur::class)->name('fournisseurs');

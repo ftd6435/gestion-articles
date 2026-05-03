@@ -1,3 +1,7 @@
+@php
+    $company = \App\Models\CompanySetting::query()->first();
+@endphp
+
 <!-- Header -->
 <header class="header">
     <div class="container-fluid h-100">
@@ -19,6 +23,19 @@
                 </nav>
             </div>
 
+            <!-- Company Info (Print Only) -->
+            <div class="company-info-print d-none">
+                @if ($company?->logo_path)
+                    <img src="{{ asset($company->logo_path) }}" alt="Logo" class="company-logo-print">
+                @endif
+                <div class="company-details-print">
+                    <h5 class="company-name-print">{{ $company?->name ?? config('app.name') }}</h5>
+                    @if ($company?->slogan)
+                        <p class="company-slogan-print">{{ $company->slogan }}</p>
+                    @endif
+                </div>
+            </div>
+
             <!-- Right: Search + Profile -->
             <div class="col-6 col-md-6 d-flex align-items-center justify-content-end">
                 <!-- Barre de recherche Livewire -->
@@ -33,10 +50,18 @@
                         <i class="fas fa-search fs-5"></i>
                     </button>
                 </div>
-
                 <!-- Notifications -->
                 <livewire:header-notifications />
 
+
+                <!-- Barre de recherche mobile (collapse) -->
+                <div class="row collapse" id="mobileSearch">
+                    <div class="col-12 py-2">
+                        <div class="px-2">
+                            <livewire:global-search />
+                        </div>
+                    </div>
+                </div>
                 <!-- Profile Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-link text-dark dropdown-toggle d-flex align-items-center p-2" type="button"
@@ -59,30 +84,11 @@
                 </div>
             </div>
         </div>
-
-        <!-- Barre de recherche mobile (collapse) -->
-        <div class="row collapse" id="mobileSearch">
-            <div class="col-12 py-2">
-                <div class="px-2">
-                    <livewire:global-search />
-                </div>
-            </div>
-        </div>
     </div>
 </header>
 
 @push('styles')
     <style>
-        .header {
-            background: #0b1f4b;
-            border-bottom: 1px solid #e9ecef;
-            height: 70px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .header .btn-link,
-        .header .btn-link:hover,
-        .header .btn-link:focus,
         .header .breadcrumb a,
         .header .breadcrumb-item.active,
         .header .dropdown-toggle,
@@ -92,6 +98,20 @@
 
         .header .breadcrumb-item+.breadcrumb-item::before {
             color: rgba(255, 255, 255, 0.6);
+        }
+
+        .company-info-print {
+            display: none !important;
+        }
+
+        #mobileSearch {
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .notification-badge {
@@ -121,14 +141,35 @@
             display: none;
         }
 
-        #mobileSearch {
-            position: absolute;
-            top: 70px;
-            left: 0;
-            right: 0;
-            background: white;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        @media print {
+            .company-info-print {
+                display: flex !important;
+                align-items: center;
+                padding: 20px 0;
+                border-bottom: 2px solid #0b1f4b;
+                margin-bottom: 20px;
+            }
+
+            .company-logo-print {
+                height: 60px;
+                width: auto;
+                max-width: 200px;
+                object-fit: contain;
+                margin-right: 20px;
+            }
+
+            .company-name-print {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #0b1f4b !important;
+                margin: 0;
+            }
+
+            .company-slogan-print {
+                font-size: 0.9rem;
+                color: #666 !important;
+                margin: 5px 0 0 0;
+            }
         }
     </style>
 @endpush
@@ -136,20 +177,19 @@
 @push('scripts')
     <script>
         function toggleSidebar() {
-            // Votre fonction existante pour le sidebar
             const sidebar = document.getElementById('sidebar');
             if (sidebar) {
                 sidebar.classList.toggle('collapsed');
             }
         }
 
-        // Fermer la recherche mobile quand on clique ailleurs
+        // Close mobile search when clicking outside
         document.addEventListener('click', function(e) {
             const mobileSearch = document.getElementById('mobileSearch');
             const searchToggle = document.querySelector('[data-bs-target="#mobileSearch"]');
 
             if (mobileSearch && mobileSearch.classList.contains('show')) {
-                if (!mobileSearch.contains(e.target) && !searchToggle.contains(e.target)) {
+                if (!mobileSearch.contains(e.target) && searchToggle && !searchToggle.contains(e.target)) {
                     const bsCollapse = new bootstrap.Collapse(mobileSearch);
                     bsCollapse.hide();
                 }

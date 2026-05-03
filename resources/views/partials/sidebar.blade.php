@@ -30,7 +30,7 @@
         <nav class="sidebar-nav flex-grow-1">
             <ul class="nav flex-column">
                 <!-- Dashboard -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @access('dashboard')
                         <li class="nav-item">
                             <a href="/dashboard" class="nav-link {{ request()->is('dashboard') ? 'active' : '' }}">
@@ -42,13 +42,12 @@
                 @endif
 
                 <!-- Ventes (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showVentesMenu =
-                            auth()->user()->canAccess('ventes.ventes') ||
-                            auth()->user()->canAccess('ventes.rapports');
+                            auth()->user()->canAccess('ventes.ventes') || auth()->user()->canAccess('ventes.rapports');
                     @endphp
-                    @if($showVentesMenu)
+                    @if ($showVentesMenu)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('ventes*') ? 'active' : '' }}" data-bs-toggle="collapse"
                                 href="#ventesMenu" role="button" aria-expanded="false">
@@ -89,27 +88,55 @@
                     @endif
                 @endif
 
-                <!-- Articles -->
-                @if($userHasAccess)
-                    @access('articles')
+                <!-- Articles (Dropdown) -->
+                @if ($userHasAccess)
+                    @php
+                        $showArticlesMenu =
+                            auth()->user()->canAccess('articles') || auth()->user()->canAccess('stock.initial');
+                    @endphp
+                    @if ($showArticlesMenu)
                         <li class="nav-item">
-                            <a href="/articles" class="nav-link {{ request()->is('articles') ? 'active' : '' }}">
+                            <a class="nav-link {{ request()->is('articles*') ? 'active' : '' }}"
+                                data-bs-toggle="collapse" href="#articlesMenu" role="button" aria-expanded="false">
                                 <i class="fas fa-file-alt"></i>
-                                <span>Articles</span>
+                                <span>Ges. Articles</span>
+                                <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
                             </a>
+                            <div class="collapse {{ request()->is('articles*') ? 'show' : '' }}" id="articlesMenu">
+                                <ul class="nav flex-column dropdown-menu-custom">
+                                    @access('articles')
+                                        <li class="nav-item mt-2">
+                                            <a href="/articles"
+                                                class="nav-link {{ request()->is('articles') && !request()->is('articles/*') ? 'active' : '' }}">
+                                                <i class="fas fa-boxes"></i>
+                                                <span>Articles</span>
+                                            </a>
+                                        </li>
+                                    @endaccess
+                                    @access('stock.initial')
+                                        <li class="nav-item">
+                                            <a href="/articles/stock-initial"
+                                                class="nav-link {{ request()->is('articles/stock-initial') ? 'active' : '' }}">
+                                                <i class="fas fa-layer-group"></i>
+                                                <span>Stock Initial</span>
+                                            </a>
+                                        </li>
+                                    @endaccess
+                                </ul>
+                            </div>
                         </li>
-                    @endaccess
+                    @endif
                 @endif
 
                 <!-- Stock (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showStockMenu =
                             auth()->user()->canAccess('stock.commandes') ||
                             auth()->user()->canAccess('stock.approvisions') ||
                             auth()->user()->canAccess('stock.paiements');
                     @endphp
-                    @if($showStockMenu)
+                    @if ($showStockMenu)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('stock*') ? 'active' : '' }}" data-bs-toggle="collapse"
                                 href="#stockMenu" role="button" aria-expanded="false">
@@ -153,7 +180,7 @@
                 @endif
 
                 <!-- Clients -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @access('clients')
                         <li class="nav-item">
                             <a href="/clients" class="nav-link {{ request()->is('clients') ? 'active' : '' }}">
@@ -165,7 +192,7 @@
                 @endif
 
                 <!-- Fournisseurs -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @access('fournisseurs')
                         <li class="nav-item">
                             <a href="/fournisseurs" class="nav-link {{ request()->is('fournisseurs') ? 'active' : '' }}">
@@ -177,16 +204,16 @@
                 @endif
 
                 <!-- Warehouse (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showWarehouseMenu =
                             auth()->user()->canAccess('warehouse.magasins') ||
                             auth()->user()->canAccess('warehouse.etageres');
                     @endphp
-                    @if($showWarehouseMenu)
+                    @if ($showWarehouseMenu)
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('warehouse*') ? 'active' : '' }}" data-bs-toggle="collapse"
-                                href="#warehouse" role="button" aria-expanded="false">
+                            <a class="nav-link {{ request()->is('warehouse*') ? 'active' : '' }}"
+                                data-bs-toggle="collapse" href="#warehouse" role="button" aria-expanded="false">
                                 <i class="fa-solid fa-warehouse"></i>
                                 <span>Ges. Entrépôts</span>
                                 <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
@@ -218,22 +245,24 @@
                 @endif
 
                 <!-- Configuration (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showConfigurationMenu =
                             auth()->user()->canAccess('configuration.categories') ||
                             auth()->user()->canAccess('configuration.devises') ||
                             auth()->user()->canAccess('configuration.settings');
                     @endphp
-                    @if($showConfigurationMenu)
+                    @if ($showConfigurationMenu)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('configuration*') ? 'active' : '' }}"
-                                data-bs-toggle="collapse" href="#configuration" role="button" aria-expanded="false">
+                                data-bs-toggle="collapse" href="#configuration" role="button"
+                                aria-expanded="false">
                                 <i class="fa-solid fa-gears"></i>
                                 <span>Configuration</span>
                                 <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
                             </a>
-                            <div class="collapse {{ request()->is('configuration*') ? 'show' : '' }}" id="configuration">
+                            <div class="collapse {{ request()->is('configuration*') ? 'show' : '' }}"
+                                id="configuration">
                                 <ul class="nav flex-column dropdown-menu-custom">
                                     @access('configuration.categories')
                                         <li class="nav-item mt-2">
@@ -269,13 +298,13 @@
                 @endif
 
                 <!-- Comptabilité (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showComptabiliteMenu =
                             auth()->user()->canAccess('comptabilite.types-operations') ||
                             auth()->user()->canAccess('comptabilite.operations');
                     @endphp
-                    @if($showComptabiliteMenu)
+                    @if ($showComptabiliteMenu)
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('comptabilite*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" href="#comptabilite" role="button" aria-expanded="false">
@@ -283,7 +312,8 @@
                                 <span>Comptabilité</span>
                                 <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
                             </a>
-                            <div class="collapse {{ request()->is('comptabilite*') ? 'show' : '' }}" id="comptabilite">
+                            <div class="collapse {{ request()->is('comptabilite*') ? 'show' : '' }}"
+                                id="comptabilite">
                                 <ul class="nav flex-column dropdown-menu-custom">
                                     @access('comptabilite.types-operations')
                                         <li class="nav-item mt-2">
@@ -310,16 +340,16 @@
                 @endif
 
                 <!-- Audit (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showAuditMenu =
                             auth()->user()->canAccess('audit.stock-article') ||
                             auth()->user()->canAccess('audit.activity');
                     @endphp
-                    @if($showAuditMenu)
+                    @if ($showAuditMenu)
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('audit*') ? 'active' : '' }}" data-bs-toggle="collapse"
-                                href="#audit" role="button" aria-expanded="false">
+                            <a class="nav-link {{ request()->is('audit*') ? 'active' : '' }}"
+                                data-bs-toggle="collapse" href="#audit" role="button" aria-expanded="false">
                                 <i class="fas fa-shield-alt"></i>
                                 <span>Audit</span>
                                 <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
@@ -351,17 +381,17 @@
                 @endif
 
                 <!-- Anciens (Dropdown) -->
-                @if($userHasAccess)
+                @if ($userHasAccess)
                     @php
                         $showLegacyMenu =
                             auth()->user()->canAccess('legacy.clients') ||
                             auth()->user()->canAccess('legacy.fournisseurs') ||
                             auth()->user()->canAccess('legacy.reports');
                     @endphp
-                    @if($showLegacyMenu)
+                    @if ($showLegacyMenu)
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('anciens*') ? 'active' : '' }}" data-bs-toggle="collapse"
-                                href="#legacy" role="button" aria-expanded="false">
+                            <a class="nav-link {{ request()->is('anciens*') ? 'active' : '' }}"
+                                data-bs-toggle="collapse" href="#legacy" role="button" aria-expanded="false">
                                 <i class="fas fa-book"></i>
                                 <span>Anciens</span>
                                 <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
@@ -403,15 +433,15 @@
 
                 <!-- Configuration (Dropdown) -->
                 <li class="nav-item">
-                    <a class="nav-link mb-2 {{ request()->is('settings*') ? 'active' : '' }}" data-bs-toggle="collapse"
-                        href="#settings" role="button" aria-expanded="false">
+                    <a class="nav-link mb-2 {{ request()->is('settings*') ? 'active' : '' }}"
+                        data-bs-toggle="collapse" href="#settings" role="button" aria-expanded="false">
                         <i class="fa-solid fa-gear"></i>
                         <span>Paramètres</span>
                         <i class="fas fa-chevron-down ms-auto" style="font-size: 0.75rem;"></i>
                     </a>
                     <div class="collapse {{ request()->is('settings*') ? 'show' : '' }}" id="settings">
                         <ul class="nav flex-column dropdown-menu-custom">
-                            @if($userHasAccess)
+                            @if ($userHasAccess)
                                 @access('settings.users')
                                     <li class="nav-item">
                                         <a href="{{ route('settings.users') }}"

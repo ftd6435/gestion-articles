@@ -65,4 +65,9 @@ class EtagereModel extends Model
     {
         return $this->hasMany(LigneVenteClient::class, 'etagere_id');
     }
+
+    public function stockInitials()
+    {
+        return $this->hasMany(\App\Models\Stock\StockInitialArticle::class, 'etagere_id');
+    }
 }

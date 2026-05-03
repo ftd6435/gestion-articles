@@ -115,7 +115,8 @@ class Articles extends Component
                 'devise',
                 'ligneCommandes',
                 'ligneReceptions',
-                'ligneVentes'
+                'ligneVentes',
+                'stockInitials'
             ]);
 
         // Search
@@ -165,7 +166,8 @@ class Articles extends Component
         $query->when($this->filterStockLevel, function ($query) {
             $query->whereRaw(
                 '
-                (COALESCE((SELECT SUM(quantity) FROM ligne_reception_fournisseurs WHERE article_id = article_models.id), 0) -
+                (COALESCE((SELECT SUM(quantity) FROM stock_initial_articles WHERE article_id = article_models.id), 0) +
+                 COALESCE((SELECT SUM(quantity) FROM ligne_reception_fournisseurs WHERE article_id = article_models.id), 0) -
                  COALESCE((SELECT SUM(quantity) FROM ligne_vente_clients WHERE article_id = article_models.id), 0))
                 BETWEEN ? AND ?',
                 $this->getStockLevelRange($this->filterStockLevel)
@@ -194,11 +196,11 @@ class Articles extends Component
     private function getStockLevelRange($level)
     {
         return match ($level) {
-            'low' => [1, 9], // Stock faible (< 10)
-            'medium' => [10, 50], // Stock moyen (10-50)
-            'high' => [51, PHP_INT_MAX], // Stock élevé (> 50)
-            'out' => [PHP_INT_MIN, 0], // Rupture (negative stock)
-            default => [PHP_INT_MIN, PHP_INT_MAX] // All
+            'out'    => [-PHP_INT_MAX, 9],   // Rupture (< 10)
+            'low'    => [10, 20],             // Stock faible (10-20)
+            'medium' => [21, 50],             // Stock moyen (21-50)
+            'high'   => [51, PHP_INT_MAX],    // Stock élevé (> 50)
+            default  => [PHP_INT_MIN, PHP_INT_MAX]
         };
     }
 

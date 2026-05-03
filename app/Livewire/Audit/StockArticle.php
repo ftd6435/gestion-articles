@@ -43,7 +43,8 @@ class StockArticle extends Component
     private function stockExpression(): string
     {
         return '
-            (COALESCE((SELECT SUM(quantity) FROM ligne_reception_fournisseurs WHERE article_id = article_models.id), 0) -
+            (COALESCE((SELECT SUM(quantity) FROM stock_initial_articles WHERE article_id = article_models.id), 0) +
+             COALESCE((SELECT SUM(quantity) FROM ligne_reception_fournisseurs WHERE article_id = article_models.id), 0) -
              COALESCE((SELECT SUM(lvc.quantity)
                        FROM ligne_vente_clients lvc
                        JOIN vente_models vm ON vm.id = lvc.vente_id

@@ -512,10 +512,15 @@ class CreateVente extends Component
                 continue;
             }
 
-            // Corrigez la requête pour utiliser AND au lieu de OR
+            // Get shelves that have either receptions or initial stock for this article
             $etageres = EtagereModel::with('magasin')
-                ->whereHas('ligneReceptions', function ($query) use ($ligne) {
-                    $query->where('article_id', $ligne['article_id']);
+                ->where(function ($query) use ($ligne) {
+                    $query->whereHas('ligneReceptions', function ($q) use ($ligne) {
+                        $q->where('article_id', $ligne['article_id']);
+                    })
+                        ->orWhereHas('stockInitials', function ($q) use ($ligne) {
+                            $q->where('article_id', $ligne['article_id']);
+                        });
                 })
                 ->get()
                 ->filter(function ($etagere) use ($ligne) {
@@ -549,9 +554,15 @@ class CreateVente extends Component
         $bestEtagereId = null;
         $bestAvailable = 0;
 
+        // Get shelves that have either receptions or initial stock for this article
         $etageres = EtagereModel::query()
-            ->whereHas('ligneReceptions', function ($query) use ($articleId) {
-                $query->where('article_id', $articleId);
+            ->where(function ($query) use ($articleId) {
+                $query->whereHas('ligneReceptions', function ($q) use ($articleId) {
+                    $q->where('article_id', $articleId);
+                })
+                    ->orWhereHas('stockInitials', function ($q) use ($articleId) {
+                        $q->where('article_id', $articleId);
+                    });
             })
             ->orderBy('code_etagere')
             ->get(['id']);
@@ -617,6 +628,11 @@ class CreateVente extends Component
      */
     private function getDatabaseStock($articleId, $etagereId): int
     {
+        // Initial stock for this article on this shelf
+        $initial = \App\Models\Stock\StockInitialArticle::where('article_id', $articleId)
+            ->where('etagere_id', $etagereId)
+            ->sum('quantity');
+
         $received = LigneReceptionFournisseur::where('article_id', $articleId)
             ->where('etagere_id', $etagereId)
             ->sum('quantity');
@@ -626,7 +642,7 @@ class CreateVente extends Component
             ->whereHas('vente', fn($q) => $q->where('status', '!=', 'ANNULEE'))
             ->sum('quantity');
 
-        return max(0, $received - $sold);
+        return max(0, $initial + $received - $sold);
     }
 
     /**

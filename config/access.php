@@ -5,6 +5,7 @@ return [
         ['key' => 'dashboard', 'label' => 'Tableau de bord', 'group' => 'Général'],
 
         ['key' => 'articles', 'label' => 'Articles', 'group' => 'Stock'],
+        ['key' => 'stock.initial', 'label' => 'Stock initial', 'group' => 'Stock'],
         ['key' => 'clients', 'label' => 'Clients', 'group' => 'Ventes'],
         ['key' => 'fournisseurs', 'label' => 'Fournisseurs', 'group' => 'Stock'],
 
@@ -40,6 +41,7 @@ return [
         'dashboard' => 'dashboard',
 
         'articles' => 'articles',
+        'articles.stock-initial' => 'stock.initial',
         'clients' => 'clients',
         'fournisseurs' => 'fournisseurs',
 

@@ -107,10 +107,7 @@
                         <span class="input-group-text bg-light">
                             <i class="fas fa-search text-muted"></i>
                         </span>
-                        <input
-                            type="text"
-                            wire:model.live.debounce.300ms="search"
-                            class="form-control"
+                        <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
                             placeholder="Référence, désignation...">
                     </div>
                 </div>
@@ -120,7 +117,7 @@
                     <label class="form-label fw-semibold">Catégorie</label>
                     <select wire:model.live="filterCategory" class="form-select">
                         <option value="">Toutes</option>
-                        @foreach($categories as $category)
+                        @foreach ($categories as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
@@ -131,7 +128,7 @@
                     <label class="form-label fw-semibold">Devise</label>
                     <select wire:model.live="filterDevise" class="form-select">
                         <option value="">Toutes</option>
-                        @foreach($devises as $devise)
+                        @foreach ($devises as $devise)
                             <option value="{{ $devise->id }}">
                                 {{ $devise->code }} ({{ $devise->symbole }})
                             </option>
@@ -151,9 +148,7 @@
 
                 <!-- Reset Button -->
                 <div class="col-12 d-flex justify-content-end gap-2 mt-2">
-                    <button
-                        wire:click="resetFilters"
-                        @disabled(!$search && !$filterCategory && !$filterDevise && !$filterStatus)
+                    <button wire:click="resetFilters" @disabled(!$search && !$filterCategory && !$filterDevise && !$filterStatus)
                         class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-rotate-left me-1"></i>
                         Réinitialiser
@@ -165,46 +160,46 @@
                 </div>
 
                 <!-- Advanced Filters (Collapsible) -->
-                @if($showAdvancedFilters)
-                <div class="col-12 mt-3 border-top pt-3">
-                    <h6 class="fw-bold mb-3">Filtres avancés</h6>
-                    <div class="row g-3">
-                        <!-- Stock Level Filter -->
-                        <div class="col-6 col-md-4">
-                            <label class="form-label fw-semibold">Niveau de stock</label>
-                            <select wire:model.live="filterStockLevel" class="form-select">
-                                <option value="">Tous</option>
-                                <option value="low">Stock faible (< 10)</option>
-                                <option value="medium">Stock moyen (10-50)</option>
-                                <option value="high">Stock élevé (> 50)</option>
-                                <option value="out">Rupture</option>
-                            </select>
-                        </div>
+                @if ($showAdvancedFilters)
+                    <div class="col-12 mt-3 border-top pt-3">
+                        <h6 class="fw-bold mb-3">Filtres avancés</h6>
+                        <div class="row g-3">
+                            <!-- Stock Level Filter -->
+                            <div class="col-6 col-md-4">
+                                <label class="form-label fw-semibold">Niveau de stock</label>
+                                <select wire:model.live="filterStockLevel" class="form-select">
+                                    <option value="">Tous</option>
+                                    <option value="low">Stock faible (< 10)</option>
+                                    <option value="medium">Stock moyen (10-50)</option>
+                                    <option value="high">Stock élevé (> 50)</option>
+                                    <option value="out">Rupture</option>
+                                </select>
+                            </div>
 
-                        <!-- Margin Filter -->
-                        <div class="col-6 col-md-4">
-                            <label class="form-label fw-semibold">Marge bénéficiaire</label>
-                            <select wire:model.live="filterMargin" class="form-select">
-                                <option value="">Toutes</option>
-                                <option value="low">Faible (< 20%)</option>
-                                <option value="medium">Moyenne (20-50%)</option>
-                                <option value="high">Élevée (> 50%)</option>
-                            </select>
-                        </div>
+                            <!-- Margin Filter -->
+                            <div class="col-6 col-md-4">
+                                <label class="form-label fw-semibold">Marge bénéficiaire</label>
+                                <select wire:model.live="filterMargin" class="form-select">
+                                    <option value="">Toutes</option>
+                                    <option value="low">Faible (< 20%)</option>
+                                    <option value="medium">Moyenne (20-50%)</option>
+                                    <option value="high">Élevée (> 50%)</option>
+                                </select>
+                            </div>
 
-                        <!-- Last Updated Filter -->
-                        <div class="col-6 col-md-4">
-                            <label class="form-label fw-semibold">Dernière mise à jour</label>
-                            <select wire:model.live="filterLastUpdated" class="form-select">
-                                <option value="">Tous</option>
-                                <option value="today">Aujourd'hui</option>
-                                <option value="week">Cette semaine</option>
-                                <option value="month">Ce mois</option>
-                                <option value="year">Cette année</option>
-                            </select>
+                            <!-- Last Updated Filter -->
+                            <div class="col-6 col-md-4">
+                                <label class="form-label fw-semibold">Dernière mise à jour</label>
+                                <select wire:model.live="filterLastUpdated" class="form-select">
+                                    <option value="">Tous</option>
+                                    <option value="today">Aujourd'hui</option>
+                                    <option value="week">Cette semaine</option>
+                                    <option value="month">Ce mois</option>
+                                    <option value="year">Cette année</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
                 @endif
             </div>
         </div>
@@ -220,7 +215,8 @@
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-primary">{{ $articles->total() }} article(s)</span>
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -229,11 +225,14 @@
                                 <i class="fas fa-sync-alt me-2"></i>Actualiser
                             </a>
                         </li>
-                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
                         <li>
                             <div class="dropdown-item">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="showAdvanced" wire:model.live="showAdvancedFilters">
+                                    <input class="form-check-input" type="checkbox" id="showAdvanced"
+                                        wire:model.live="showAdvancedFilters">
                                     <label class="form-check-label" for="showAdvanced">Filtres avancés</label>
                                 </div>
                             </div>
@@ -267,30 +266,40 @@
                             @php
                                 // Calculate article statistics
                                 $totalOrdered = $article->ligneCommandes->sum('quantity');
+                                $totalInitial = $article->stockInitials->sum('quantity');
                                 $totalReceived = $article->ligneReceptions->sum('quantity');
                                 $totalSold = $article->ligneVentes->sum('quantity');
-                                $availableStock = $totalReceived - $totalSold;
-                                $stockPercentage = $totalReceived > 0 ? ($availableStock / $totalReceived) * 100 : 0;
-                                $margin = $article->prix_achat > 0 ? (($article->prix_vente - $article->prix_achat) / $article->prix_achat) * 100 : 0;
+                                $availableStock = $totalInitial + $totalReceived - $totalSold;
+                                $totalCombined = $totalInitial + $totalReceived;
+                                $stockPercentage = $totalCombined > 0 ? ($availableStock / $totalCombined) * 100 : 0;
+                                $margin =
+                                    $article->prix_achat > 0
+                                        ? (($article->prix_vente - $article->prix_achat) / $article->prix_achat) * 100
+                                        : 0;
                             @endphp
-                            <tr wire:click="showArticleDetails({{ $article->id }})" style="cursor: pointer;" class="hover-row">
+                            <tr wire:click="showArticleDetails({{ $article->id }})" style="cursor: pointer;"
+                                class="hover-row">
                                 <td class="text-center">
-                                    <span class="badge bg-light text-dark">{{ $loop->iteration + (($articles->currentPage() - 1) * $articles->perPage()) }}</span>
+                                    <span
+                                        class="badge bg-light text-dark">{{ $loop->iteration + ($articles->currentPage() - 1) * $articles->perPage() }}</span>
                                 </td>
 
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="flex-shrink-0 me-3">
-                                            <div class="article-avatar bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <div class="article-avatar bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 40px; height: 40px;">
                                                 <i class="fas fa-box"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
                                             <h6 class="mb-0 fw-semibold">{{ $article->reference }}</h6>
-                                            <small class="text-muted">{{ Str::limit($article->designation, 40) }}</small>
-                                            @if($article->description)
+                                            <small
+                                                class="text-muted">{{ Str::limit($article->designation, 40) }}</small>
+                                            @if ($article->description)
                                                 <div class="mt-1">
-                                                    <small class="text-muted"><i>{{ Str::limit($article->description, 30) }}</i></small>
+                                                    <small
+                                                        class="text-muted"><i>{{ Str::limit($article->description, 30) }}</i></small>
                                                 </div>
                                             @endif
                                         </div>
@@ -310,12 +319,17 @@
                                     <div class="d-flex flex-column align-items-center">
                                         <div class="position-relative" style="width: 60px; height: 60px;">
                                             <svg width="60" height="60" viewBox="0 0 42 42" class="donut">
-                                                <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="transparent"></circle>
-                                                <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#e9ecef" stroke-width="6"></circle>
-                                                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent"
-                                                        stroke="{{ $stockPercentage > 30 ? '#28a745' : ($stockPercentage > 10 ? '#ffc107' : '#dc3545') }}"
-                                                        stroke-width="6" stroke-dasharray="{{ $stockPercentage }} {{ 100 - $stockPercentage }}"
-                                                        stroke-dashoffset="25" stroke-linecap="round">
+                                                <circle class="donut-hole" cx="21" cy="21"
+                                                    r="15.91549430918954" fill="transparent"></circle>
+                                                <circle class="donut-ring" cx="21" cy="21"
+                                                    r="15.91549430918954" fill="transparent" stroke="#e9ecef"
+                                                    stroke-width="6"></circle>
+                                                <circle class="donut-segment" cx="21" cy="21"
+                                                    r="15.91549430918954" fill="transparent"
+                                                    stroke="{{ $stockPercentage > 30 ? '#28a745' : ($stockPercentage > 10 ? '#ffc107' : '#dc3545') }}"
+                                                    stroke-width="6"
+                                                    stroke-dasharray="{{ $stockPercentage }} {{ 100 - $stockPercentage }}"
+                                                    stroke-dashoffset="25" stroke-linecap="round">
                                                 </circle>
                                             </svg>
                                             <div class="position-absolute top-50 start-50 translate-middle">
@@ -330,17 +344,20 @@
                                     <div class="mb-1">
                                         <span class="text-muted small">Achat:</span>
                                         <div class="fw-semibold text-info">
-                                            {{ number_format($article->prix_achat, 2, ',', ' ') }} {{ $article->devise->symbole ?? $article->devise->code ?? '' }}
+                                            {{ number_format($article->prix_achat, 2, ',', ' ') }}
+                                            {{ $article->devise->symbole ?? ($article->devise->code ?? '') }}
                                         </div>
                                     </div>
                                     <div>
                                         <span class="text-muted small">Vente:</span>
                                         <div class="fw-semibold text-success">
-                                            {{ number_format($article->prix_vente, 2, ',', ' ') }} {{ $article->devise->symbole ?? $article->devise->code ?? '' }}
+                                            {{ number_format($article->prix_vente, 2, ',', ' ') }}
+                                            {{ $article->devise->symbole ?? ($article->devise->code ?? '') }}
                                         </div>
                                     </div>
                                     <div class="small mt-1">
-                                        <span class="badge {{ $margin >= 30 ? 'bg-success' : ($margin >= 10 ? 'bg-warning' : 'bg-danger') }} bg-opacity-10 text-{{ $margin >= 30 ? 'success' : ($margin >= 10 ? 'warning' : 'danger') }}">
+                                        <span
+                                            class="badge {{ $margin >= 30 ? 'bg-success' : ($margin >= 10 ? 'bg-warning' : 'bg-danger') }} bg-opacity-10 text-{{ $margin >= 30 ? 'success' : ($margin >= 10 ? 'warning' : 'danger') }}">
                                             {{ number_format($margin, 1, ',', ' ') }}% marge
                                         </span>
                                     </div>
@@ -368,7 +385,8 @@
                                         </div>
                                         <div class="col-6 mt-1">
                                             <div class="bg-light rounded p-2">
-                                                <div class="fw-bold {{ $availableStock > 10 ? 'text-success' : ($availableStock > 0 ? 'text-warning' : 'text-danger') }}">
+                                                <div
+                                                    class="fw-bold {{ $availableStock > 10 ? 'text-success' : ($availableStock > 0 ? 'text-warning' : 'text-danger') }}">
                                                     {{ $availableStock }}
                                                 </div>
                                                 <small class="text-muted">Stock</small>
@@ -380,13 +398,13 @@
                                 <td class="text-center">
                                     <div class="form-check form-switch d-inline-block">
                                         <input class="form-check-input" type="checkbox"
-                                               wire:change="toggleStatus({{ $article->id }})"
-                                               id="status{{ $article->id }}"
-                                               {{ $article->status ? 'checked' : '' }}>
+                                            wire:change="toggleStatus({{ $article->id }})"
+                                            id="status{{ $article->id }}" {{ $article->status ? 'checked' : '' }}>
                                         <label class="form-check-label" for="status{{ $article->id }}"></label>
                                     </div>
                                     <div class="mt-1">
-                                        <span class="badge {{ $article->status ? 'bg-success' : 'bg-secondary' }} small">
+                                        <span
+                                            class="badge {{ $article->status ? 'bg-success' : 'bg-secondary' }} small">
                                             {{ $article->status ? 'Actif' : 'Inactif' }}
                                         </span>
                                     </div>
@@ -395,16 +413,14 @@
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                         <button wire:click.stop="edit({{ $article->id }})"
-                                                class="btn btn-outline-primary"
-                                                data-bs-toggle="tooltip"
-                                                title="Modifier">
+                                            class="btn btn-outline-primary" data-bs-toggle="tooltip"
+                                            title="Modifier">
                                             <i class="fa fa-pen"></i>
                                         </button>
 
                                         <button wire:click.stop="deleteConfirm({{ $article->id }})"
-                                                class="btn btn-outline-danger"
-                                                data-bs-toggle="tooltip"
-                                                title="Supprimer">
+                                            class="btn btn-outline-danger" data-bs-toggle="tooltip"
+                                            title="Supprimer">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </div>
@@ -431,26 +447,31 @@
                 @forelse($articles as $article)
                     @php
                         $totalOrdered = $article->ligneCommandes->sum('quantity');
+                        $totalInitial = $article->stockInitials->sum('quantity');
                         $totalReceived = $article->ligneReceptions->sum('quantity');
                         $totalSold = $article->ligneVentes->sum('quantity');
-                        $availableStock = $totalReceived - $totalSold;
-                        $margin = $article->prix_achat > 0 ? (($article->prix_vente - $article->prix_achat) / $article->prix_achat) * 100 : 0;
+                        $availableStock = $totalInitial + $totalReceived - $totalSold;
+                        $margin =
+                            $article->prix_achat > 0
+                                ? (($article->prix_vente - $article->prix_achat) / $article->prix_achat) * 100
+                                : 0;
                     @endphp
-                    <div class="border-bottom p-3" wire:click="showArticleDetails({{ $article->id }})" style="cursor: pointer;">
+                    <div class="border-bottom p-3" wire:click="showArticleDetails({{ $article->id }})"
+                        style="cursor: pointer;">
                         <!-- Header -->
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <h6 class="fw-semibold mb-1">{{ $article->designation }}</h6>
                                 <p class="text-muted small mb-1">
                                     Réf: <span class="fw-semibold">{{ $article->reference }}</span>
-                                    <span class="badge bg-light text-dark ms-2">{{ $article->category->name ?? '—' }}</span>
+                                    <span
+                                        class="badge bg-light text-dark ms-2">{{ $article->category->name ?? '—' }}</span>
                                 </p>
                             </div>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox"
-                                       wire:change.stop="toggleStatus({{ $article->id }})"
-                                       id="mobStatus{{ $article->id }}"
-                                       {{ $article->status ? 'checked' : '' }}>
+                                    wire:change.stop="toggleStatus({{ $article->id }})"
+                                    id="mobStatus{{ $article->id }}" {{ $article->status ? 'checked' : '' }}>
                             </div>
                         </div>
 
@@ -458,7 +479,8 @@
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <div class="bg-light rounded p-2 text-center">
-                                    <div class="fw-bold {{ $availableStock > 10 ? 'text-success' : ($availableStock > 0 ? 'text-warning' : 'text-danger') }}">
+                                    <div
+                                        class="fw-bold {{ $availableStock > 10 ? 'text-success' : ($availableStock > 0 ? 'text-warning' : 'text-danger') }}">
                                         {{ $availableStock }} dispo
                                     </div>
                                     <small class="text-muted">Stock</small>
@@ -496,7 +518,8 @@
                             </div>
                             <div class="col-3">
                                 <div class="text-center">
-                                    <div class="fw-bold small {{ $margin >= 30 ? 'text-success' : ($margin >= 10 ? 'text-warning' : 'text-danger') }}">
+                                    <div
+                                        class="fw-bold small {{ $margin >= 30 ? 'text-success' : ($margin >= 10 ? 'text-warning' : 'text-danger') }}">
                                         {{ number_format($margin, 0) }}%
                                     </div>
                                     <small class="text-muted">Marge</small>
@@ -507,12 +530,12 @@
                         <!-- Actions -->
                         <div class="d-flex gap-2 mt-3">
                             <button wire:click.stop="edit({{ $article->id }})"
-                                    class="btn btn-sm btn-outline-primary flex-fill">
+                                class="btn btn-sm btn-outline-primary flex-fill">
                                 <i class="fa fa-pen me-1"></i> Modifier
                             </button>
 
                             <button wire:click.stop="deleteConfirm({{ $article->id }})"
-                                    class="btn btn-sm btn-outline-danger">
+                                class="btn btn-sm btn-outline-danger">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </div>
@@ -526,33 +549,34 @@
             </div>
 
             <!-- Pagination -->
-            @if($articles->hasPages())
-            <div class="card-footer">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-muted small">
-                        Affichage de {{ $articles->firstItem() }} à {{ $articles->lastItem() }} sur {{ $articles->total() }} articles
-                    </div>
-                    <div>
-                        {{ $articles->links('livewire::bootstrap') }}
+            @if ($articles->hasPages())
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            Affichage de {{ $articles->firstItem() }} à {{ $articles->lastItem() }} sur
+                            {{ $articles->total() }} articles
+                        </div>
+                        <div>
+                            {{ $articles->links('livewire::bootstrap') }}
+                        </div>
                     </div>
                 </div>
-            </div>
             @endif
         </div>
     </div>
 
     <!-- Empty State for No Results -->
-    @if($articles->count() === 0 && ($search || $filterCategory || $filterDevise || $filterStatus))
-    <div class="text-center py-5">
-        <div class="mb-4">
-            <i class="fas fa-search fa-4x text-muted opacity-25"></i>
+    @if ($articles->count() === 0 && ($search || $filterCategory || $filterDevise || $filterStatus))
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-search fa-4x text-muted opacity-25"></i>
+            </div>
+            <h5 class="text-muted mb-2">Aucun résultat trouvé</h5>
+            <p class="text-muted mb-4">Essayez de modifier vos critères de recherche ou réinitialisez les filtres</p>
+            <button wire:click="resetFilters" class="btn btn-primary">
+                <i class="fas fa-rotate-left me-2"></i> Réinitialiser les filtres
+            </button>
         </div>
-        <h5 class="text-muted mb-2">Aucun résultat trouvé</h5>
-        <p class="text-muted mb-4">Essayez de modifier vos critères de recherche ou réinitialisez les filtres</p>
-        <button wire:click="resetFilters" class="btn btn-primary">
-            <i class="fas fa-rotate-left me-2"></i> Réinitialiser les filtres
-        </button>
-    </div>
     @endif
 
     <!-- Modal -->
@@ -565,4 +589,3 @@
     @endif
 
 </div>
-
