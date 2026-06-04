@@ -368,10 +368,20 @@ body.modal-open {
     flex: 0 0 auto;
 }
 
+.card-footer nav {
+    width: 100%;
+}
+
 .card-footer .pagination {
     flex-wrap: wrap;
-    justify-content: space-between;
     gap: 0.25rem;
+    margin-bottom: 0;
+}
+
+@media (max-width: 575.98px) {
+    .card-footer nav .pagination {
+        justify-content: center;
+    }
 }
 
 /** FOUNISSEUR AVATAR */
