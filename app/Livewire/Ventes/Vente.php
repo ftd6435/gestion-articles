@@ -163,7 +163,7 @@ class Vente extends Component
 
         $this->applyFilters($query);
 
-        return $query->latest()->paginate(10);
+        return $query->latest()->paginate(15);
     }
 
     public function createVente()
