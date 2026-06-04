@@ -1,7 +1,8 @@
 <div class="container-fluid py-4">
 
     {{-- Header --}}
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
 
         {{-- Title --}}
         <h4 class="fw-bold mb-0 d-flex align-items-center">
@@ -13,13 +14,12 @@
         <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
 
             {{-- Currency Filter --}}
-            @if(!empty($availableDevises) && count($availableDevises) > 0)
-                <select wire:model.live="selectedDeviseId"
-                    class="form-select w-100 w-sm-auto">
-                    @foreach($availableDevises as $devise)
+            @if (!empty($availableDevises) && count($availableDevises) > 0)
+                <select wire:model.live="selectedDeviseId" class="form-select w-100 w-sm-auto">
+                    @foreach ($availableDevises as $devise)
                         <option value="{{ $devise->id }}">
                             {{ $devise->code }} ({{ $devise->symbole ?? $devise->code }})
-                            @if($devise->is_default)
+                            @if ($devise->is_default)
                                 - Par défaut
                             @endif
                         </option>
@@ -28,8 +28,7 @@
             @endif
 
             {{-- Create Button --}}
-            <button class="btn btn-primary w-100 w-sm-auto"
-                wire:click="createVente">
+            <button class="btn btn-primary w-100 w-sm-auto" wire:click="createVente">
                 <i class="fas fa-plus me-2"></i>
                 Nouvelle vente
             </button>
@@ -62,7 +61,8 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Payé</h6>
                             <h4 class="mb-0 fw-bold text-success">
-                                {{ number_format($totalPaid, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
+                                {{ number_format($totalPaid, 0, ',', ' ') }}
+                                {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
                             </h4>
                         </div>
                         <div class="bg-success text-white rounded-circle p-3">
@@ -80,7 +80,8 @@
                         <div>
                             <h6 class="text-muted mb-1">Total Dû</h6>
                             <h4 class="mb-0 fw-bold text-danger">
-                                {{ number_format($totalDue, 0, ',', ' ') }} {{ $currentDevise ? ($currentDevise->symbole ?? $currentDevise->code) : 'FG' }}
+                                {{ number_format($totalDue, 0, ',', ' ') }}
+                                {{ $currentDevise ? $currentDevise->symbole ?? $currentDevise->code : 'FG' }}
                             </h4>
                         </div>
                         <div class="bg-danger text-white rounded-circle p-3">
@@ -114,10 +115,8 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Recherche</label>
-                    <input type="text"
-                           class="form-control"
-                           wire:model.live.debounce.300ms="search"
-                           placeholder="Référence ou client...">
+                    <input type="text" class="form-control" wire:model.live.debounce.300ms="search"
+                        placeholder="Référence ou client...">
                 </div>
 
                 <div class="col-md-2">
@@ -133,16 +132,12 @@
 
                 <div class="col-md-2">
                     <label class="form-label">Date de début</label>
-                    <input type="date"
-                           class="form-control"
-                           wire:model.live.debounce.200ms="date_from">
+                    <input type="date" class="form-control" wire:model.live.debounce.200ms="date_from">
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label">Date de fin</label>
-                    <input type="date"
-                           class="form-control"
-                           wire:model.live.debounce.200ms="date_to">
+                    <input type="date" class="form-control" wire:model.live.debounce.200ms="date_to">
                 </div>
 
                 <div class="col-md-2 d-flex align-items-end">
@@ -150,7 +145,7 @@
                         <label class="form-label">Devise</label>
                         <select wire:model.live="selectedDeviseId" class="form-select">
                             <option value="">Toutes</option>
-                            @foreach($availableDevises as $devise)
+                            @foreach ($availableDevises as $devise)
                                 <option value="{{ $devise->id }}">
                                     {{ $devise->code }} ({{ $devise->symbole ?? $devise->code }})
                                 </option>
@@ -160,9 +155,8 @@
                 </div>
 
                 <div class="col-md-1 d-flex align-items-end">
-                    <button class="btn btn-outline-secondary w-100"
-                            wire:click="resetFilters"
-                            title="Réinitialiser les filtres">
+                    <button class="btn btn-outline-secondary w-100" wire:click="resetFilters"
+                        title="Réinitialiser les filtres">
                         <i class="fas fa-undo"></i>
                     </button>
                 </div>
@@ -192,7 +186,7 @@
                             $total = $vente->totalAfterRemise();
                             $paid = $vente->paiements()->sum('montant');
                             $remaining = max(0, $total - $paid);
-                            $currency = $vente->devise?->symbole ?? $vente->devise?->code ?? 'FG';
+                            $currency = $vente->devise?->symbole ?? ($vente->devise?->code ?? 'FG');
                         @endphp
                         <tr>
                             <td class="fw-semibold">{{ $vente->reference }}</td>
@@ -209,31 +203,31 @@
                             </td>
                             <td>
                                 @php
-                                    $config = match($vente->status) {
+                                    $config = match ($vente->status) {
                                         'PAYEE' => [
                                             'class' => 'bg-success bg-opacity-10 text-success border-success',
                                             'icon' => 'fa-check-circle',
-                                            'label' => 'Payée'
+                                            'label' => 'Payée',
                                         ],
                                         'PARTIELLE' => [
                                             'class' => 'bg-warning bg-opacity-10 text-warning border-warning',
                                             'icon' => 'fa-exclamation-circle',
-                                            'label' => 'Partielle'
+                                            'label' => 'Partielle',
                                         ],
                                         'IMPAYEE' => [
                                             'class' => 'bg-danger bg-opacity-10 text-danger border-danger',
                                             'icon' => 'fa-times-circle',
-                                            'label' => 'Impayée'
+                                            'label' => 'Impayée',
                                         ],
                                         'ANNULEE' => [
                                             'class' => 'bg-secondary bg-opacity-10 text-secondary border-secondary',
                                             'icon' => 'fa-ban',
-                                            'label' => 'Annulée'
+                                            'label' => 'Annulée',
                                         ],
                                         default => [
                                             'class' => 'bg-info bg-opacity-10 text-info border-info',
                                             'icon' => 'fa-info-circle',
-                                            'label' => ucfirst($vente->status)
+                                            'label' => ucfirst($vente->status),
                                         ],
                                     };
                                 @endphp
@@ -245,31 +239,30 @@
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button class="btn btn-outline-primary"
-                                            wire:click="showDetails({{ $vente->id }})"
-                                            title="Voir détails">
+                                        wire:click="showDetails({{ $vente->id }})" title="Voir détails">
                                         <i class="fas fa-eye"></i>
                                     </button>
 
-                                    @if(in_array($vente->status, ['IMPAYEE', 'PARTIELLE']))
+                                    @if (in_array($vente->status, ['IMPAYEE', 'PARTIELLE']))
                                         <button class="btn btn-outline-success"
-                                                wire:click="canPaiementModal({{ $vente->id }})"
-                                                title="Enregistrer un paiement">
+                                            wire:click="canPaiementModal({{ $vente->id }})"
+                                            title="Enregistrer un paiement">
                                             <i class="fas fa-money-bill-wave"></i>
                                         </button>
                                     @endif
 
-                                    @if($vente->status === 'IMPAYEE')
+                                    @if ($vente->status === 'IMPAYEE')
                                         <button class="btn btn-outline-warning"
-                                                wire:click="canCancelVente({{ $vente->id }})"
-                                                title="Annuler la vente">
+                                            wire:click="canCancelVente({{ $vente->id }})"
+                                            title="Annuler la vente">
                                             <i class="fas fa-ban"></i>
                                         </button>
                                     @endif
 
-                                    @if($vente->status === 'ANNULEE')
+                                    @if ($vente->status === 'ANNULEE')
                                         <button class="btn btn-outline-danger"
-                                                wire:click="canDeleteModal({{ $vente->id }})"
-                                                title="Supprimer la vente">
+                                            wire:click="canDeleteModal({{ $vente->id }})"
+                                            title="Supprimer la vente">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     @endif
@@ -281,7 +274,7 @@
                             <td colspan="8" class="text-center text-muted py-5">
                                 <i class="fas fa-inbox fa-3x mb-3"></i>
                                 <p class="mb-0">Aucune vente trouvée</p>
-                                @if($search || $status || $date_from || $date_to || $selectedDeviseId)
+                                @if ($search || $status || $date_from || $date_to || $selectedDeviseId)
                                     <p class="small mt-2">
                                         <button class="btn btn-sm btn-link" wire:click="resetFilters">
                                             Réinitialiser les filtres
@@ -296,30 +289,30 @@
         </div>
 
         {{-- Pagination --}}
-        @if($ventes->hasPages())
+        @if ($this->ventes->hasPages())
             <div class="card-footer border-0 bg-light">
-                {{ $ventes->links() }}
+                {{ $this->ventes->links() }}
             </div>
         @endif
     </div>
 
     {{-- Details Modal --}}
-    @if($showDetailsModal && $selectedVente)
+    @if ($showDetailsModal && $selectedVente)
         @include('livewire.ventes.vente-details-modal')
     @endif
 
     {{-- Paiement Modal --}}
-    @if($showPaiementModal && $selectedVente)
+    @if ($showPaiementModal && $selectedVente)
         @include('livewire.ventes.vente-paiement-modal')
     @endif
 
     {{-- Cancel Modal --}}
-    @if($showCancelModal && $selectedVente)
+    @if ($showCancelModal && $selectedVente)
         @include('livewire.ventes.vente-cancel-modal')
     @endif
 
     {{-- Delete Modal --}}
-    @if($showDeleteModal && $selectedVente)
+    @if ($showDeleteModal && $selectedVente)
         @include('livewire.ventes.vente-delete-modal')
     @endif
 
