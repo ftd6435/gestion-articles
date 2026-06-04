@@ -291,7 +291,9 @@
         {{-- Pagination --}}
         @if ($this->ventes->hasPages())
             <div class="card-footer border-0 bg-light">
-                {{ $this->ventes->links() }}
+                <div class="d-flex justify-content-center">
+                    {{ $this->ventes->links() }}
+                </div>
             </div>
         @endif
     </div>

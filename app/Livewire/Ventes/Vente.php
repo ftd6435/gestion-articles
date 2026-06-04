@@ -15,6 +15,7 @@ class Vente extends Component
     use WithPagination;
 
     // public $ventes = [];
+    protected string $paginationTheme = 'bootstrap';
     public $showDetailsModal = false;
     public $selectedVente;
     public $showPaiementModal = false;

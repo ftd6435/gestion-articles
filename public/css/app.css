@@ -368,6 +368,12 @@ body.modal-open {
     flex: 0 0 auto;
 }
 
+.card-footer .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
 /** FOUNISSEUR AVATAR */
 .supplier-avatar {
     width: 42px;
