@@ -370,7 +370,7 @@ body.modal-open {
 
 .card-footer .pagination {
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-between;
     gap: 0.25rem;
 }
 
